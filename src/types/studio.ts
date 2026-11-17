@@ -64,6 +64,58 @@ export const FRAME_TEMPLATE_OPTIONS: FrameTemplateOption[] = [
   },
 ];
 
+export type MotionShaderPreset = 'none' | 'candlelight-bokeh' | 'vintage-film-dust' | 'stardust-drift';
+
+export interface MotionBackgroundConfig {
+  preset: MotionShaderPreset;
+  speed: number; // 0.2 to 2.0, default 1.0
+  intensity: number; // 0.1 to 1.0, default 0.8
+  videoUrl?: string | null;
+  videoDuration?: number;
+}
+
+export const DEFAULT_MOTION_CONFIG: MotionBackgroundConfig = {
+  preset: 'none',
+  speed: 1.0,
+  intensity: 0.8,
+  videoUrl: null,
+  videoDuration: 0,
+};
+
+export interface MotionShaderOption {
+  id: MotionShaderPreset;
+  name: string;
+  subtitle: string;
+  description: string;
+}
+
+export const MOTION_SHADER_OPTIONS: MotionShaderOption[] = [
+  {
+    id: 'none',
+    name: 'Static / Off',
+    subtitle: 'Zero motion',
+    description: 'Crisp static background photo or solid luxury backdrop.',
+  },
+  {
+    id: 'candlelight-bokeh',
+    name: 'Candlelight Bokeh',
+    subtitle: 'Warm Romantic Orbs',
+    description: 'Soft out-of-focus amber light spheres drifting upwards with gentle organic luminescence.',
+  },
+  {
+    id: 'vintage-film-dust',
+    name: '8mm Film Dust & Grain',
+    subtitle: 'Nostalgic Super-8',
+    description: 'Procedural analog celluloid film dust specks, micro-scratches, and vintage grain.',
+  },
+  {
+    id: 'stardust-drift',
+    name: 'Stardust Sparkle',
+    subtitle: 'Floating Golden Dust',
+    description: 'Ethereal micro-particles shimmering in 3D parallax space in sync with the audio playback.',
+  },
+];
+
 export type AspectRatioPreset = '9:16' | '4:5' | '1:1' | '16:9';
 
 export type SafeZoneMode = 'off' | 'reels' | 'tiktok' | 'combined';
@@ -250,6 +302,7 @@ export interface StudioConfig {
   lineCap?: 'round' | 'butt' | 'square';
   particleDensity?: number;
   frame: FrameConfig;
+  motion: MotionBackgroundConfig;
   qrWatermark: QrWatermarkConfig;
   typography: TypographyConfig;
   audioSettings: AudioSettings;

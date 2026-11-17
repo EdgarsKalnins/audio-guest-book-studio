@@ -1,6 +1,7 @@
 import { StudioConfig, VisualizerStyle, GRADIENT_PRESETS } from '../../types/studio';
 import { drawQrBadge } from '../qrGenerator';
 import { renderFrameTemplate } from './frames';
+import { renderMotionBackground } from './motionBackground';
 
 export function getVisualizerPattern(
   ctx: CanvasRenderingContext2D,
@@ -96,6 +97,11 @@ export function drawStudioFrame(
   const voiceAvg = voiceSum / 31; // 0 to 255
   // Dynamic Vocal Punch: 1.0x at rest up to 2.5x during spoken words
   const vocalPunch = 1.0 + Math.pow(Math.min(1.0, voiceAvg / 130), 1.1) * 1.5;
+
+  // 4. Draw Procedural Motion & B-Roll Shaders (Candlelight Bokeh, 8mm Film Dust, Stardust)
+  if (config.backgroundMode !== 'transparent') {
+    renderMotionBackground(ctx, width, height, config.motion, currentTime, voiceAvg);
+  }
 
   // Draw Audio Visualizer positioned harmoniously with active frame template
   const isLandscape = width > height;

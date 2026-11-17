@@ -16,7 +16,7 @@ This document outlines the **10 approved roadmap features** scheduled for implem
 | **04** | **Transparent Alpha Video Export (WebM/ProRes)** | Wedding Videographers & Editors | Medium | FFmpeg `yuva420p` & ProRes 4444 | ✅ Completed |
 | **05** | **Silence Trimmer & Outgoing Greeting Prepend** | Rental Operators & Couples | Medium | Audio Buffer Scanning & Sequencing | ✅ Completed |
 | **06** | **Polaroid & Retro Photo Collage Templates** | Vintage Weddings & Events | Medium | Canvas Compositor / Frame Presets | ✅ Completed |
-| **07** | **Looping Video & Animated B-Roll Backgrounds** | Creators & Reels Marketers | High | HTML5 Video Canvas / FFmpeg Multi-Input | 📋 Planned |
+| **07** | **Looping Video & Animated B-Roll Backgrounds** | Creators & Reels Marketers | High | HTML5 Video Canvas / FFmpeg Multi-Input | ✅ Completed |
 | **08** | **Local AI Speech-to-Text Subtitles (Whisper)** | Couples & Social Media Viewers | High | Whisper.cpp WASM / WebGPU (Local) | 📋 Planned |
 | **09** | **Fine-Grained Waveform Styling & Gradients** | Designers & Event Stylists | Low | Canvas Gradients / Particle Physics | ✅ Completed |
 | **10** | **Dynamic QR Code Gallery Watermark** | Rental Businesses & Event Hosts | Low | Offline SVG/Canvas QR Generator | ✅ Completed |
@@ -112,15 +112,20 @@ This document outlines the **10 approved roadmap features** scheduled for implem
 
 ---
 
-### 7. Looping Video & Animated B-Roll Backgrounds
-* **User Story**: As a creator, I want subtle motion in the background (flickering romantic candlelight, soft bokeh lights, or a 5-second slow-motion wedding dance loop) instead of a static image.
+### 7. Looping Video & Animated B-Roll Backgrounds `✅ Completed`
+* **User Story**: As a creator, I want subtle motion in the background (flickering romantic candlelight bokeh, vintage 8mm celluloid film dust, or looping wedding b-roll video) instead of a static image.
 * **Architecture & Modules**:
-  - Background media selector accepts `.mp4`, `.mov`, and `.webm` files in addition to images.
-  - `src/engine/frameGenerator.ts`: Video frame extraction synchronizer: extracts time-synchronized video frames from background video element during export.
-  - Bundled procedural motion shaders: includes built-in offline CSS/Canvas shaders for subtle animated bokeh particles and vintage 8mm film grain dust.
+  - `src/engine/visualizers/motionBackground.ts`: 100% offline procedural motion shaders running at 60 FPS:
+    - **Candlelight Bokeh**: Floating warm amber light spheres drifting upwards with organic sinusoidal sway and luminescence breathing.
+    - **Vintage 8mm Film Dust & Grain**: Organic analog celluloid dust specks, micro-scratches, and vintage film grain.
+    - **Stardust Sparkle**: Ethereal golden micro-particles shimmering in 3D parallax depth with voice amplitude reactivity.
+    - **Video Frame Synchronizer**: Seeks and draws live looping `HTMLVideoElement` frames (`.mp4`, `.mov`, `.webm`) in lockstep with the frame clock during export.
+  - `src/components/MotionBackgroundPanel.tsx`: Dedicated Motion drawer with shader swatches, intensity slider (20% to 100%), and drift speed controls (0.4x to 2.0x) with one-click reset.
+  - Native file picker and dropzone in `MediaDropzone.tsx` and `electron/main.ts` updated to accept video containers.
 * **Acceptance Criteria**:
-  - Loops seamlessly throughout the duration of the audio recording.
-  - FFmpeg pipeline pipes composite video frames without frame drops or audio desynchronization.
+  - Loops seamlessly throughout the duration of the audio recording without frame drops or audio desynchronization.
+  - Procedural shaders execute completely offline with zero memory accumulation.
+  - Unit tests in `tests/motionBackground.test.ts` verifying all presets, video loop math, and deterministic execution.
 
 ---
 
@@ -211,7 +216,7 @@ flowchart LR
 
     subgraph Phase3["Phase 3: Creative & AI Evolution (Long Term)"]
         F06["#06: Polaroid & Vintage Frame Templates (Done)"]
-        F07["#07: Looping Video & B-Roll Backgrounds"]
+        F07["#07: Looping Video & B-Roll Backgrounds (Done)"]
         F08["#08: Offline Whisper AI Subtitles"]
     end
 

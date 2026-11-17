@@ -272,9 +272,11 @@ function setupIPCHandlers() {
   ipcMain.handle('dialog:openImage', async () => {
     if (!win) return null;
     const res = await dialog.showOpenDialog(win, {
-      title: 'Select Background Image',
+      title: 'Select Background Photo or Video Loop',
       filters: [
-        { name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'webp'] },
+        { name: 'All Media (Photos & Videos)', extensions: ['jpg', 'jpeg', 'png', 'webp', 'mp4', 'mov', 'webm'] },
+        { name: 'Photos', extensions: ['jpg', 'jpeg', 'png', 'webp'] },
+        { name: 'Videos', extensions: ['mp4', 'mov', 'webm'] },
       ],
       properties: ['openFile'],
     });

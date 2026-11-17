@@ -111,7 +111,7 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
       <input
         ref={imageInputRef}
         type="file"
-        accept="image/*,.jpg,.jpeg,.png,.webp"
+        accept="image/*,video/*,.jpg,.jpeg,.png,.webp,.mp4,.mov,.webm"
         className="hidden"
         onChange={(e) => {
           if (e.target.files && e.target.files.length > 0) {
