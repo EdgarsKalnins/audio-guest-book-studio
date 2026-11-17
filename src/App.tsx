@@ -112,6 +112,18 @@ export const App: React.FC = () => {
     percentage: 0,
   });
 
+  const [expandedBlocks, setExpandedBlocks] = useState<{ 1: boolean; 2: boolean; 3: boolean }>(() => {
+    try {
+      const p = new URLSearchParams(window.location.search).get('compact');
+      if (p === 'all' || p === '1,2,3') return { 1: false, 2: false, 3: false };
+      if (p === '1,2') return { 1: false, 2: false, 3: true };
+      if (p === '3') return { 1: true, 2: true, 3: false };
+    } catch {
+      // ignore
+    }
+    return { 1: true, 2: true, 3: true };
+  });
+
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     try {
       const p = new URLSearchParams(window.location.search).get('theme');
@@ -746,8 +758,8 @@ export const App: React.FC = () => {
     const tracks = config.timelineTracks && config.timelineTracks.length > 0
       ? config.timelineTracks
       : config.audioPath
-      ? [{ id: '1', name: config.audioName || 'Guest Recording', path: config.audioPath, duration: config.audioDuration, startTime: 0, endTime: config.audioDuration }]
-      : [];
+        ? [{ id: '1', name: config.audioName || 'Guest Recording', path: config.audioPath, duration: config.audioDuration, startTime: 0, endTime: config.audioDuration }]
+        : [];
 
     const jobs: BatchItem[] = tracks.map((t) => ({
       id: t.id,
@@ -846,12 +858,12 @@ export const App: React.FC = () => {
           batchQueue: prev.batchQueue.map((item) =>
             item.id === job.fileId
               ? {
-                  ...item,
-                  status: job.status,
-                  progress: job.progress,
-                  error: job.error,
-                  outputPath: job.outputPath,
-                }
+                ...item,
+                status: job.status,
+                progress: job.progress,
+                error: job.error,
+                outputPath: job.outputPath,
+              }
               : item
           ),
         }));
@@ -921,21 +933,19 @@ export const App: React.FC = () => {
           <div className="flex items-center p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 text-xs">
             <button
               onClick={() => setMobileTab('stage')}
-              className={`px-2 py-0.5 rounded text-[11px] font-medium transition-all ${
-                mobileTab === 'stage'
+              className={`px-2 py-0.5 rounded text-[11px] font-medium transition-all ${mobileTab === 'stage'
                   ? 'bg-white dark:bg-zinc-700 text-zinc-950 dark:text-white shadow-sm font-semibold'
                   : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
-              }`}
+                }`}
             >
               Stage
             </button>
             <button
               onClick={() => setMobileTab('controls')}
-              className={`px-2 py-0.5 rounded text-[11px] font-medium transition-all ${
-                mobileTab === 'controls'
+              className={`px-2 py-0.5 rounded text-[11px] font-medium transition-all ${mobileTab === 'controls'
                   ? 'bg-white dark:bg-zinc-700 text-zinc-950 dark:text-white shadow-sm font-semibold'
                   : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
-              }`}
+                }`}
             >
               Controls
             </button>
@@ -958,9 +968,8 @@ export const App: React.FC = () => {
 
       {/* LEFT AREA: Canvas Stage & Live Audio Scrubber */}
       <div
-        className={`flex-1 min-w-0 h-full flex flex-col ${
-          mobileTab === 'stage' ? 'flex' : 'hidden lg:flex'
-        }`}
+        className={`flex-1 min-w-0 h-full flex flex-col ${mobileTab === 'stage' ? 'flex' : 'hidden lg:flex'
+          }`}
       >
         <CanvasStage
           config={config}
@@ -978,24 +987,21 @@ export const App: React.FC = () => {
         onMouseDown={handleMouseDownResize}
         onDoubleClick={handleResetSidebarWidth}
         title="Drag to resize controls panel (Double-click to reset width)"
-        className={`hidden lg:flex items-center justify-center w-2 -ml-1 z-30 cursor-col-resize select-none group transition-colors ${
-          isResizing ? 'bg-amber-400/30' : 'hover:bg-amber-400/20 active:bg-amber-400/30'
-        }`}
+        className={`hidden lg:flex items-center justify-center w-2 -ml-1 z-30 cursor-col-resize select-none group transition-colors ${isResizing ? 'bg-amber-400/30' : 'hover:bg-amber-400/20 active:bg-amber-400/30'
+          }`}
       >
         <div
-          className={`w-1 h-9 rounded-full transition-all ${
-            isResizing
+          className={`w-1 h-9 rounded-full transition-all ${isResizing
               ? 'bg-amber-500 scale-y-125 shadow-sm'
               : 'bg-zinc-300 dark:bg-zinc-700 group-hover:bg-amber-400 dark:group-hover:bg-amber-400 group-hover:scale-y-110'
-          }`}
+            }`}
         />
       </div>
 
       {/* RIGHT AREA: Studio Controls Side Panel */}
       <div
-        className={`w-full lg:w-[var(--sidebar-width)] shrink-0 h-full flex flex-col bg-white dark:bg-[#131316] border-t lg:border-t-0 lg:border-l border-zinc-200 dark:border-white/[0.08] overflow-hidden transition-colors duration-200 ${
-          mobileTab === 'controls' ? 'flex' : 'hidden lg:flex'
-        }`}
+        className={`w-full lg:w-[var(--sidebar-width)] shrink-0 h-full flex flex-col bg-white dark:bg-[#131316] border-t lg:border-t-0 lg:border-l border-zinc-200 dark:border-white/[0.08] overflow-hidden transition-colors duration-200 ${mobileTab === 'controls' ? 'flex' : 'hidden lg:flex'
+          }`}
       >
         {/* Desktop Title Bar Header (hidden on mobile, visible on lg screens) */}
         <div
@@ -1050,11 +1056,10 @@ export const App: React.FC = () => {
           <div className="grid grid-cols-3 gap-1">
             <button
               onClick={() => setActiveTab('visualizer')}
-              className={`h-8 px-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 select-none ${
-                activeTab === 'visualizer'
+              className={`h-8 px-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 select-none ${activeTab === 'visualizer'
                   ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-xs border border-zinc-200 dark:border-white/[0.12] font-semibold ring-1 ring-black/[0.04] dark:ring-white/[0.04]'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/60 dark:hover:bg-white/[0.04]'
-              }`}
+                }`}
               title="Audio Visualizer Style & Waveform"
             >
               <Waveform className="w-3.5 h-3.5 shrink-0 text-amber-500" weight={activeTab === 'visualizer' ? 'bold' : 'regular'} />
@@ -1062,11 +1067,10 @@ export const App: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('frames')}
-              className={`h-8 px-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 select-none ${
-                activeTab === 'frames'
+              className={`h-8 px-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 select-none ${activeTab === 'frames'
                   ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-xs border border-zinc-200 dark:border-white/[0.12] font-semibold ring-1 ring-black/[0.04] dark:ring-white/[0.04]'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/60 dark:hover:bg-white/[0.04]'
-              }`}
+                }`}
               title="Polaroid, Photostrip & Retro Templates"
             >
               <Camera className="w-3.5 h-3.5 shrink-0 text-amber-500" weight={activeTab === 'frames' ? 'bold' : 'regular'} />
@@ -1077,11 +1081,10 @@ export const App: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('motion')}
-              className={`h-8 px-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 select-none ${
-                activeTab === 'motion'
+              className={`h-8 px-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 select-none ${activeTab === 'motion'
                   ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-xs border border-zinc-200 dark:border-white/[0.12] font-semibold ring-1 ring-black/[0.04] dark:ring-white/[0.04]'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/60 dark:hover:bg-white/[0.04]'
-              }`}
+                }`}
               title="Procedural Motion Backgrounds & Shaders"
             >
               <FilmReel className="w-3.5 h-3.5 shrink-0 text-amber-500" weight={activeTab === 'motion' ? 'bold' : 'regular'} />
@@ -1096,11 +1099,10 @@ export const App: React.FC = () => {
           <div className="grid grid-cols-4 gap-1">
             <button
               onClick={() => setActiveTab('typography')}
-              className={`h-8 px-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1 select-none ${
-                activeTab === 'typography'
+              className={`h-8 px-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1 select-none ${activeTab === 'typography'
                   ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-xs border border-zinc-200 dark:border-white/[0.12] font-semibold ring-1 ring-black/[0.04] dark:ring-white/[0.04]'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/60 dark:hover:bg-white/[0.04]'
-              }`}
+                }`}
               title="Couple Names, Wedding Date & Fonts"
             >
               <TextT className="w-3.5 h-3.5 shrink-0 text-amber-500" weight={activeTab === 'typography' ? 'bold' : 'regular'} />
@@ -1108,11 +1110,10 @@ export const App: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('subtitles')}
-              className={`h-8 px-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1 select-none ${
-                activeTab === 'subtitles'
+              className={`h-8 px-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1 select-none ${activeTab === 'subtitles'
                   ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-xs border border-zinc-200 dark:border-white/[0.12] font-semibold ring-1 ring-black/[0.04] dark:ring-white/[0.04]'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/60 dark:hover:bg-white/[0.04]'
-              }`}
+                }`}
               title="AI Speech-to-Text & Karaoke Subtitles"
             >
               <ChatCenteredText className="w-3.5 h-3.5 shrink-0 text-amber-500" weight={activeTab === 'subtitles' ? 'bold' : 'regular'} />
@@ -1123,11 +1124,10 @@ export const App: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('qr')}
-              className={`h-8 px-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1 select-none ${
-                activeTab === 'qr'
+              className={`h-8 px-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1 select-none ${activeTab === 'qr'
                   ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-xs border border-zinc-200 dark:border-white/[0.12] font-semibold ring-1 ring-black/[0.04] dark:ring-white/[0.04]'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/60 dark:hover:bg-white/[0.04]'
-              }`}
+                }`}
               title="Dynamic Scannable Audio QR Code Watermark"
             >
               <QrCode className="w-3.5 h-3.5 shrink-0 text-amber-500" weight={activeTab === 'qr' ? 'bold' : 'regular'} />
@@ -1138,11 +1138,10 @@ export const App: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('audio')}
-              className={`h-8 px-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1 select-none ${
-                activeTab === 'audio'
+              className={`h-8 px-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1 select-none ${activeTab === 'audio'
                   ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-xs border border-zinc-200 dark:border-white/[0.12] font-semibold ring-1 ring-black/[0.04] dark:ring-white/[0.04]'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/60 dark:hover:bg-white/[0.04]'
-              }`}
+                }`}
               title="Voice Boost, Noise Gate & Speech Clarifier"
             >
               <SpeakerHigh className="w-3.5 h-3.5 shrink-0 text-amber-500" weight={activeTab === 'audio' ? 'bold' : 'regular'} />
@@ -1158,6 +1157,66 @@ export const App: React.FC = () => {
         <div className="flex-1 overflow-y-auto px-3.5 sm:px-4 py-2 space-y-3 custom-scrollbar">
           {activeTab === 'visualizer' && (
             <>
+              {/* Step Navigator & Compact/Unpack Bar */}
+              <div className="flex items-center justify-between px-1 py-0.5 text-xs">
+                <div className="flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                    Steps
+                  </span>
+                  <div className="flex items-center gap-1">
+                    {([1, 2, 3] as const).map((stepNum) => {
+                      const isExp = expandedBlocks[stepNum];
+                      const stepTitles = {
+                        1: '1. Audio Timeline',
+                        2: '2. Canvas Background',
+                        3: '3. Visualizer & Styling',
+                      };
+                      return (
+                        <button
+                          key={stepNum}
+                          type="button"
+                          onClick={() =>
+                            setExpandedBlocks((prev) => ({
+                              ...prev,
+                              [stepNum]: !prev[stepNum],
+                            }))
+                          }
+                          className={`h-5 px-1.5 rounded text-[10px] font-mono font-medium flex items-center gap-1 transition-all ${
+                            isExp
+                              ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 shadow-2xs font-bold'
+                              : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 border border-zinc-200/60 dark:border-white/[0.06]'
+                          }`}
+                          title={`${stepTitles[stepNum]}: Click to ${isExp ? 'compact' : 'unpack'}`}
+                        >
+                          <span>{stepNum}</span>
+                          <span className={`text-[8px] transition-transform duration-200 ${isExp ? 'text-amber-500' : 'text-zinc-400'}`}>
+                            {isExp ? '▼' : '▶'}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setExpandedBlocks({ 1: true, 2: true, 3: true })}
+                    className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-amber-500 dark:hover:text-amber-400 transition-colors"
+                  >
+                    Unpack All
+                  </button>
+                  <span className="text-zinc-300 dark:text-zinc-700 text-[10px]">•</span>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedBlocks({ 1: false, 2: false, 3: false })}
+                    className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-amber-500 dark:hover:text-amber-400 transition-colors"
+                  >
+                    Compact All
+                  </button>
+                </div>
+              </div>
+
               <MediaDropzone
                 config={config}
                 updateConfig={setConfig}
@@ -1178,8 +1237,23 @@ export const App: React.FC = () => {
                 }}
                 onRemoveTrack={handleRemoveTrack}
                 onSeekTrack={handleSeekTrack}
+                isAudioExpanded={expandedBlocks[1]}
+                onToggleAudioExpanded={() =>
+                  setExpandedBlocks((prev) => ({ ...prev, 1: !prev[1] }))
+                }
+                isBgExpanded={expandedBlocks[2]}
+                onToggleBgExpanded={() =>
+                  setExpandedBlocks((prev) => ({ ...prev, 2: !prev[2] }))
+                }
               />
-              <VisualizerPanel config={config} updateConfig={setConfig} />
+              <VisualizerPanel
+                config={config}
+                updateConfig={setConfig}
+                isExpanded={expandedBlocks[3]}
+                onToggleExpanded={() =>
+                  setExpandedBlocks((prev) => ({ ...prev, 3: !prev[3] }))
+                }
+              />
             </>
           )}
 
