@@ -586,9 +586,10 @@ export const App: React.FC = () => {
   };
 
   const isExporting = exportProgress.status === 'preparing' || exportProgress.status === 'rendering';
+  const isMac = window.electronAPI?.platform === 'darwin';
 
   return (
-    <div className="flex h-screen w-screen bg-[#0f0e0d] text-[#e8e4df] font-sans overflow-hidden select-none">
+    <div className="flex h-screen w-screen bg-[#0d0d0f] text-[#f4f4f5] font-sans overflow-hidden select-none">
       {/* LEFT AREA: Canvas Stage & Live Audio Scrubber */}
       <CanvasStage
         config={config}
@@ -600,45 +601,49 @@ export const App: React.FC = () => {
       />
 
       {/* RIGHT AREA: Studio Controls Side Panel */}
-      <div className="w-[430px] shrink-0 h-full flex flex-col bg-[#141211] border-l border-[#24201d] overflow-hidden">
-        {/* Title Bar Header */}
-        <div className="pt-8 px-6 pb-4 border-b border-[#24201d] flex items-center justify-between">
+      <div className="w-[430px] shrink-0 h-full flex flex-col bg-[#131316] border-l border-white/[0.08] overflow-hidden">
+        {/* Title Bar Header (cross-platform padding & window drag) */}
+        <div
+          className={`${
+            isMac ? 'pt-7' : 'pt-4'
+          } px-6 pb-3.5 border-b border-white/[0.08] flex items-center justify-between app-drag-region bg-[#131316]`}
+        >
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gold-500/20 border border-gold-500/35 flex items-center justify-center shadow-sm">
-              <Sparkles className="w-4 h-4 text-gold-400" />
+            <div className="w-7 h-7 rounded-lg bg-zinc-800 border border-white/10 flex items-center justify-center shadow-sm text-zinc-200">
+              <Sparkles className="w-3.5 h-3.5" />
             </div>
             <div>
-              <h1 className="text-base font-semibold tracking-wide text-[#fdfaf5]">Wedding Audio Studio</h1>
-              <p className="text-[11px] text-[#8e857c]">Guest Record Video Generator</p>
+              <h1 className="text-sm font-semibold tracking-tight text-zinc-100">Wedding Audio Studio</h1>
+              <p className="text-[11px] text-zinc-400">Guest Record Video Generator</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 app-no-drag">
             {config.timelineTracks && config.timelineTracks.length > 1 && (
-              <span className="px-2.5 py-1 rounded-lg bg-gold-500/15 border border-gold-500/30 text-gold-300 text-xs font-medium flex items-center gap-1.5">
-                <ListMusic className="w-3.5 h-3.5" />
+              <span className="px-2.5 py-1 rounded-lg bg-zinc-800 border border-white/[0.08] text-zinc-300 text-xs font-medium flex items-center gap-1.5 shadow-sm">
+                <ListMusic className="w-3.5 h-3.5 text-zinc-400" />
                 {config.timelineTracks.length} in Sequence
               </span>
             )}
             <button
               onClick={() => setIsExitModalOpen(true)}
-              className="p-1.5 px-2.5 rounded-lg text-[#8c8276] hover:text-[#fdfaf5] hover:bg-[#25201c] border border-[#2e2722] hover:border-[#423830] transition-all flex items-center gap-1.5 text-xs font-medium"
-              title="Exit Wedding Audio Studio"
+              className="p-1.5 px-2.5 rounded-lg text-zinc-400 hover:text-rose-300 hover:bg-rose-950/25 border border-white/[0.06] hover:border-rose-500/30 transition-all flex items-center gap-1.5 text-xs font-medium shadow-sm"
+              title="Exit Studio"
             >
-              <LogOut className="w-3.5 h-3.5 text-gold-400/80" />
+              <LogOut className="w-3.5 h-3.5" />
               <span>Exit</span>
             </button>
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex items-center px-6 pt-3 pb-2 gap-2 border-b border-[#201c1a]">
+        {/* Tab Navigation: Segmented Studio Control */}
+        <div className="flex items-center mx-6 my-3 p-1 rounded-xl bg-zinc-900 border border-white/[0.06] gap-1">
           <button
             onClick={() => setActiveTab('visualizer')}
-            className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
               activeTab === 'visualizer'
-                ? 'bg-[#221d19] text-gold-300 border border-gold-500/30 shadow-sm'
-                : 'text-[#8c8276] hover:text-[#ded8cf]'
+                ? 'bg-zinc-800 text-zinc-100 shadow-sm border border-white/[0.08]'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40'
             }`}
           >
             <Activity className="w-3.5 h-3.5" />
@@ -646,10 +651,10 @@ export const App: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab('typography')}
-            className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
               activeTab === 'typography'
-                ? 'bg-[#221d19] text-gold-300 border border-gold-500/30 shadow-sm'
-                : 'text-[#8c8276] hover:text-[#ded8cf]'
+                ? 'bg-zinc-800 text-zinc-100 shadow-sm border border-white/[0.08]'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40'
             }`}
           >
             <Type className="w-3.5 h-3.5" />
@@ -657,10 +662,10 @@ export const App: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab('audio')}
-            className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
               activeTab === 'audio'
-                ? 'bg-[#221d19] text-gold-300 border border-gold-500/30 shadow-sm'
-                : 'text-[#8c8276] hover:text-[#ded8cf]'
+                ? 'bg-zinc-800 text-zinc-100 shadow-sm border border-white/[0.08]'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40'
             }`}
           >
             <Volume2 className="w-3.5 h-3.5" />
@@ -669,7 +674,7 @@ export const App: React.FC = () => {
         </div>
 
         {/* Scrollable Tab Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto px-6 py-2 space-y-5 custom-scrollbar">
           {activeTab === 'visualizer' && (
             <>
               <MediaDropzone
@@ -710,20 +715,20 @@ export const App: React.FC = () => {
         </div>
 
         {/* Sticky Bottom Export Action Bar */}
-        <div className="p-5 border-t border-[#24201d] bg-[#12100f] space-y-2.5">
+        <div className="p-5 border-t border-white/[0.08] bg-[#101013] space-y-2.5">
           <button
             onClick={handleStartSingleExport}
             disabled={!config.audioPath || config.audioDuration <= 0}
-            className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-gold-500 via-gold-400 to-gold-500 hover:brightness-105 active:scale-[0.99] text-black font-semibold text-sm transition-all shadow-xl shadow-gold-500/20 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-b from-[#dfc596] to-[#cca96f] hover:from-[#e8d1a6] hover:to-[#d7b57d] active:scale-[0.99] text-zinc-950 font-semibold text-sm transition-all shadow-lg shadow-black/40 border border-white/20 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            <Download className="w-4 h-4 text-black" />
+            <Download className="w-4 h-4 text-zinc-950" />
             {config.timelineTracks && config.timelineTracks.length > 1
               ? `Export Continuous 1080p Video (${config.timelineTracks.length} Tracks)`
               : 'Export 1080p MP4 Video'}
           </button>
 
-          <p className="text-[11px] text-center text-[#7a7269]">
-            Instant H.264 compile at 30 FPS • Bundled FFmpeg
+          <p className="text-[11px] text-center text-zinc-500 font-mono">
+            Hardware-accelerated H.264 @ 30 FPS • Studio Master
           </p>
         </div>
       </div>

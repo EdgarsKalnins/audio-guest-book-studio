@@ -112,6 +112,9 @@ const api = {
     return () => ipcRenderer.removeListener('export:error', handler);
   },
 
+  // Platform information
+  platform: process.platform,
+
   // App exit and close lifecycle
   exitApp: (): Promise<void> => ipcRenderer.invoke('app:exit'),
   onRequestClose: (callback: () => void) => {

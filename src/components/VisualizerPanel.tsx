@@ -38,40 +38,40 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({ config, update
   const currentPreset = VISUALIZER_PRESETS.find((p) => p.id === config.visualizerStyle) || VISUALIZER_PRESETS[0];
 
   return (
-    <div className="space-y-5">
-      {/* Custom Luxury Dropdown Selector */}
+    <div className="space-y-4">
+      {/* Studio Dropdown Selector */}
       <div className="relative" ref={dropdownRef}>
-        <label className="block text-xs font-semibold text-[#a89f94] uppercase tracking-wider mb-2 flex items-center justify-between">
-          <span className="flex items-center gap-1.5">
-            <Activity className="w-3.5 h-3.5 text-gold-400" />
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+            <Activity className="w-3.5 h-3.5 text-zinc-400" />
             Visualizer Effect Style
-          </span>
-          <span className="text-[10px] text-gold-400/80 font-normal">
+          </label>
+          <span className="text-[10px] text-zinc-500 font-mono">
             {VISUALIZER_PRESETS.length} Styles
           </span>
-        </label>
+        </div>
 
         {/* Dropdown Trigger Button */}
         <button
           type="button"
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className={`w-full p-3.5 rounded-xl border text-left transition-all flex items-center justify-between ${
+          className={`w-full p-3 rounded-xl border text-left transition-all flex items-center justify-between ${
             isDropdownOpen
-              ? 'border-gold-500 bg-[#211c19] text-[#f7f3ee] ring-1 ring-gold-500/40 shadow-lg'
-              : 'border-[#2d2722] bg-[#141211] text-[#e8e4df] hover:border-gold-500/40 hover:bg-[#1a1715]'
+              ? 'border-white/30 bg-[#1f1f24] text-white ring-1 ring-white/10 shadow-lg'
+              : 'border-white/[0.08] bg-[#18181c] text-zinc-200 hover:border-white/20 hover:bg-[#1f1f24]'
           }`}
         >
           <div className="flex items-center gap-3 min-w-0 pr-2">
-            <div className="w-8 h-8 rounded-lg bg-gold-500/15 border border-gold-500/30 flex items-center justify-center shrink-0">
-              <Activity className="w-4 h-4 text-gold-400" />
+            <div className="w-8 h-8 rounded-lg bg-zinc-800 border border-white/10 flex items-center justify-center shrink-0 text-zinc-200">
+              <Activity className="w-4 h-4 text-zinc-300" />
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-[#f8f5f0] truncate">{currentPreset.name}</p>
-              <p className="text-[11px] text-[#9c9389] truncate mt-0.5">{currentPreset.description}</p>
+              <p className="text-sm font-semibold text-zinc-100 truncate">{currentPreset.name}</p>
+              <p className="text-[11px] text-zinc-400 truncate mt-0.5">{currentPreset.description}</p>
             </div>
           </div>
           <ChevronDown
-            className={`w-4 h-4 text-gold-400 shrink-0 transition-transform duration-200 ${
+            className={`w-4 h-4 text-zinc-400 shrink-0 transition-transform duration-200 ${
               isDropdownOpen ? 'rotate-180' : ''
             }`}
           />
@@ -79,9 +79,9 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({ config, update
 
         {/* Popover Menu */}
         {isDropdownOpen && (
-          <div className="absolute top-full left-0 right-0 mt-2 z-40 bg-[#171413] border border-[#3b332d] rounded-2xl shadow-2xl overflow-hidden py-1.5 max-h-80 overflow-y-auto custom-scrollbar animate-fade-in">
-            <div className="px-3 py-1.5 text-[10px] uppercase font-bold tracking-wider text-[#7d746a] border-b border-[#26211d]">
-              Choose Visualizer Style
+          <div className="absolute top-full left-0 right-0 mt-2 z-40 bg-[#18181c] border border-white/10 rounded-2xl shadow-2xl overflow-hidden py-1.5 max-h-80 overflow-y-auto custom-scrollbar animate-fade-in">
+            <div className="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider text-zinc-500 border-b border-white/[0.06]">
+              Select Studio Visualizer
             </div>
             {VISUALIZER_PRESETS.map((preset) => {
               const isSelected = config.visualizerStyle === preset.id;
@@ -92,19 +92,19 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({ config, update
                   onClick={() => setStyle(preset.id)}
                   className={`w-full px-3.5 py-2.5 text-left transition-all flex items-center justify-between border-l-2 ${
                     isSelected
-                      ? 'border-gold-400 bg-gold-500/10 text-gold-200 font-medium'
-                      : 'border-transparent text-[#d4ccc2] hover:bg-[#221d1a] hover:text-[#f8f5f0]'
+                      ? 'border-[#dfc596] bg-white/[0.05] text-white font-medium'
+                      : 'border-transparent text-zinc-300 hover:bg-white/[0.03] hover:text-white'
                   }`}
                 >
                   <div className="min-w-0 pr-3">
-                    <p className={`text-xs ${isSelected ? 'text-gold-300 font-semibold' : 'text-[#e8e4df]'}`}>
+                    <p className={`text-xs ${isSelected ? 'text-white font-semibold' : 'text-zinc-200'}`}>
                       {preset.name}
                     </p>
-                    <p className="text-[10px] text-[#8e8478] truncate mt-0.5">{preset.description}</p>
+                    <p className="text-[10px] text-zinc-400 truncate mt-0.5">{preset.description}</p>
                   </div>
                   {isSelected && (
-                    <div className="w-5 h-5 rounded-full bg-gold-500/20 flex items-center justify-center shrink-0">
-                      <Check className="w-3 h-3 text-gold-400" />
+                    <div className="w-5 h-5 rounded-full bg-[#dfc596]/20 flex items-center justify-center shrink-0">
+                      <Check className="w-3 h-3 text-[#dfc596]" />
                     </div>
                   )}
                 </button>
@@ -114,11 +114,11 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({ config, update
         )}
       </div>
 
-      {/* Wedding Color Palette */}
+      {/* Waveform Color Palette */}
       <div>
-        <label className="block text-xs font-semibold text-[#a89f94] uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-          <Palette className="w-3.5 h-3.5 text-gold-400" />
-          Color & Glow
+        <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <Palette className="w-3.5 h-3.5 text-zinc-400" />
+          Waveform Color & Aura
         </label>
         <div className="flex items-center gap-2 flex-wrap">
           {COLOR_OPTIONS.map((col) => {
@@ -129,12 +129,12 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({ config, update
                 onClick={() => setColor(col.hex)}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
                   isSelected
-                    ? 'border-gold-400 bg-[#241f1a] text-[#fbf8f5] shadow-sm'
-                    : 'border-[#2d2722] bg-[#141211] text-[#9c9389] hover:bg-[#1c1917]'
+                    ? 'border-white/30 bg-zinc-800 text-white shadow-sm ring-1 ring-white/10'
+                    : 'border-white/[0.08] bg-[#18181c] text-zinc-400 hover:text-zinc-200 hover:bg-[#1f1f24]'
                 }`}
               >
                 <span
-                  className="w-3.5 h-3.5 rounded-full border border-black/40 shadow-inner"
+                  className="w-3 h-3 rounded-full border border-black/40 shadow-inner"
                   style={{ backgroundColor: col.hex }}
                 />
                 {col.name}
@@ -154,10 +154,10 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({ config, update
           </div>
         </div>
 
-        {/* Glow Toggle */}
-        <div className="mt-3 flex items-center justify-between p-2.5 rounded-xl bg-[#141211] border border-[#2a2420]">
-          <span className="text-xs text-[#ded8d0] flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-gold-400" />
+        {/* Ambient Glow Toggle */}
+        <div className="mt-2.5 flex items-center justify-between p-3 rounded-xl bg-[#18181c] border border-white/[0.08]">
+          <span className="text-xs text-zinc-200 flex items-center gap-1.5 font-medium">
+            <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
             Soft Ambient Glow
           </span>
           <button
@@ -165,12 +165,12 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({ config, update
               updateConfig((prev) => ({ ...prev, visualizerGlow: !prev.visualizerGlow }))
             }
             className={`w-9 h-5 rounded-full transition-colors relative ${
-              config.visualizerGlow ? 'bg-gold-500' : 'bg-[#332b25]'
+              config.visualizerGlow ? 'bg-[#dfc596]' : 'bg-zinc-800 border border-white/10'
             }`}
           >
             <span
-              className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                config.visualizerGlow ? 'right-0.5' : 'left-0.5'
+              className={`absolute top-0.5 w-4 h-4 rounded-full transition-transform ${
+                config.visualizerGlow ? 'right-0.5 bg-zinc-950' : 'left-0.5 bg-zinc-400'
               }`}
             />
           </button>
@@ -179,15 +179,15 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({ config, update
 
       {/* Scale & Opacity Sliders */}
       <div>
-        <label className="block text-xs font-semibold text-[#a89f94] uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-          <Sliders className="w-3.5 h-3.5 text-gold-400" />
+        <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <Sliders className="w-3.5 h-3.5 text-zinc-400" />
           Size & Transparency
         </label>
-        <div className="space-y-3 bg-[#141211] p-3 rounded-xl border border-[#2a2420]">
+        <div className="space-y-3 bg-[#18181c] p-3.5 rounded-xl border border-white/[0.08]">
           <div>
-            <div className="flex items-center justify-between text-xs mb-1 text-[#b5aca1]">
-              <span>Scale</span>
-              <span>{Math.round(config.visualizerScale * 100)}%</span>
+            <div className="flex items-center justify-between text-xs mb-1.5 text-zinc-300">
+              <span>Visualizer Scale</span>
+              <span className="font-mono text-zinc-400">{Math.round(config.visualizerScale * 100)}%</span>
             </div>
             <input
               type="range"
@@ -201,14 +201,14 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({ config, update
                   visualizerScale: parseFloat(e.target.value),
                 }))
               }
-              className="w-full accent-gold-500 cursor-pointer"
+              className="w-full accent-[#dfc596] cursor-pointer"
             />
           </div>
 
           <div>
-            <div className="flex items-center justify-between text-xs mb-1 text-[#b5aca1]">
+            <div className="flex items-center justify-between text-xs mb-1.5 text-zinc-300">
               <span>Opacity</span>
-              <span>{Math.round(config.visualizerOpacity * 100)}%</span>
+              <span className="font-mono text-zinc-400">{Math.round(config.visualizerOpacity * 100)}%</span>
             </div>
             <input
               type="range"
@@ -222,7 +222,7 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({ config, update
                   visualizerOpacity: parseFloat(e.target.value),
                 }))
               }
-              className="w-full accent-gold-500 cursor-pointer"
+              className="w-full accent-[#dfc596] cursor-pointer"
             />
           </div>
         </div>

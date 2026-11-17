@@ -7,27 +7,52 @@ export default {
   theme: {
     extend: {
       colors: {
-        gold: {
-          50: '#fdfbf7',
-          100: '#f9f6ed',
-          200: '#f1e8d1',
-          300: '#e5d3ab',
-          400: '#d7ba7e',
-          500: '#c59f55',
-          600: '#a78140',
-          700: '#846234',
+        studio: {
+          bg: '#0d0d0f',
+          surface: '#131316',
+          card: '#18181c',
+          cardHover: '#1f1f24',
+          border: 'rgba(255, 255, 255, 0.08)',
+          borderSubtle: 'rgba(255, 255, 255, 0.05)',
+          hover: '#222228',
+          text: '#f4f4f5',
+          muted: '#a1a1aa',
+          subtle: '#71717a',
+          faint: '#52525b',
         },
-        champagne: '#F7E7CE',
-        rosegold: '#B76E79',
-        charcoal: {
-          800: '#1A1817',
-          900: '#121110',
-          950: '#0A0908',
+        champagne: {
+          300: '#edd8b4',
+          400: '#e2c99a',
+          500: '#d4b483',
+          600: '#c09b65',
+        },
+        zinc: {
+          850: '#1b1b1f',
+          900: '#131316',
+          950: '#0d0d0f',
         }
       },
       fontFamily: {
         serif: ['Cormorant Garamond', 'Playfair Display', 'serif'],
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: [
+          'Inter',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          '"Segoe UI"',
+          'Roboto',
+          '"Helvetica Neue"',
+          'Arial',
+          'sans-serif',
+        ],
+        mono: [
+          'ui-monospace',
+          'SFMono-Regular',
+          'Menlo',
+          'Monaco',
+          'Consolas',
+          '"Liberation Mono"',
+          'monospace',
+        ],
       }
     },
   },

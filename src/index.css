@@ -7,25 +7,43 @@
     margin: 0;
     padding: 0;
     overflow: hidden;
-    background-color: #0c0b0a;
-    color: #e8e4df;
-    font-family: 'Inter', system-ui, sans-serif;
+    background-color: #0d0d0f;
+    color: #f4f4f5;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    user-select: none;
   }
 }
 
-/* Custom delicate luxury scrollbar */
+/* Studio window drag regions for desktop */
+.app-drag-region {
+  -webkit-app-region: drag;
+}
+
+.app-no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* Pro-grade subtle dark scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 5px;
+  height: 5px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #2b2520;
+  background: #27272a;
   border-radius: 9999px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #d7ba7e;
+  background: #3f3f46;
+}
+
+/* Range input styling for studio sliders */
+input[type="range"] {
+  accent-color: #e2c99a;
 }
 
 @keyframes fadeIn {
@@ -34,5 +52,14 @@
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.16s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-scale-up {
+  animation: scaleUp 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

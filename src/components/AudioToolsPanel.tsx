@@ -43,41 +43,41 @@ export const AudioToolsPanel: React.FC<AudioToolsPanelProps> = ({
   return (
     <div className="space-y-4">
       {/* Voice Boost Auto-Gain */}
-      <div className="p-3.5 rounded-xl bg-[#141211] border border-[#2a2420] flex items-center justify-between">
-        <div className="pr-2">
+      <div className="p-3.5 rounded-xl bg-[#18181c] border border-white/[0.08] flex items-center justify-between shadow-sm">
+        <div className="pr-3">
           <div className="flex items-center gap-1.5">
-            <Volume2 className="w-4 h-4 text-gold-400" />
-            <span className="text-sm font-medium text-[#f0ebe3]">Voice Boost (Auto-Gain)</span>
+            <Volume2 className="w-4 h-4 text-zinc-300" />
+            <span className="text-sm font-medium text-zinc-100">Voice Boost (Auto-Gain)</span>
           </div>
-          <p className="text-xs text-[#8c8276] mt-0.5">
+          <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">
             Normalizes guest speech so whispers and quiet messages sound loud and clear.
           </p>
         </div>
         <button
           onClick={handleVoiceBoostToggle}
-          className={`w-10 h-6 rounded-full transition-colors relative shrink-0 ${
-            voiceBoost ? 'bg-gold-500' : 'bg-[#332b25]'
+          className={`w-9 h-5 rounded-full transition-colors relative shrink-0 ${
+            voiceBoost ? 'bg-[#dfc596]' : 'bg-zinc-800 border border-white/10'
           }`}
         >
           <span
-            className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
-              voiceBoost ? 'right-0.5' : 'left-0.5'
+            className={`absolute top-0.5 w-4 h-4 rounded-full transition-transform ${
+              voiceBoost ? 'right-0.5 bg-zinc-950' : 'left-0.5 bg-zinc-400'
             }`}
           />
         </button>
       </div>
 
       {/* Audio Trim Controls */}
-      <div className="p-3.5 rounded-xl bg-[#141211] border border-[#2a2420]">
+      <div className="p-3.5 rounded-xl bg-[#18181c] border border-white/[0.08] shadow-sm">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-[#f0ebe3] flex items-center gap-1.5">
-            <Scissors className="w-4 h-4 text-gold-400" />
+          <span className="text-sm font-medium text-zinc-100 flex items-center gap-1.5">
+            <Scissors className="w-4 h-4 text-zinc-300" />
             Voice Trimmer
           </span>
           {(trimStart > 0 || (trimEnd > 0 && trimEnd < dur)) && (
             <button
               onClick={resetTrim}
-              className="text-[11px] text-gold-400 hover:text-gold-300 flex items-center gap-1 transition-colors"
+              className="text-[11px] text-zinc-400 hover:text-zinc-200 flex items-center gap-1 transition-colors"
             >
               <RotateCcw className="w-3 h-3" />
               Reset
@@ -89,9 +89,9 @@ export const AudioToolsPanel: React.FC<AudioToolsPanelProps> = ({
           <div className="space-y-3">
             {/* Start Trim Slider */}
             <div>
-              <div className="flex items-center justify-between text-xs text-[#b5aca1] mb-1">
+              <div className="flex items-center justify-between text-xs text-zinc-300 mb-1">
                 <span>Trim Start (Cut Phone Pickup Click)</span>
-                <span>{format(trimStart)}</span>
+                <span className="font-mono text-zinc-400">{format(trimStart)}</span>
               </div>
               <input
                 type="range"
@@ -105,44 +105,71 @@ export const AudioToolsPanel: React.FC<AudioToolsPanelProps> = ({
                     ...prev,
                     audioSettings: {
                       ...prev.audioSettings,
-                      trimStart: Math.min(val, (prev.audioSettings.trimEnd || dur) - 0.5),
+                      trimStart: Math.min(val, (trimEnd || dur) - 0.5),
                     },
                   }));
                 }}
-                className="w-full accent-gold-500 cursor-pointer"
+                className="w-full accent-[#dfc596] cursor-pointer"
               />
             </div>
 
             {/* End Trim Slider */}
             <div>
-              <div className="flex items-center justify-between text-xs text-[#b5aca1] mb-1">
-                <span>Trim End (Cut Silence / Hangup)</span>
-                <span>{format(trimEnd > 0 ? trimEnd : dur)}</span>
+              <div className="flex items-center justify-between text-xs text-zinc-300 mb-1">
+                <span>Trim End (Cut Hangup Noise)</span>
+                <span className="font-mono text-zinc-400">{format(trimEnd || dur)}</span>
               </div>
               <input
                 type="range"
-                min="0.5"
+                min={Math.min(dur, trimStart + 0.5)}
                 max={dur}
                 step="0.1"
-                value={trimEnd > 0 ? trimEnd : dur}
+                value={trimEnd || dur}
                 onChange={(e) => {
                   const val = parseFloat(e.target.value);
                   updateConfig((prev) => ({
                     ...prev,
                     audioSettings: {
                       ...prev.audioSettings,
-                      trimEnd: Math.max(val, prev.audioSettings.trimStart + 0.5),
+                      trimEnd: Math.max(val, trimStart + 0.5),
                     },
                   }));
                 }}
-                className="w-full accent-gold-500 cursor-pointer"
+                className="w-full accent-[#dfc596] cursor-pointer"
               />
             </div>
           </div>
         ) : (
-          <p className="text-xs text-[#736a61]">Load an audio file to adjust trim handles.</p>
+          <p className="text-xs text-zinc-500 py-2">
+            Load an audio guest record to adjust trimming and cut phone clicks.
+          </p>
         )}
       </div>
+
+      {/* Gap Between Consecutive Recordings (Multi-Track) */}
+      {config.timelineTracks && config.timelineTracks.length > 1 && (
+        <div className="p-3.5 rounded-xl bg-[#18181c] border border-white/[0.08] shadow-sm">
+          <div className="flex items-center justify-between text-xs text-zinc-300 mb-1">
+            <span>Silence Gap Between Guests</span>
+            <span className="font-mono text-zinc-400">{config.gapBetweenTracks ?? 0.5}s</span>
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="3"
+            step="0.1"
+            value={config.gapBetweenTracks ?? 0.5}
+            onChange={(e) => {
+              const val = parseFloat(e.target.value);
+              updateConfig((prev) => ({ ...prev, gapBetweenTracks: val }));
+            }}
+            className="w-full accent-[#dfc596] cursor-pointer"
+          />
+          <p className="text-[11px] text-zinc-500 mt-1">
+            Gentle pause inserted between consecutive voicemails in continuous timeline.
+          </p>
+        </div>
+      )}
     </div>
   );
 };

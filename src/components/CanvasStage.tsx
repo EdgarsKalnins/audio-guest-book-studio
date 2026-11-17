@@ -169,13 +169,13 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`relative flex-1 flex flex-col items-center justify-between p-6 bg-[#0c0b0a] border-r border-[#26221f] overflow-hidden transition-colors ${
-        isDraggingOver ? 'bg-[#1c1815] ring-2 ring-gold-400/40' : ''
+      className={`relative flex-1 flex flex-col items-center justify-between p-6 bg-[#0a0a0c] border-r border-white/[0.08] overflow-hidden transition-colors ${
+        isDraggingOver ? 'bg-[#141418] ring-2 ring-white/20' : ''
       }`}
     >
       {/* Top Bar: Aspect Ratio Switcher */}
       <div className="w-full flex items-center justify-between z-10 px-2 mb-2">
-        <div className="flex items-center gap-1.5 bg-[#171514] p-1 rounded-xl border border-[#2d2824] shadow-inner">
+        <div className="flex items-center gap-1 bg-zinc-900/90 p-1 rounded-xl border border-white/[0.08] shadow-sm">
           {(['9:16', '1:1', '16:9'] as AspectRatioPreset[]).map((r) => {
             const isSelected = config.aspectRatio === r;
             const rData = ASPECT_RATIOS[r];
@@ -185,8 +185,8 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
                 onClick={() => setRatio(r)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium tracking-wide transition-all ${
                   isSelected
-                    ? 'bg-gold-500/20 text-gold-300 border border-gold-500/30 shadow-sm'
-                    : 'text-[#9c958e] hover:text-[#e8e4df] hover:bg-[#201d1b]'
+                    ? 'bg-zinc-800 text-zinc-100 shadow-sm border border-white/10 font-semibold'
+                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40'
                 }`}
               >
                 {rData.label} <span className="opacity-60 text-[10px]">({r})</span>
@@ -195,16 +195,16 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
           })}
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-[#8c857e]">
+        <div className="flex items-center gap-2 text-xs">
           {isExporting ? (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#221c17] border border-gold-500/40 text-gold-300 shadow-sm animate-pulse">
-              <span className="w-2 h-2 rounded-full bg-gold-400 animate-ping" />
-              Exporting (Preview Paused to Save Resources)
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-950/40 border border-amber-500/30 text-amber-300 shadow-sm animate-pulse text-[11px] font-mono">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+              Exporting (Preview Suspended)
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#171514] border border-[#2d2824]">
-              <Sparkles className="w-3 h-3 text-gold-400" />
-              Live Preview ({aspect.width}x{aspect.height})
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-900/90 border border-white/[0.08] text-zinc-300 text-[11px] font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              Live Stage ({aspect.width}x{aspect.height})
             </span>
           )}
         </div>
@@ -213,7 +213,7 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
       {/* Center Stage: Viewport Container with Canvas */}
       <div className="relative flex-1 w-full flex items-center justify-center min-h-0 my-2">
         <div
-          className="relative max-h-full max-w-full rounded-2xl overflow-hidden shadow-2xl border border-[#332c27] flex items-center justify-center bg-black transition-all"
+          className="relative max-h-full max-w-full rounded-2xl overflow-hidden shadow-2xl border border-white/10 flex items-center justify-center bg-black transition-all"
           style={{
             aspectRatio: `${aspect.width} / ${aspect.height}`,
             height: config.aspectRatio === '9:16' ? '100%' : 'auto',
@@ -229,31 +229,31 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
           />
 
           {isExporting && (
-            <div className="absolute inset-0 bg-black/75 backdrop-blur-[2px] flex flex-col items-center justify-center text-center p-6 rounded-2xl z-20 animate-fade-in pointer-events-none select-none">
-              <div className="w-12 h-12 rounded-full bg-gold-500/15 border border-gold-500/35 flex items-center justify-center mb-3 shadow-lg">
-                <Sparkles className="w-6 h-6 text-gold-400 animate-pulse" />
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-[2px] flex flex-col items-center justify-center text-center p-6 rounded-2xl z-20 animate-fade-in pointer-events-none select-none">
+              <div className="w-12 h-12 rounded-full bg-zinc-800 border border-white/15 flex items-center justify-center mb-3 shadow-lg text-zinc-200">
+                <Sparkles className="w-6 h-6 animate-pulse" />
               </div>
-              <p className="text-sm font-semibold text-[#f7efe1] tracking-wide">
-                Preview Paused to Save Resources
+              <p className="text-sm font-semibold text-zinc-100 tracking-wide">
+                Preview Paused During Export
               </p>
-              <p className="text-xs text-[#a09485] max-w-xs mt-1.5 leading-relaxed">
-                Live rendering and audio playback are stopped during export to allocate 100% of GPU & hardware encoder power to video generation.
+              <p className="text-xs text-zinc-400 max-w-xs mt-1.5 leading-relaxed">
+                Live rendering and audio playback are suspended to allocate 100% hardware encoding power to MP4 export.
               </p>
             </div>
           )}
 
           {isDraggingOver && !isExporting && (
-            <div className="absolute inset-0 bg-black/75 backdrop-blur-sm flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-gold-400 rounded-2xl z-20">
-              <Sparkles className="w-10 h-10 text-gold-400 mb-2 animate-bounce" />
-              <p className="text-base font-medium text-[#f5ebd7]">Drop Audio or Background Image here</p>
-              <p className="text-xs text-[#a89f94] mt-1">Accepts MP3, WAV, M4A, PNG, JPG</p>
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-white/40 rounded-2xl z-20">
+              <Sparkles className="w-10 h-10 text-zinc-300 mb-2 animate-bounce" />
+              <p className="text-base font-medium text-white">Drop Audio or Background Image here</p>
+              <p className="text-xs text-zinc-400 mt-1">Accepts MP3, WAV, M4A, PNG, JPG</p>
             </div>
           )}
         </div>
       </div>
 
       {/* Bottom Audio Scrubber & Controls Bar */}
-      <div className="w-full max-w-3xl bg-[#171514] border border-[#2d2824] rounded-2xl p-4 shadow-xl z-10">
+      <div className="w-full max-w-3xl bg-[#131316] border border-white/[0.08] rounded-2xl p-4 shadow-xl z-10">
         <div className="flex items-center justify-between mb-3 px-1">
           <div className="flex items-center gap-3">
             <button
@@ -261,8 +261,8 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
               disabled={dur === 0 || isExporting}
               className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
                 dur === 0 || isExporting
-                  ? 'bg-[#24201e] text-[#554e49] cursor-not-allowed'
-                  : 'bg-gold-500 hover:bg-gold-400 text-[#120e0a] shadow-lg shadow-gold-500/20 active:scale-95'
+                  ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
+                  : 'bg-white hover:bg-zinc-200 text-zinc-950 shadow-md shadow-black/40 active:scale-95'
               }`}
               title={isExporting ? 'Playback paused during export' : isPlaying ? 'Pause' : 'Play'}
             >
@@ -274,17 +274,17 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
                 audioEngine.seek(trimStart);
                 setCurrentTime(trimStart);
               }}
-              className="p-2 rounded-lg text-[#8e857c] hover:text-[#e8e4df] hover:bg-[#221f1d] transition-colors"
+              className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
               title="Restart from beginning"
             >
               <RotateCcw className="w-4 h-4" />
             </button>
 
             <div className="flex flex-col">
-              <span className="text-xs font-medium text-[#e8e4df] truncate max-w-[320px]">
+              <span className="text-xs font-medium text-zinc-100 truncate max-w-[320px]">
                 {config.timelineTracks && config.timelineTracks.length > 1 ? (
                   <>
-                    <span className="text-gold-400 font-semibold mr-1.5">
+                    <span className="text-zinc-400 font-medium mr-1.5">
                       Sequence ({config.timelineTracks.length} tracks):
                     </span>
                     {config.timelineTracks.find(
@@ -295,11 +295,11 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
                   config.audioName || 'No audio loaded'
                 )}
               </span>
-              <span className="text-[11px] text-[#8e857c]">
+              <span className="text-[11px] text-zinc-400 font-mono">
                 {formatTime(currentTime)} / {formatTime(dur)}
                 {config.timelineTracks && config.timelineTracks.length > 1 && (
-                  <span className="ml-2 text-gold-400/80">
-                    • 1 Continuous Video
+                  <span className="ml-2 text-zinc-500">
+                    • Continuous Video
                   </span>
                 )}
               </span>
@@ -308,7 +308,7 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
 
           {/* Voice Boost Badge */}
           {config.audioSettings.voiceBoost && (
-            <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-gold-500/15 text-gold-300 border border-gold-500/30">
+            <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 border border-white/10 shadow-sm">
               Voice Boost ON
             </span>
           )}
@@ -317,7 +317,7 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
         {/* Interactive Waveform Scrubber with Trim region */}
         <div
           onClick={handleSeek}
-          className="relative h-14 bg-[#100e0d] border border-[#24201d] rounded-xl overflow-hidden cursor-pointer flex items-center px-2 select-none group"
+          className="relative h-14 bg-[#0c0c0e] border border-white/[0.06] rounded-xl overflow-hidden cursor-pointer flex items-center px-2 select-none group"
         >
           {/* Waveform Bars */}
           <div className="absolute inset-0 flex items-center justify-between px-3 pointer-events-none">
@@ -334,16 +334,16 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
                     style={{ height: `${Math.max(12, peak * 88)}%` }}
                     className={`w-[2.5px] rounded-full transition-colors ${
                       isTrimmedOut
-                        ? 'bg-[#2b2520] opacity-40'
+                        ? 'bg-zinc-800/40 opacity-40'
                         : isPlayed
-                        ? 'bg-gold-400'
-                        : 'bg-[#403831] group-hover:bg-[#524941]'
+                        ? 'bg-[#dfc596]'
+                        : 'bg-zinc-700/60 group-hover:bg-zinc-600'
                     }`}
                   />
                 );
               })
             ) : (
-              <div className="w-full text-center text-xs text-[#5a524a]">Drop audio to display waveform</div>
+              <div className="w-full text-center text-xs text-zinc-600 font-mono">Drop audio to display waveform</div>
             )}
           </div>
 
@@ -356,10 +356,10 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
                 <div
                   key={t.id}
                   style={{ left: `${pct}%` }}
-                  className="absolute top-0 bottom-0 w-[1.5px] bg-gold-400/50 z-10 pointer-events-none"
+                  className="absolute top-0 bottom-0 w-[1.5px] bg-white/40 z-10 pointer-events-none"
                   title={`${t.name} (starts at ${formatTime(t.startTime)})`}
                 >
-                  <div className="w-1.5 h-1.5 -ml-[2px] bg-gold-400 rounded-full" />
+                  <div className="w-1.5 h-1.5 -ml-[2px] bg-white rounded-full" />
                 </div>
               );
             })
@@ -378,7 +378,7 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
 
         {/* Trim handles display */}
         {dur > 0 && (
-          <div className="flex items-center justify-between mt-2 text-[11px] text-[#7d756d]">
+          <div className="flex items-center justify-between mt-2 text-[11px] text-zinc-500 font-mono">
             <span>Trim Start: {formatTime(trimStart)}</span>
             <span>Duration: {formatTime(Math.max(0, trimEnd - trimStart))}</span>
             <span>Trim End: {formatTime(trimEnd)}</span>

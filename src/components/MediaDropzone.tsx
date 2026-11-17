@@ -109,30 +109,30 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
         }}
       />
 
-      {/* Demo Loader Bar */}
-      <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-gold-500/10 via-[#1f1b18] to-gold-500/10 border border-gold-500/25">
-        <div className="flex items-center gap-2.5">
-          <Sparkles className="w-4 h-4 text-gold-400" />
-          <span className="text-xs font-medium text-gold-200">First time here?</span>
+      {/* Pro Studio Demo Banner */}
+      <div className="flex items-center justify-between p-3 rounded-xl bg-[#18181c] border border-white/[0.08] shadow-sm">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-zinc-400" />
+          <span className="text-xs font-medium text-zinc-300">Quick Start Demo</span>
         </div>
         <button
           onClick={onLoadDemo}
-          className="text-xs px-2.5 py-1 rounded-lg bg-gold-500/20 hover:bg-gold-500/30 text-gold-300 border border-gold-500/35 transition-colors font-medium flex items-center gap-1.5"
+          className="text-xs px-2.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-white/10 transition-all font-medium flex items-center gap-1.5 shadow-sm active:scale-95"
         >
           <RefreshCw className="w-3 h-3" />
-          Try Sample Wedding Demo
+          Load Sample Guestbook
         </button>
       </div>
 
       {/* Audio Sequence Dropzone */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="text-xs font-semibold text-[#a89f94] uppercase tracking-wider flex items-center gap-1.5">
-            <ListMusic className="w-3.5 h-3.5 text-gold-400" />
+          <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+            <ListMusic className="w-3.5 h-3.5 text-zinc-400" />
             1. Audio Timeline Sequence
           </label>
           {tracks.length > 0 && (
-            <span className="text-[11px] text-gold-300 font-medium">
+            <span className="text-[11px] text-zinc-400 font-mono">
               {tracks.length} {tracks.length === 1 ? 'recording' : 'recordings'} • {formatSec(config.audioDuration)}
             </span>
           )}
@@ -151,52 +151,52 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
             setIsAudioDragOver(false);
           }}
           onDrop={handleAudioDrop}
-          className={`relative border-2 border-dashed rounded-xl p-4 cursor-pointer transition-all flex items-center gap-4 ${
+          className={`relative border-2 border-dashed rounded-xl p-3.5 cursor-pointer transition-all flex items-center gap-3.5 ${
             isAudioDragOver
-              ? 'border-gold-400 bg-[#251e18] ring-2 ring-gold-400/30 scale-[1.01]'
+              ? 'border-white/50 bg-[#1f1f24] ring-2 ring-white/10 scale-[1.005]'
               : config.audioPath
-              ? 'border-gold-500/40 bg-[#1a1715] hover:border-gold-500/60'
-              : 'border-[#332b25] bg-[#141211] hover:border-[#4d4239]'
+              ? 'border-white/20 bg-[#18181c] hover:border-white/30'
+              : 'border-white/[0.12] bg-[#141417] hover:border-white/20'
           }`}
         >
-          <div className="w-12 h-12 rounded-xl bg-gold-500/15 border border-gold-500/25 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-zinc-800 border border-white/10 flex items-center justify-center shrink-0 text-zinc-300 shadow-sm">
             {isAudioDragOver ? (
-              <UploadCloud className="w-6 h-6 text-gold-400 animate-bounce" />
+              <UploadCloud className="w-5 h-5 animate-bounce" />
             ) : (
-              <Music className="w-6 h-6 text-gold-400" />
+              <Music className="w-5 h-5" />
             )}
           </div>
           <div className="flex-1 min-w-0">
             {config.audioName ? (
               <>
-                <p className="text-sm font-medium text-[#f0ebe3] truncate">
+                <p className="text-sm font-medium text-zinc-100 truncate">
                   {tracks.length > 1
                     ? `${tracks.length} Recordings Sequenced on Timeline`
                     : config.audioName}
                 </p>
-                <p className="text-xs text-gold-400 mt-0.5">
-                  Click or drop to add more WAV, MP3, M4A recordings
+                <p className="text-xs text-zinc-400 mt-0.5">
+                  Click or drag files to append to sequence
                 </p>
               </>
             ) : (
               <>
-                <p className="text-sm font-medium text-[#e0dad2]">Choose or drop audio recording(s)</p>
-                <p className="text-xs text-[#8c8276] mt-0.5">
-                  Takes WAV, MP3, M4A, etc. (auto-adds into one timeline sequence)
+                <p className="text-sm font-medium text-zinc-200">Import audio recording(s)</p>
+                <p className="text-xs text-zinc-400 mt-0.5">
+                  WAV, MP3, M4A, etc. (auto-concatenates into continuous video)
                 </p>
               </>
             )}
           </div>
-          <FolderUp className="w-5 h-5 text-[#8c8276]" />
+          <FolderUp className="w-4 h-4 text-zinc-400 shrink-0" />
         </div>
 
         {/* Timeline Sequence Track List */}
         {tracks.length > 1 && (
-          <div className="mt-2.5 space-y-1.5 max-h-44 overflow-y-auto custom-scrollbar p-2 rounded-xl bg-[#12100f] border border-[#26211d]">
+          <div className="mt-2.5 space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar p-2 rounded-xl bg-[#141417] border border-white/[0.06]">
             {tracks.map((t, idx) => (
               <div
                 key={t.id}
-                className="flex items-center justify-between p-2 rounded-lg bg-[#181513] border border-[#2b2520] text-xs hover:border-gold-500/30 transition-colors group"
+                className="flex items-center justify-between p-2 rounded-lg bg-[#18181c] border border-white/[0.06] text-xs hover:border-white/20 hover:bg-[#1e1e23] transition-all group"
               >
                 <button
                   type="button"
@@ -204,16 +204,16 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
                   className="flex items-center gap-2 min-w-0 flex-1 text-left"
                   title="Click to jump to this recording"
                 >
-                  <span className="w-4 text-[#756c62] font-mono text-[11px] shrink-0">
+                  <span className="w-4 text-zinc-500 font-mono text-[11px] shrink-0">
                     {idx + 1}.
                   </span>
-                  <span className="truncate text-[#e8e4df] font-medium group-hover:text-gold-200">
+                  <span className="truncate text-zinc-200 font-medium group-hover:text-white">
                     {t.name}
                   </span>
                 </button>
 
                 <div className="flex items-center gap-2 shrink-0 ml-2">
-                  <span className="text-[11px] text-[#8e857c] font-mono">
+                  <span className="text-[11px] text-zinc-400 font-mono">
                     {formatSec(t.duration)}
                   </span>
                   {onRemoveTrack && (
@@ -223,7 +223,7 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
                         e.stopPropagation();
                         onRemoveTrack(t.id);
                       }}
-                      className="p-1 rounded text-[#6a6055] hover:text-rose-400 transition-colors"
+                      className="p-1 rounded text-zinc-500 hover:text-rose-400 hover:bg-rose-950/20 transition-colors"
                       title="Remove from sequence"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -238,7 +238,7 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
               <button
                 type="button"
                 onClick={triggerAudioPicker}
-                className="text-[11px] px-2.5 py-1 rounded-lg bg-[#1e1a17] hover:bg-[#28221e] text-gold-300 border border-[#3b332d] flex items-center gap-1 transition-colors"
+                className="text-[11px] px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-white/10 flex items-center gap-1 transition-all shadow-sm"
               >
                 <Plus className="w-3 h-3" />
                 Add more files to sequence
@@ -250,7 +250,7 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
 
       {/* Background Image Dropzone */}
       <div>
-        <label className="block text-xs font-semibold text-[#a89f94] uppercase tracking-wider mb-2">
+        <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-2">
           2. Background Wedding Photo
         </label>
         <div
@@ -266,17 +266,17 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
             setIsImageDragOver(false);
           }}
           onDrop={handleImageDrop}
-          className={`relative border-2 border-dashed rounded-xl p-4 cursor-pointer transition-all flex items-center gap-4 ${
+          className={`relative border-2 border-dashed rounded-xl p-3.5 cursor-pointer transition-all flex items-center gap-3.5 ${
             isImageDragOver
-              ? 'border-gold-400 bg-[#251e18] ring-2 ring-gold-400/30 scale-[1.01]'
+              ? 'border-white/50 bg-[#1f1f24] ring-2 ring-white/10 scale-[1.005]'
               : config.imagePath
-              ? 'border-gold-500/40 bg-[#1a1715] hover:border-gold-500/60'
-              : 'border-[#332b25] bg-[#141211] hover:border-[#4d4239]'
+              ? 'border-white/20 bg-[#18181c] hover:border-white/30'
+              : 'border-white/[0.12] bg-[#141417] hover:border-white/20'
           }`}
         >
-          <div className="w-12 h-12 rounded-xl bg-gold-500/15 border border-gold-500/25 flex items-center justify-center shrink-0 overflow-hidden">
+          <div className="w-10 h-10 rounded-xl bg-zinc-800 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden text-zinc-300 shadow-sm">
             {isImageDragOver ? (
-              <UploadCloud className="w-6 h-6 text-gold-400 animate-bounce" />
+              <UploadCloud className="w-5 h-5 animate-bounce" />
             ) : config.imagePath ? (
               <img
                 src={getDisplayThumbnail()}
@@ -284,23 +284,23 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
                 className="w-full h-full object-cover"
               />
             ) : (
-              <ImageIcon className="w-6 h-6 text-gold-400" />
+              <ImageIcon className="w-5 h-5" />
             )}
           </div>
           <div className="flex-1 min-w-0">
             {config.imagePath ? (
               <>
-                <p className="text-sm font-medium text-[#f0ebe3] truncate">Custom Background Photo</p>
-                <p className="text-xs text-gold-400 mt-0.5">Click or drop to change image</p>
+                <p className="text-sm font-medium text-zinc-100 truncate">Custom Background Photo</p>
+                <p className="text-xs text-zinc-400 mt-0.5">Click or drag image to change</p>
               </>
             ) : (
               <>
-                <p className="text-sm font-medium text-[#e0dad2]">Choose or drop wedding photo</p>
-                <p className="text-xs text-[#8c8276] mt-0.5">JPG, PNG, WEBP (auto-matches ratio)</p>
+                <p className="text-sm font-medium text-zinc-200">Import wedding photo</p>
+                <p className="text-xs text-zinc-400 mt-0.5">JPG, PNG, WEBP (auto-scales to frame)</p>
               </>
             )}
           </div>
-          <FolderUp className="w-5 h-5 text-[#8c8276]" />
+          <FolderUp className="w-4 h-4 text-zinc-400 shrink-0" />
         </div>
       </div>
     </div>
