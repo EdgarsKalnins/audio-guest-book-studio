@@ -10,6 +10,7 @@ interface CanvasStageProps {
   audioEngine: AudioEngine;
   bgImage: HTMLImageElement | null;
   onFileDrop: (files: FileList) => void;
+  isExporting?: boolean;
 }
 
 export const CanvasStage: React.FC<CanvasStageProps> = ({
@@ -18,6 +19,7 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
   audioEngine,
   bgImage,
   onFileDrop,
+  isExporting = false,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -27,6 +29,14 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
   const [isDraggingOver, setIsDraggingOver] = useState(false);
 
   const aspect = ASPECT_RATIOS[config.aspectRatio];
+
+  // If exporting starts while audio is playing, pause audio immediately to save resources
+  useEffect(() => {
+    if (isExporting && isPlaying) {
+      audioEngine.pause();
+      setIsPlaying(false);
+    }
+  }, [isExporting, isPlaying, audioEngine]);
 
   // Keep track of audio engine callbacks
   useEffect(() => {
@@ -48,7 +58,12 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
   }, [config.audioPath, config.audioDuration]);
 
   // Main Render Loop for Canvas Preview
+  // Completely suspended during video export to allocate 100% GPU & hardware encoder power to export
   useEffect(() => {
+    if (isExporting) {
+      return; // Skip animation loop during export
+    }
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -87,9 +102,10 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
     return () => {
       cancelAnimationFrame(animId);
     };
-  }, [config, aspect, bgImage, audioEngine, currentTime]);
+  }, [config, aspect, bgImage, audioEngine, currentTime, isExporting]);
 
   const togglePlay = () => {
+    if (isExporting) return;
     if (isPlaying) {
       audioEngine.pause();
       setIsPlaying(false);
@@ -100,6 +116,7 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
   };
 
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isExporting) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const pct = Math.max(0, Math.min(1, clickX / rect.width));
@@ -179,10 +196,17 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
         </div>
 
         <div className="flex items-center gap-2 text-xs text-[#8c857e]">
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#171514] border border-[#2d2824]">
-            <Sparkles className="w-3 h-3 text-gold-400" />
-            Live Preview ({aspect.width}x{aspect.height})
-          </span>
+          {isExporting ? (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#221c17] border border-gold-500/40 text-gold-300 shadow-sm animate-pulse">
+              <span className="w-2 h-2 rounded-full bg-gold-400 animate-ping" />
+              Exporting (Preview Paused to Save Resources)
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#171514] border border-[#2d2824]">
+              <Sparkles className="w-3 h-3 text-gold-400" />
+              Live Preview ({aspect.width}x{aspect.height})
+            </span>
+          )}
         </div>
       </div>
 
@@ -204,7 +228,21 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
             className="w-full h-full object-contain pointer-events-none"
           />
 
-          {isDraggingOver && (
+          {isExporting && (
+            <div className="absolute inset-0 bg-black/75 backdrop-blur-[2px] flex flex-col items-center justify-center text-center p-6 rounded-2xl z-20 animate-fade-in pointer-events-none select-none">
+              <div className="w-12 h-12 rounded-full bg-gold-500/15 border border-gold-500/35 flex items-center justify-center mb-3 shadow-lg">
+                <Sparkles className="w-6 h-6 text-gold-400 animate-pulse" />
+              </div>
+              <p className="text-sm font-semibold text-[#f7efe1] tracking-wide">
+                Preview Paused to Save Resources
+              </p>
+              <p className="text-xs text-[#a09485] max-w-xs mt-1.5 leading-relaxed">
+                Live rendering and audio playback are stopped during export to allocate 100% of GPU & hardware encoder power to video generation.
+              </p>
+            </div>
+          )}
+
+          {isDraggingOver && !isExporting && (
             <div className="absolute inset-0 bg-black/75 backdrop-blur-sm flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-gold-400 rounded-2xl z-20">
               <Sparkles className="w-10 h-10 text-gold-400 mb-2 animate-bounce" />
               <p className="text-base font-medium text-[#f5ebd7]">Drop Audio or Background Image here</p>
@@ -220,13 +258,13 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
           <div className="flex items-center gap-3">
             <button
               onClick={togglePlay}
-              disabled={dur === 0}
+              disabled={dur === 0 || isExporting}
               className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                dur === 0
+                dur === 0 || isExporting
                   ? 'bg-[#24201e] text-[#554e49] cursor-not-allowed'
                   : 'bg-gold-500 hover:bg-gold-400 text-[#120e0a] shadow-lg shadow-gold-500/20 active:scale-95'
               }`}
-              title={isPlaying ? 'Pause' : 'Play'}
+              title={isExporting ? 'Playback paused during export' : isPlaying ? 'Pause' : 'Play'}
             >
               {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 ml-0.5 fill-current" />}
             </button>

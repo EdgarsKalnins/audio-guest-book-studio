@@ -270,7 +270,52 @@ function setupIPCHandlers() {
     }
   });
 
-  // Save temporary video buffer to disk
+  // Active temporary video streaming handles for zero-memory disk streaming
+  const activeTempVideoFiles = new Map<string, { path: string; fd: number }>();
+
+  ipcMain.handle('fs:initTempVideoFile', async () => {
+    try {
+      const tempDir = path.join(os.tmpdir(), 'wedding_studio_export');
+      if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+      const id = `vid_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      const tempPath = path.join(tempDir, `temp_hw_video_${id}.mp4`);
+      const fd = fs.openSync(tempPath, 'w+');
+      activeTempVideoFiles.set(id, { path: tempPath, fd });
+      return { id, tempPath };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new Error(`Failed to initialize temp video file: ${msg}`);
+    }
+  });
+
+  ipcMain.handle('fs:writeTempVideoChunk', async (_, id: string, chunk: Uint8Array, position: number) => {
+    try {
+      const entry = activeTempVideoFiles.get(id);
+      if (!entry) throw new Error(`Temp video file handle not found: ${id}`);
+      const buf = Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+      fs.writeSync(entry.fd, buf, 0, buf.length, position);
+      return true;
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new Error(`Failed to write temp video chunk: ${msg}`);
+    }
+  });
+
+  ipcMain.handle('fs:closeTempVideoFile', async (_, id: string) => {
+    try {
+      const entry = activeTempVideoFiles.get(id);
+      if (!entry) return '';
+      fs.closeSync(entry.fd);
+      const tempPath = entry.path;
+      activeTempVideoFiles.delete(id);
+      return tempPath;
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new Error(`Failed to close temp video file: ${msg}`);
+    }
+  });
+
+  // Save temporary video buffer to disk (fallback)
   ipcMain.handle('fs:saveTempVideo', async (_, videoBuffer: Uint8Array) => {
     try {
       const tempDir = path.join(os.tmpdir(), 'wedding_studio_export');

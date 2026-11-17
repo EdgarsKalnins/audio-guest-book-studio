@@ -1,4 +1,4 @@
-import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
+import { Muxer, StreamTarget, ArrayBufferTarget } from 'mp4-muxer';
 import { StudioConfig, ASPECT_RATIOS } from '../types/studio';
 import { AudioEngine } from './audioEngine';
 import { drawStudioFrame, createStaticBackgroundCache } from './visualizers/renderer';
@@ -23,7 +23,7 @@ export function isWebCodecsSupported(): boolean {
 
 /**
  * High-speed hardware-accelerated video export using Chromium WebCodecs (VideoToolbox / NVENC).
- * Encodes directly from Canvas GPU textures at 200+ FPS, eliminating software JPEG encoding.
+ * Encodes directly from Canvas GPU textures with strict hardware backpressure & zero-memory disk streaming.
  */
 export async function runWebCodecsHardwareExport(
   options: WebCodecsExportOptions
@@ -65,19 +65,37 @@ export async function runWebCodecsHardwareExport(
   const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
   if (!ctx) throw new Error('Could not get 2D canvas context');
 
-  // 3. Initialize MP4 Muxer for hardware H.264 bitstream
+  // 3. Initialize MP4 Muxer with streaming disk target (zero memory buildup)
+  let tempFileHandle: { id: string; tempPath: string } | null = null;
+  let target: StreamTarget | ArrayBufferTarget;
+
+  if (window.electronAPI && typeof window.electronAPI.initTempVideoFile === 'function') {
+    tempFileHandle = await window.electronAPI.initTempVideoFile();
+    target = new StreamTarget({
+      onData: (data, position) => {
+        if (tempFileHandle) {
+          window.electronAPI?.writeTempVideoChunk(tempFileHandle.id, data, position);
+        }
+      },
+    });
+  } else {
+    target = new ArrayBufferTarget();
+  }
+
   const muxer = new Muxer({
-    target: new ArrayBufferTarget(),
+    target,
     video: {
       codec: 'avc',
       width,
       height,
     },
-    fastStart: 'in-memory',
+    fastStart: false, // Streamed chunk writing: zero in-memory buffer duplication!
   });
 
-  // 4. Initialize Chromium WebCodecs VideoEncoder
+  // 4. Initialize Chromium WebCodecs VideoEncoder with strict backpressure
   let encoderError: Error | null = null;
+  let dequeueResolve: (() => void) | null = null;
+
   const encoder = new VideoEncoder({
     output: (chunk, meta) => {
       muxer.addVideoChunk(chunk, meta);
@@ -85,8 +103,21 @@ export async function runWebCodecsHardwareExport(
     error: (err) => {
       console.error('[WebCodecs] Encoder error:', err);
       encoderError = err;
+      if (dequeueResolve) {
+        dequeueResolve();
+        dequeueResolve = null;
+      }
     },
   });
+
+  // W3C WebCodecs backpressure signal: fires when GPU encoder consumes a frame
+  encoder.ondequeue = () => {
+    if (dequeueResolve) {
+      const resolve = dequeueResolve;
+      dequeueResolve = null;
+      resolve();
+    }
+  };
 
   // Configure for Apple Silicon M4 / Universal GPU hardware acceleration
   await encoder.configure({
@@ -104,80 +135,100 @@ export async function runWebCodecsHardwareExport(
   const freqData = new Uint8Array(256);
   const timeData = new Float32Array(512);
 
-  // 5. High-speed render loop
-  for (let frame = 0; frame < totalFrames; frame++) {
-    if (isCancelledRef.current) {
-      encoder.close();
-      throw new Error('Export cancelled');
+  try {
+    // 5. High-speed render loop
+    for (let frame = 0; frame < totalFrames; frame++) {
+      if (isCancelledRef.current) {
+        encoder.close();
+        throw new Error('Export cancelled');
+      }
+      if (encoderError) {
+        throw encoderError;
+      }
+
+      // Strict hardware backpressure: maintain at most 3-4 frames in GPU memory
+      // Prevents GPU texture mailbox exhaustion (exit_code=512)
+      while (encoder.encodeQueueSize >= 4) {
+        if (isCancelledRef.current || encoderError) break;
+        await new Promise<void>((resolve) => {
+          dequeueResolve = resolve;
+        });
+      }
+
+      const currentOffset = frame / fps;
+      const currentAudioTime = trimStart + currentOffset;
+
+      // Fast offline audio frequency sample (zero heap allocation)
+      audioEngine.getOfflineFrameData(currentAudioTime, freqData, timeData);
+
+      // Fast frame draw using cached static layer
+      drawStudioFrame(
+        ctx,
+        width,
+        height,
+        bgImage,
+        freqData,
+        timeData,
+        config,
+        currentOffset,
+        exportDuration,
+        staticCache
+      );
+
+      // Zero-copy GPU VideoFrame from canvas
+      const timestampMicros = Math.round(currentOffset * 1_000_000);
+      const videoFrame = new VideoFrame(canvas, { timestamp: timestampMicros });
+
+      // Keyframe every 2 seconds (60 frames)
+      encoder.encode(videoFrame, { keyFrame: frame % 60 === 0 });
+      videoFrame.close(); // Immediate release of GPU texture
+
+      if (frame % 30 === 0 || frame === totalFrames - 1) {
+        const pct = Math.round(((frame + 1) / totalFrames) * 92);
+        onProgress(pct, frame + 1, totalFrames);
+      }
     }
-    if (encoderError) {
-      throw encoderError;
+
+    onStatus('Flushing hardware encoder...');
+    await encoder.flush();
+    muxer.finalize();
+    encoder.close();
+
+    onStatus('Finalizing 1-second lossless audio multiplexing...');
+
+    let tempVideoPath: string;
+    if (tempFileHandle && window.electronAPI) {
+      tempVideoPath = await window.electronAPI.closeTempVideoFile(tempFileHandle.id);
+      tempFileHandle = null;
+    } else if (target instanceof ArrayBufferTarget && window.electronAPI) {
+      const mp4VideoBuffer = new Uint8Array(target.buffer);
+      tempVideoPath = await window.electronAPI.saveTempVideo(mp4VideoBuffer);
+    } else {
+      tempVideoPath = outputPath;
     }
 
-    // Hardware encoder backpressure control (prevent queue buildup)
-    if (encoder.encodeQueueSize > 12) {
-      await new Promise((resolve) => setTimeout(resolve, 0));
+    if (window.electronAPI && typeof window.electronAPI.muxVideoAndAudio === 'function') {
+      const finalPath = await window.electronAPI.muxVideoAndAudio({
+        videoPath: tempVideoPath,
+        audioPath: audioFilePath,
+        outputPath,
+        voiceBoost: config.audioSettings.voiceBoost,
+      });
+
+      onProgress(100, totalFrames, totalFrames);
+      return finalPath;
     }
-
-    const currentOffset = frame / fps;
-    const currentAudioTime = trimStart + currentOffset;
-
-    // Fast offline audio frequency sample
-    audioEngine.getOfflineFrameData(currentAudioTime, freqData, timeData);
-
-    // Fast frame draw using cached static layer
-    drawStudioFrame(
-      ctx,
-      width,
-      height,
-      bgImage,
-      freqData,
-      timeData,
-      config,
-      currentOffset,
-      exportDuration,
-      staticCache
-    );
-
-    // Zero-copy GPU VideoFrame from canvas
-    const timestampMicros = Math.round(currentOffset * 1_000_000);
-    const videoFrame = new VideoFrame(canvas, { timestamp: timestampMicros });
-
-    // Keyframe every 2 seconds (60 frames)
-    encoder.encode(videoFrame, { keyFrame: frame % 60 === 0 });
-    videoFrame.close(); // Immediate release of GPU texture
-
-    if (frame % 20 === 0 || frame === totalFrames - 1) {
-      const pct = Math.round(((frame + 1) / totalFrames) * 92);
-      onProgress(pct, frame + 1, totalFrames);
-    }
-  }
-
-  onStatus('Flushing hardware encoder...');
-  await encoder.flush();
-  muxer.finalize();
-  encoder.close();
-
-  onStatus('Finalizing 1-second lossless audio multiplexing...');
-
-  const mp4VideoBuffer = new Uint8Array(muxer.target.buffer);
-
-  if (window.electronAPI && typeof window.electronAPI.saveTempVideo === 'function') {
-    // Save temporary hardware-encoded video
-    const tempVideoPath = await window.electronAPI.saveTempVideo(mp4VideoBuffer);
-
-    // Losslessly multiplex with master continuous audio stream in ~1s
-    const finalPath = await window.electronAPI.muxVideoAndAudio({
-      videoPath: tempVideoPath,
-      audioPath: audioFilePath,
-      outputPath,
-      voiceBoost: config.audioSettings.voiceBoost,
-    });
 
     onProgress(100, totalFrames, totalFrames);
-    return finalPath;
+    return outputPath;
+  } catch (err) {
+    if (tempFileHandle && window.electronAPI) {
+      try {
+        await window.electronAPI.closeTempVideoFile(tempFileHandle.id);
+      } catch {
+        // Ignored
+      }
+    }
+    throw err;
   }
-
-  onProgress(100, totalFrames, totalFrames);
-  return outputPath;
 }

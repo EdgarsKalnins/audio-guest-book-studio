@@ -74,7 +74,13 @@ const api = {
   finishExport: () => ipcRenderer.invoke('export:finish'),
   cancelExport: () => ipcRenderer.invoke('export:cancel'),
 
-  // Hardware WebCodecs fast muxing
+  // Hardware WebCodecs fast muxing & zero-memory disk streaming
+  initTempVideoFile: (): Promise<{ id: string; tempPath: string }> =>
+    ipcRenderer.invoke('fs:initTempVideoFile'),
+  writeTempVideoChunk: (id: string, chunk: Uint8Array, position: number): Promise<boolean> =>
+    ipcRenderer.invoke('fs:writeTempVideoChunk', id, chunk, position),
+  closeTempVideoFile: (id: string): Promise<string> =>
+    ipcRenderer.invoke('fs:closeTempVideoFile', id),
   saveTempVideo: (videoBuffer: Uint8Array): Promise<string> =>
     ipcRenderer.invoke('fs:saveTempVideo', videoBuffer),
   muxVideoAndAudio: (options: {

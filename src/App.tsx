@@ -445,6 +445,9 @@ export const App: React.FC = () => {
       outPath = 'export.mp4';
     }
 
+    // Immediately stop live preview audio to free audio device & system resources
+    audioEngineRef.current.pause();
+
     // Generate the concatenated master WAV file for the entire continuous sequence
     let audioExportPath = config.audioPath;
     const masterWavBytes = audioEngineRef.current.getMasterWavBytes();
@@ -519,6 +522,8 @@ export const App: React.FC = () => {
     }
   };
 
+  const isExporting = exportProgress.status === 'preparing' || exportProgress.status === 'rendering';
+
   return (
     <div className="flex h-screen w-screen bg-[#0f0e0d] text-[#e8e4df] font-sans overflow-hidden select-none">
       {/* LEFT AREA: Canvas Stage & Live Audio Scrubber */}
@@ -528,6 +533,7 @@ export const App: React.FC = () => {
         audioEngine={audioEngineRef.current}
         bgImage={bgImage}
         onFileDrop={handleFileDrop}
+        isExporting={isExporting}
       />
 
       {/* RIGHT AREA: Studio Controls Side Panel */}

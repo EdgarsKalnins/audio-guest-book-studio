@@ -1,17 +1,30 @@
 /**
  * Fast Fourier Transform (Cooley-Tukey Radix-2) for real-time and offline audio spectrum analysis.
+ * Uses pre-allocated scratch buffers to achieve zero allocations during high-speed video export.
  */
-export function computeFFT(timeSamples: Float32Array): Uint8Array {
-  const N = 512;
-  const real = new Float32Array(N);
-  const imag = new Float32Array(N);
 
-  // Apply Hann window and copy samples
+const N = 512;
+const halfN = N / 2;
+const scratchReal = new Float32Array(N);
+const scratchImag = new Float32Array(N);
+const scratchMagnitudes = new Uint8Array(halfN);
+
+// Precompute Hann window once
+const hannWindow = new Float32Array(N);
+for (let i = 0; i < N; i++) {
+  hannWindow[i] = 0.5 * (1 - Math.cos((2 * Math.PI * i) / (N - 1)));
+}
+
+export function computeFFT(timeSamples: Float32Array, targetOut?: Uint8Array): Uint8Array {
+  const real = scratchReal;
+  const imag = scratchImag;
+  const magnitudes = targetOut || scratchMagnitudes;
+
+  // Apply Hann window and copy samples (zero Math.cos per frame!)
   const len = Math.min(timeSamples.length, N);
   for (let i = 0; i < N; i++) {
     if (i < len) {
-      const window = 0.5 * (1 - Math.cos((2 * Math.PI * i) / (N - 1)));
-      real[i] = timeSamples[i] * window;
+      real[i] = timeSamples[i] * hannWindow[i];
     } else {
       real[i] = 0;
     }
@@ -67,9 +80,8 @@ export function computeFFT(timeSamples: Float32Array): Uint8Array {
   }
 
   // Convert to 0-255 magnitude array (first half N/2 = 256 bins)
-  const halfN = N / 2;
-  const magnitudes = new Uint8Array(halfN);
-  for (let i = 0; i < halfN; i++) {
+  const maxBins = Math.min(halfN, magnitudes.length);
+  for (let i = 0; i < maxBins; i++) {
     const mag = Math.sqrt(real[i] * real[i] + imag[i] * imag[i]) * 4;
     // Logarithmic perceptual scale
     const val = Math.min(255, Math.max(0, Math.round(Math.log10(1 + mag) * 120)));

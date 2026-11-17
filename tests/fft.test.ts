@@ -45,4 +45,13 @@ describe('Fast Fourier Transform (computeFFT)', () => {
     const result = computeFFT(shortSamples);
     expect(result.length).toBe(256);
   });
+
+  it('supports zero-allocation output buffer reuse', () => {
+    const samples = new Float32Array(512);
+    samples.fill(0.2);
+    const reusableBuffer = new Uint8Array(256);
+    const result = computeFFT(samples, reusableBuffer);
+    expect(result).toBe(reusableBuffer);
+    expect(reusableBuffer[0]).toBeGreaterThanOrEqual(0);
+  });
 });

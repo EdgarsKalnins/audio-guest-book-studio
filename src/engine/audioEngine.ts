@@ -235,8 +235,10 @@ export class AudioEngine {
     return peaks;
   }
 
+  private scratchRawTimeSlice = new Float32Array(512);
+
   /**
-   * Offline audio frame data retrieval for frame-perfect video rendering
+   * Offline audio frame data retrieval for frame-perfect video rendering (zero heap allocations)
    */
   public getOfflineFrameData(time: number, freqOut: Uint8Array, timeOut: Float32Array) {
     if (!this.audioBuffer) {
@@ -252,7 +254,7 @@ export class AudioEngine {
     const halfN = N / 2;
 
     const startIdx = centerSample - halfN;
-    const rawTimeSlice = new Float32Array(N);
+    const rawTimeSlice = this.scratchRawTimeSlice;
 
     for (let i = 0; i < N; i++) {
       const idx = startIdx + i;
@@ -269,8 +271,7 @@ export class AudioEngine {
       }
     }
 
-    const fftMagnitudes = computeFFT(rawTimeSlice);
-    freqOut.set(fftMagnitudes.subarray(0, freqOut.length));
+    computeFFT(rawTimeSlice, freqOut);
   }
 
   public getRawBuffer(): AudioBuffer | null {

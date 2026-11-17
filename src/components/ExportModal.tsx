@@ -196,6 +196,11 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                   <span>Preset: 1080p @ 30 FPS</span>
                 </div>
 
+                <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-[#12100f] border border-[#28221e] text-[11px] text-[#9c9389]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                  <span>Preview paused to dedicate 100% GPU & hardware encoder power</span>
+                </div>
+
                 <div className="pt-2 flex justify-end">
                   <button
                     onClick={onCancel}
