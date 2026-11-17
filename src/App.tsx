@@ -375,6 +375,8 @@ export const App: React.FC = () => {
         detectedAspect = '16:9';
       } else if (ratio >= 0.85 && ratio <= 1.25) {
         detectedAspect = '1:1';
+      } else if (ratio >= 0.7 && ratio < 0.85) {
+        detectedAspect = '4:5';
       } else {
         detectedAspect = '9:16';
       }

@@ -8,7 +8,9 @@ export type VisualizerStyle =
   | 'line_mirror'
   | 'line_horizon';
 
-export type AspectRatioPreset = '9:16' | '1:1' | '16:9';
+export type AspectRatioPreset = '9:16' | '4:5' | '1:1' | '16:9';
+
+export type SafeZoneMode = 'off' | 'reels' | 'tiktok' | 'combined';
 
 export interface AspectRatioDetails {
   id: AspectRatioPreset;
@@ -20,6 +22,7 @@ export interface AspectRatioDetails {
 
 export const ASPECT_RATIOS: Record<AspectRatioPreset, AspectRatioDetails> = {
   '9:16': { id: '9:16', label: 'Story / Reel', width: 1080, height: 1920, subtitle: '9:16 Mobile Vertical' },
+  '4:5': { id: '4:5', label: 'Portrait Feed', width: 1080, height: 1350, subtitle: '4:5 Social Feed' },
   '1:1': { id: '1:1', label: 'Square Post', width: 1080, height: 1080, subtitle: '1:1 Instagram Square' },
   '16:9': { id: '16:9', label: 'Landscape', width: 1920, height: 1080, subtitle: '16:9 Widescreen / TV' },
 };

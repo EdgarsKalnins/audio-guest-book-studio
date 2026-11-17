@@ -7,13 +7,21 @@ import {
 } from '../src/types/studio';
 
 describe('Studio Configurations & Presets', () => {
-  it('defines 9:16, 1:1, and 16:9 aspect ratios correctly', () => {
+  it('defines 9:16, 4:5, 1:1, and 16:9 aspect ratios correctly', () => {
     expect(ASPECT_RATIOS['9:16']).toEqual({
       id: '9:16',
       label: 'Story / Reel',
       width: 1080,
       height: 1920,
       subtitle: '9:16 Mobile Vertical',
+    });
+
+    expect(ASPECT_RATIOS['4:5']).toEqual({
+      id: '4:5',
+      label: 'Portrait Feed',
+      width: 1080,
+      height: 1350,
+      subtitle: '4:5 Social Feed',
     });
 
     expect(ASPECT_RATIOS['1:1']).toEqual({

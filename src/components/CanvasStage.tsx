@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Play, Pause, ArrowCounterClockwise, Sparkle, SlidersHorizontal } from '@phosphor-icons/react';
-import { StudioConfig, AspectRatioPreset, ASPECT_RATIOS } from '../types/studio';
+import { Play, Pause, ArrowCounterClockwise, Sparkle, SlidersHorizontal, BoundingBox } from '@phosphor-icons/react';
+import { StudioConfig, AspectRatioPreset, ASPECT_RATIOS, SafeZoneMode } from '../types/studio';
 import { AudioEngine } from '../engine/audioEngine';
 import { drawStudioFrame } from '../engine/visualizers/renderer';
+import { SafeZoneOverlay } from './SafeZoneOverlay';
 
 interface CanvasStageProps {
   config: StudioConfig;
@@ -29,6 +30,25 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
   const [currentTime, setCurrentTime] = useState(0);
   const [waveformPeaks, setWaveformPeaks] = useState<number[]>([]);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [safeZoneMode, setSafeZoneMode] = useState<SafeZoneMode>('off');
+
+  const cycleSafeZone = () => {
+    setSafeZoneMode((prev) => {
+      if (prev === 'off') return 'reels';
+      if (prev === 'reels') return 'tiktok';
+      if (prev === 'tiktok') return 'combined';
+      return 'off';
+    });
+  };
+
+  const safeZoneLabel =
+    safeZoneMode === 'reels'
+      ? 'Reels'
+      : safeZoneMode === 'tiktok'
+      ? 'TikTok'
+      : safeZoneMode === 'combined'
+      ? 'Universal'
+      : 'Off';
 
   const aspect = ASPECT_RATIOS[config.aspectRatio];
 
@@ -237,24 +257,41 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
           isMacElectron ? 'pl-20 sm:pl-24 pt-1' : ''
         }`}
       >
-        <div className="flex items-center gap-1 bg-white dark:bg-zinc-900/90 p-1 rounded-xl border border-zinc-200 dark:border-white/[0.08] shadow-sm app-no-drag">
-          {(['9:16', '1:1', '16:9'] as AspectRatioPreset[]).map((r) => {
-            const isSelected = config.aspectRatio === r;
-            const rData = ASPECT_RATIOS[r];
-            return (
-              <button
-                key={r}
-                onClick={() => setRatio(r)}
-                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-medium tracking-wide transition-all ${
-                  isSelected
-                    ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-sm border border-zinc-300 dark:border-white/10 font-semibold'
-                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800/40'
-                }`}
-              >
-                {rData.label} <span className="opacity-60 text-[10px]">({r})</span>
-              </button>
-            );
-          })}
+        <div className="flex items-center gap-2 flex-wrap app-no-drag">
+          <div className="flex items-center gap-1 bg-white dark:bg-zinc-900/90 p-1 rounded-xl border border-zinc-200 dark:border-white/[0.08] shadow-sm">
+            {(['9:16', '4:5', '1:1', '16:9'] as AspectRatioPreset[]).map((r) => {
+              const isSelected = config.aspectRatio === r;
+              const rData = ASPECT_RATIOS[r];
+              return (
+                <button
+                  key={r}
+                  onClick={() => setRatio(r)}
+                  className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-medium tracking-wide transition-all ${
+                    isSelected
+                      ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-sm border border-zinc-300 dark:border-white/10 font-semibold'
+                      : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800/40'
+                  }`}
+                >
+                  {rData.label} <span className="opacity-60 text-[10px]">({r})</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Social Safe-Zone Overlays Viewfinder Switch */}
+          <button
+            onClick={cycleSafeZone}
+            title={`Social Safe-Zone Guides (Currently: ${safeZoneLabel}). Click to cycle through Reels, TikTok, and Universal safe margins.`}
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-medium tracking-wide transition-all shadow-sm ${
+              safeZoneMode !== 'off'
+                ? 'bg-amber-100 dark:bg-amber-950/70 text-amber-900 dark:text-amber-200 border-amber-300 dark:border-amber-500/40 font-semibold ring-1 ring-amber-400/20'
+                : 'bg-white dark:bg-zinc-900/90 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-white/[0.08] hover:text-zinc-950 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800/40'
+            }`}
+          >
+            <BoundingBox weight={safeZoneMode !== 'off' ? 'bold' : 'regular'} className="w-3.5 h-3.5 text-amber-500" />
+            <span className="hidden sm:inline">Safe Zone:</span>
+            <span>{safeZoneLabel}</span>
+          </button>
         </div>
 
         <div className="flex items-center gap-2 text-xs app-no-drag">
@@ -289,7 +326,7 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
           className="relative max-h-full max-w-full rounded-2xl overflow-hidden shadow-2xl border border-zinc-300 dark:border-white/10 flex items-center justify-center bg-black transition-all"
           style={{
             aspectRatio: `${aspect.width} / ${aspect.height}`,
-            height: config.aspectRatio === '9:16' ? '100%' : 'auto',
+            height: config.aspectRatio === '9:16' || config.aspectRatio === '4:5' ? '100%' : 'auto',
             width: config.aspectRatio === '16:9' ? '100%' : 'auto',
             maxHeight: 'calc(100vh - 200px)',
           }}
@@ -300,6 +337,11 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
             height={aspect.height}
             className="w-full h-full object-contain pointer-events-none"
           />
+
+          {/* Social Safe-Zone Overlays (Strictly preview DOM layer, zero impact on export) */}
+          {!isExporting && (
+            <SafeZoneOverlay mode={safeZoneMode} aspectRatio={config.aspectRatio} />
+          )}
 
           {isExporting && (
             <div className="absolute inset-0 bg-black/80 backdrop-blur-[2px] flex flex-col items-center justify-center text-center p-6 rounded-2xl z-20 animate-fade-in pointer-events-none select-none">
