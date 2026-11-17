@@ -10,6 +10,7 @@ import {
   Sun,
   Moon,
   QrCode,
+  Stack,
 } from '@phosphor-icons/react';
 import {
   StudioConfig,
@@ -22,6 +23,7 @@ import {
 import { AudioEngine } from './engine/audioEngine';
 import { runExportPipeline } from './engine/frameGenerator';
 import { detectSpeechBoundaries } from './engine/audioConcatenator';
+import { BatchQueueManager } from './engine/batchExporter';
 import { CanvasStage } from './components/CanvasStage';
 import { MediaDropzone } from './components/MediaDropzone';
 import { VisualizerPanel } from './components/VisualizerPanel';
@@ -636,6 +638,116 @@ export const App: React.FC = () => {
     }
   };
 
+  const handleOpenBatchModal = () => {
+    const tracks = config.timelineTracks && config.timelineTracks.length > 0
+      ? config.timelineTracks
+      : config.audioPath
+      ? [{ id: '1', name: config.audioName || 'Guest Recording', path: config.audioPath, duration: config.audioDuration, startTime: 0, endTime: config.audioDuration }]
+      : [];
+
+    const jobs: BatchItem[] = tracks.map((t) => ({
+      id: t.id,
+      name: t.name,
+      path: t.path,
+      status: 'idle',
+      progress: 0,
+    }));
+
+    setConfig((prev) => ({ ...prev, batchQueue: jobs }));
+    setIsBatchMode(true);
+    setIsExportModalOpen(true);
+  };
+
+  const handleStartBatch = async () => {
+    if (config.batchQueue.length === 0) return;
+
+    let destDir = batchOutputDir;
+    if (!destDir && window.electronAPI) {
+      destDir = await window.electronAPI.selectFolder();
+      if (!destDir) return;
+      setBatchOutputDir(destDir);
+    }
+    if (!destDir) destDir = 'Wedding_Guestbook_Clips';
+
+    const queueManager = new BatchQueueManager();
+    const isTransparent = config.backgroundMode === 'transparent';
+    const ext = isTransparent ? (config.exportFormat === 'webm' ? 'webm' : 'mov') : 'mp4';
+
+    for (const item of config.batchQueue) {
+      queueManager.addJob({
+        fileId: item.id,
+        fileName: item.name,
+        inputPath: item.path,
+        outputPath: BatchQueueManager.sanitizeOutputName(item.name, destDir, ext),
+      });
+    }
+
+    setExportProgress({ status: 'rendering', percentage: 0 });
+    isCancelledRef.current = false;
+
+    await queueManager.processQueue(
+      async (job, onProgress) => {
+        const finalPath = await runExportPipeline({
+          audioEngine: audioEngineRef.current,
+          bgImage,
+          config: {
+            ...config,
+            audioPath: job.inputPath,
+            audioName: job.fileName,
+          },
+          audioFilePath: job.inputPath,
+          outputPath: job.outputPath,
+          onProgress: (pct) => onProgress(pct),
+          onStatus: (st) => console.log(`[Batch ${job.fileName}]`, st),
+          isCancelledRef,
+        });
+        return finalPath;
+      },
+      (job, index, total) => {
+        setConfig((prev) => ({
+          ...prev,
+          batchQueue: prev.batchQueue.map((item) =>
+            item.id === job.fileId
+              ? {
+                  ...item,
+                  status: job.status,
+                  progress: job.progress,
+                  error: job.error,
+                  outputPath: job.outputPath,
+                }
+              : item
+          ),
+        }));
+
+        setExportProgress({
+          status: 'rendering',
+          percentage: Math.round(((index + (job.progress / 100)) / total) * 100),
+          currentItemName: job.fileName,
+        });
+      }
+    );
+
+    setExportProgress({
+      status: 'completed',
+      percentage: 100,
+      outputFilePath: destDir,
+    });
+  };
+
+  const handleRemoveBatchItem = (id: string) => {
+    setConfig((prev) => ({
+      ...prev,
+      batchQueue: prev.batchQueue.filter((item) => item.id !== id),
+    }));
+  };
+
+  const handleClearBatch = () => {
+    setConfig((prev) => ({
+      ...prev,
+      batchQueue: [],
+    }));
+  };
+
   const handleConfirmExit = () => {
     if (isExporting) {
       handleCancelExport();
@@ -881,6 +993,17 @@ export const App: React.FC = () => {
               : 'Export 1080p MP4 Video'}
           </button>
 
+          {config.timelineTracks && config.timelineTracks.length > 1 && (
+            <button
+              type="button"
+              onClick={handleOpenBatchModal}
+              className="w-full py-2.5 px-4 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-100 font-medium text-xs transition-all shadow-sm border border-zinc-200 dark:border-white/10 flex items-center justify-center gap-1.5 active:scale-[0.99]"
+            >
+              <Stack className="w-3.5 h-3.5 text-amber-500" weight="bold" />
+              Batch Export Individual Clips ({config.timelineTracks.length} Files)
+            </button>
+          )}
+
           <p className="text-[11px] text-center text-zinc-500 font-mono">
             Hardware-accelerated H.264 @ 30 FPS • Studio Master
           </p>
@@ -896,9 +1019,9 @@ export const App: React.FC = () => {
         onShowInFolder={handleShowInFolder}
         batchQueue={config.batchQueue}
         isBatchMode={isBatchMode}
-        onStartBatch={() => {}}
-        onRemoveBatchItem={() => {}}
-        onClearBatch={() => {}}
+        onStartBatch={handleStartBatch}
+        onRemoveBatchItem={handleRemoveBatchItem}
+        onClearBatch={handleClearBatch}
         onSelectBatchFolder={async () => {
           if (window.electronAPI) {
             const chosen = await window.electronAPI.selectFolder();

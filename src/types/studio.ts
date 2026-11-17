@@ -162,6 +162,17 @@ export interface BatchItem {
   outputPath?: string;
 }
 
+export interface BatchExportJob {
+  fileId: string;
+  fileName: string;
+  inputPath: string;
+  outputPath: string;
+  status: 'idle' | 'rendering' | 'done' | 'error';
+  progress: number;
+  error?: string;
+  duration?: number;
+}
+
 export interface TimelineTrack {
   id: string;
   name: string;

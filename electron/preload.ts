@@ -13,6 +13,8 @@ export interface ExportStartPayload {
   trimStart: number;
   trimEnd: number;
   voiceBoost: boolean;
+  format?: 'mp4' | 'prores' | 'webm';
+  transparent?: boolean;
 }
 
 const api = {

@@ -270,15 +270,16 @@ export function encodeAudioBufferToWav(
   let offset = 44;
   const channels: Float32Array[] = [];
   for (let ch = 0; ch < numChannels; ch++) {
-    let chData = buffer.getChannelData(ch);
-    if (clarifierOptions && clarifierOptions.enabled) {
-      chData = applySpeechClarifier(chData, sampleRate, {
-        enabled: true,
-        presenceGainDb: 1.5 + (clarifierOptions.sensitivity ?? 0.6) * 4.5,
-        noiseGateThresholdDb: clarifierOptions.noiseGateThresholdDb ?? -42,
-      });
-    }
-    channels.push(chData);
+    const raw = buffer.getChannelData(ch);
+    const chData =
+      clarifierOptions && clarifierOptions.enabled
+        ? applySpeechClarifier(raw, sampleRate, {
+            enabled: true,
+            presenceGainDb: 1.5 + (clarifierOptions.sensitivity ?? 0.6) * 4.5,
+            noiseGateThresholdDb: clarifierOptions.noiseGateThresholdDb ?? -42,
+          })
+        : raw;
+    channels.push(chData as Float32Array);
   }
 
   // 0.3s smooth gentle sinusoidal fade-out window at the end
