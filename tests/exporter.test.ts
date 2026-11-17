@@ -119,6 +119,53 @@ describe('VideoExporter', () => {
     expect(args).toContain('yuva420p');
     expect(args).toContain('libopus');
   });
+
+  it('omits -ss seek argument when trimStart is 0 (pre-trimmed audio protection)', () => {
+    const exporter = new VideoExporter();
+    const args = exporter.buildFfmpegArgs(
+      {
+        outputPath: 'output.mp4',
+        audioPath: 'wedding_sequence_12345.wav',
+        width: 1080,
+        height: 1920,
+        fps: 30,
+        duration: 10,
+        totalFrames: 300,
+        trimStart: 0,
+        trimEnd: 10,
+        voiceBoost: false,
+      },
+      1080,
+      1920
+    );
+
+    expect(args).not.toContain('-ss');
+    expect(args).toContain('-t');
+    expect(args[args.indexOf('-t') + 1]).toBe('10');
+  });
+
+  it('includes -ss seek argument when trimStart is greater than 0', () => {
+    const exporter = new VideoExporter();
+    const args = exporter.buildFfmpegArgs(
+      {
+        outputPath: 'output.mp4',
+        audioPath: 'raw_recording.mp3',
+        width: 1080,
+        height: 1920,
+        fps: 30,
+        duration: 10,
+        totalFrames: 300,
+        trimStart: 4.5,
+        trimEnd: 14.5,
+        voiceBoost: false,
+      },
+      1080,
+      1920
+    );
+
+    expect(args).toContain('-ss');
+    expect(args[args.indexOf('-ss') + 1]).toBe('4.5');
+  });
 });
 
   it('performs real end-to-end video compilation with FFmpeg', async () => {

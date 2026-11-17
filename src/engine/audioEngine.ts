@@ -119,6 +119,16 @@ export class AudioEngine {
     this.updateGain();
   }
 
+  /**
+   * Sets or overrides the active AudioBuffer directly (used in batch isolation).
+   */
+  public setBuffer(buffer: AudioBuffer) {
+    this.stop();
+    this.audioBuffer = buffer;
+    this.duration = buffer.duration;
+    this.pauseOffset = 0;
+  }
+
   public setSpeechClarifier(enabled: boolean, sensitivity = 0.6) {
     this.speechClarifierEnabled = enabled;
     this.clarifierSensitivity = sensitivity;

@@ -687,13 +687,46 @@ export const App: React.FC = () => {
 
     await queueManager.processQueue(
       async (job, onProgress) => {
+        // Isolate audio buffer for each batch item so waveforms and duration strictly match this single recording
+        const matchingSource = loadedTrackSourcesRef.current.find(
+          (t) => t.id === job.fileId || t.path === job.inputPath
+        );
+
+        let itemBuffer: AudioBuffer | null = matchingSource ? matchingSource.buffer : null;
+        if (!itemBuffer) {
+          try {
+            itemBuffer = await decodeAudioSource(job.inputPath);
+          } catch (decodeErr) {
+            console.warn(`[Batch] Failed to decode audio for ${job.fileName}:`, decodeErr);
+          }
+        }
+
+        const batchAudioEngine = new AudioEngine();
+        if (itemBuffer) {
+          batchAudioEngine.setBuffer(itemBuffer);
+        }
+        if (config.audioSettings.voiceBoost) {
+          batchAudioEngine.setVoiceBoost(true);
+        }
+        if (config.audioSettings.speechClarifier) {
+          batchAudioEngine.setSpeechClarifier(true, config.audioSettings.clarifierSensitivity);
+        }
+
+        const itemDuration = itemBuffer ? itemBuffer.duration : config.audioDuration;
+
         const finalPath = await runExportPipeline({
-          audioEngine: audioEngineRef.current,
+          audioEngine: batchAudioEngine,
           bgImage,
           config: {
             ...config,
             audioPath: job.inputPath,
             audioName: job.fileName,
+            audioDuration: itemDuration,
+            audioSettings: {
+              ...config.audioSettings,
+              trimStart: 0,
+              trimEnd: itemDuration,
+            },
           },
           audioFilePath: job.inputPath,
           outputPath: job.outputPath,

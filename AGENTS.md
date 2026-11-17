@@ -150,6 +150,37 @@ When assigned to implement a feature from [ROADMAP.md](ROADMAP.md), use these st
 
 ---
 
+## 🔌 Backend-Frontend IPC Contract Verification Protocol
+
+When building, fixing, or extending features that cross the bridge between the Electron backend (`electron/main.ts`, `electron/preload.ts`, `electron/exporter.ts`) and the frontend presentation / DSP layer (`src/App.tsx`, `src/engine/`), all AI coding agents MUST adhere to these 5 invariant directives:
+
+1. **Hardware WebCodecs vs. Native FFmpeg Routing (Alpha Channel Invariant)**:
+   - Chromium WebCodecs `VideoEncoder` (`mp4-muxer`) is strictly H.264 AVC (opaque pixels only).
+   - Any export involving alpha transparency (`config.backgroundMode === 'transparent'`, Apple ProRes 4444 `.mov`, or Google WebM `.webm`) **MUST bypass WebCodecs** and route to `runFfmpegPipeExport` via the lossless PNG streaming pipe (`-vcodec png`).
+   - Never attempt to force alpha into `mp4-muxer` as it will fail or output corrupt opaque frames.
+
+2. **Master Timeline Audio Offset Normalization (Double-Trim Guard)**:
+   - When the user trims the timeline (`trimStart` / `trimEnd`) and exports a continuous master video, `audioEngine.getMasterWavBytes(trimStart, trimEnd)` produces an already normalized WAV file (`wedding_sequence_*.wav`) starting at `00:00.000`.
+   - Any downstream call to `startExport` with this pre-trimmed master file **MUST pass `trimStart: 0`** to FFmpeg. Passing the original `trimStart` causes FFmpeg to apply `-ss trimStart` a second time, erroneously cutting off the guest's speech.
+
+3. **Container-Aware Audio Multiplexing**:
+   - In `electron/main.ts` (`export:muxVideoAndAudio`), never apply MP4-specific flags like `-movflags +faststart` or AAC audio (`-c:a aac`) to Matroska/WebM containers (`.webm`).
+   - Always branch based on destination container:
+     - `.webm`: `-c:a libopus -b:a 128k` (omit faststart).
+     - `.mov`: `-c:a pcm_s16le` or `-c:a aac -b:a 192k` with `-movflags +faststart`.
+     - `.mp4`: `-c:a aac -b:a 192k` with `-movflags +faststart`.
+
+4. **Batch SD Card Queue Buffer Isolation**:
+   - The global `audioEngineRef.current` in `src/App.tsx` holds the concatenated multi-track sequence.
+   - When running batch exports (`src/engine/batchExporter.ts`), each job **MUST receive an isolated `AudioEngine` instance** initialized strictly with that individual track's `AudioBuffer` and relative duration (`trimStart: 0, trimEnd: track.duration`).
+   - Never sample offline FFT frames (`getOfflineFrameData`) for individual batch items from the multi-track timeline buffer.
+
+5. **Synchronization of IPC TypeScript Interfaces**:
+   - Any addition or change to IPC payloads in `electron/main.ts` (`ipcMain.handle` / `ipcMain.on`) must be mirrored immediately in `electron/preload.ts` (`ExportStartPayload` / `ElectronAPI`) and `src/types/electron.d.ts`.
+   - Never rely on `(window as any).electronAPI`. Keep all preload typings 100% type-safe.
+
+---
+
 ## 🧪 Verification & Release Workflow
 
 Every AI agent completing a task MUST run:

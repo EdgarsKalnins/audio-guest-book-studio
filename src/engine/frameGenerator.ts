@@ -16,11 +16,18 @@ export interface RenderPipelineOptions {
 
 /**
  * Unified Video Export Pipeline:
- * Prioritizes high-speed WebCodecs hardware acceleration (200+ FPS on M4 / modern OS),
- * with an automatic fallback to FFmpeg streaming if hardware encoding is unavailable.
+ * Prioritizes high-speed WebCodecs hardware acceleration (200+ FPS on M4 / modern OS) for opaque MP4s,
+ * with automatic routing to FFmpeg streaming pipe for transparent alpha video (ProRes 4444 / WebM)
+ * or when hardware encoding is unavailable.
  */
 export async function runExportPipeline(options: RenderPipelineOptions): Promise<string> {
-  if (isWebCodecsSupported()) {
+  const isTransparent = options.config.backgroundMode === 'transparent';
+  const chosenFormat = options.config.exportFormat || (isTransparent ? 'prores' : 'mp4');
+  const requiresAlpha = isTransparent || chosenFormat === 'prores' || chosenFormat === 'webm';
+
+  // Hardware WebCodecs (mp4-muxer) is strictly H.264 AVC (opaque only).
+  // Alpha transparent channels MUST stream through the lossless PNG FFmpeg pipe.
+  if (!requiresAlpha && isWebCodecsSupported()) {
     try {
       console.log('[Export] Using high-speed WebCodecs hardware acceleration engine...');
       return await runWebCodecsHardwareExport(options);
@@ -60,6 +67,11 @@ async function runFfmpegPipeExport(options: RenderPipelineOptions): Promise<stri
   const isTransparent = config.backgroundMode === 'transparent';
   const chosenFormat = config.exportFormat || (isTransparent ? 'prores' : 'mp4');
 
+  // Master sequence audio produced by getMasterWavBytes() is already pre-trimmed to start at 0s.
+  // Avoid double-trimming in FFmpeg by normalizing trimStart to 0 for generated sequence WAVs.
+  const isPreTrimmedMaster = audioFilePath.includes('wedding_sequence_');
+  const ffmpegAudioTrimStart = isPreTrimmedMaster ? 0 : trimStart;
+
   // 1. Tell Electron main to start FFmpeg
   if (window.electronAPI) {
     await window.electronAPI.startExport({
@@ -70,7 +82,7 @@ async function runFfmpegPipeExport(options: RenderPipelineOptions): Promise<stri
       fps,
       duration: exportDuration,
       totalFrames,
-      trimStart,
+      trimStart: ffmpegAudioTrimStart,
       trimEnd,
       voiceBoost: config.audioSettings.voiceBoost,
       format: chosenFormat,

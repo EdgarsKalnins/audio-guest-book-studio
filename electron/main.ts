@@ -509,6 +509,12 @@ function setupIPCHandlers() {
           audioFilterArgs.push('-af', 'loudnorm=I=-16:TP=-1.5:LRA=11');
         }
 
+        const isWebm = outputPath.endsWith('.webm');
+        const audioCodecArgs = isWebm
+          ? ['-c:a', 'libopus', '-b:a', '128k']
+          : ['-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-ac', '2'];
+        const movflagsArgs = isWebm ? [] : ['-movflags', '+faststart'];
+
         const args = [
           '-y',
           '-i', videoPath,
@@ -517,11 +523,8 @@ function setupIPCHandlers() {
           '-map', '1:a:0', // Explicitly take audio from input 1
           '-c:v', 'copy',  // Zero re-encoding of video! Runs at 10,000+ FPS
           ...audioFilterArgs,
-          '-c:a', 'aac',   // Universal high-fidelity AAC-LC audio
-          '-b:a', '192k',  // 192 kbps
-          '-ar', '44100',  // 44.1 kHz stereo
-          '-ac', '2',
-          '-movflags', '+faststart', // Instant start for Apple QuickTime / iPhone / Web
+          ...audioCodecArgs,
+          ...movflagsArgs, // Instant start for Apple QuickTime / iPhone / Web (MP4/MOV only)
           '-shortest',
           outputPath,
         ];

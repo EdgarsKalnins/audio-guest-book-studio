@@ -164,6 +164,32 @@ This document outlines the **10 approved roadmap features** scheduled for implem
 
 ---
 
+## 🔌 Backend-Frontend IPC Architecture & Known Gap Mitigations
+
+To maintain deterministic desktop performance across macOS, Windows, and Linux while upholding the strict 100% offline & zero-telemetry guarantee, the Studio operates on a dual-engine architecture:
+- **Renderer Frontend**: React 19 UI, Web Audio API DSP graphs, 60 FPS HTML5 Canvas compositor, and Chromium WebCodecs hardware encoder (`mp4-muxer`).
+- **Electron Main Backend**: Secure Context-Isolated IPC bridge (`preload.ts`), native FFmpeg pipeline (`child_process.spawn`), and low-level filesystem streaming.
+
+During deep end-to-end integration audits between frontend canvas clocks and backend FFmpeg processes, 4 subtle cross-process architectural gaps were identified and mitigated:
+
+### 1. WebCodecs Hardware Export Bypasses Alpha Transparency
+* **Root Cause**: Chromium’s hardware-accelerated `VideoEncoder` using `mp4-muxer` outputs H.264 AVC into an MP4 container, which fundamentally lacks an alpha transparency channel (`alpha: false`). When a user selects a transparent background (`backgroundMode: 'transparent'`) or exports to Apple ProRes 4444 / Google WebM, routing frames through WebCodecs stripped the alpha layer, producing an opaque black or white backdrop.
+* **Mitigation**: In `src/engine/frameGenerator.ts`, `runExportPipeline` strictly inspects `config.backgroundMode` and `config.exportFormat`. Whenever transparency or alpha codecs (`prores`, `webm`) are requested, the pipeline automatically bypasses WebCodecs and routes frames directly to `runFfmpegPipeExport`, streaming raw RGBA pixels via a lossless PNG pipe into FFmpeg's `prores_ks -pix_fmt yuva444p10le` or `libvpx-vp9 -pix_fmt yuva420p`.
+
+### 2. Double-Trim Timing Hazard on Master Sequence Audio
+* **Root Cause**: In `src/App.tsx`, when exporting the combined wedding timeline, `audioEngine.getMasterWavBytes(trimStart, trimEnd)` extracts only the audio segment between `trimStart` and `trimEnd`, writing a temporary normalized WAV file (`wedding_sequence_*.wav`) whose time starts at `00:00.000`. However, when `runFfmpegPipeExport` called `startExport`, it passed the user's original `trimStart` timestamp to FFmpeg, causing FFmpeg to apply `-ss trimStart` a *second* time on the already trimmed WAV file, inadvertently slicing off the beginning of the speech.
+* **Mitigation**: In `src/engine/frameGenerator.ts`, the pipeline detects if `audioFilePath` represents a pre-trimmed master sequence (`wedding_sequence_*.wav`). If so, it passes `trimStart: 0` to FFmpeg while preserving the original timeline offset for the canvas visualizer's offline FFT clock, ensuring sample-accurate synchronization without double-trimming.
+
+### 3. Container-Specific Audio Codec & Flags in Lossless Multiplexer
+* **Root Cause**: In `electron/main.ts`, the `export:muxVideoAndAudio` handler originally hardcoded universal MP4 parameters (`-c:a aac -b:a 192k` and `-movflags +faststart`). When exporting WebM containers (`.webm`), FFmpeg rejected the job because WebM containers require Opus/Vorbis audio codecs and do not support QuickTime's `-movflags +faststart` header relocation.
+* **Mitigation**: The multiplexer inspects the destination file extension: for `.webm`, it specifies `-c:a libopus -b:a 128k` and omits `faststart`; for `.mp4` and `.mov`, it applies standard high-fidelity AAC-LC with `-movflags +faststart`.
+
+### 4. Batch SD Card Export Buffer Isolation
+* **Root Cause**: When processing an entire SD card batch queue in `src/App.tsx`, `audioEngineRef.current` holds the combined multi-track wedding sequence buffer. If individual batch jobs were rendered against this shared singleton, `audioEngine.getOfflineFrameData(...)` would sample waveforms from the combined sequence rather than the isolated guest recording.
+* **Mitigation**: In `handleStartBatch`, each queue item is given an isolated `AudioEngine` instance loaded with that individual track's `AudioBuffer` and zero-based trim bounds (`trimStart: 0, trimEnd: track.duration`), guaranteeing that each batch clip visualizes only its own audio.
+
+---
+
 ## 🛠️ Prioritization & Implementation Phasing
 
 ```mermaid
