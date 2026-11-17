@@ -6,6 +6,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero Telemetry](https://img.shields.io/badge/Privacy-100%25%20Local%20%7C%20Zero%20Telemetry-emerald.svg)](#-privacy--zero-telemetry-pledge)
+[![Roadmap: 10 Planned Features](https://img.shields.io/badge/Roadmap-10%20Features%20Planned-gold.svg)](ROADMAP.md)
+[![Agent Handbook](https://img.shields.io/badge/AI%20Agents-Ready%20%7C%20AGENTS.md-purple.svg)](AGENTS.md)
 [![Cross Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey.svg)](#-platform-support)
 [![React 19](https://img.shields.io/badge/React-19.0-61dafb.svg)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178c6.svg)](https://www.typescriptlang.org)
@@ -55,6 +57,10 @@ npm run dev
   - 8 Visualizer algorithms: [`src/engine/visualizers/styles.ts`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/src/engine/visualizers/styles.ts)
 - **Local Dev Server**: Vite runs on `http://localhost:5173/`. Can be tested in any browser or headless automation tool (`ego-browser`, Playwright, Puppeteer).
 - **Strict Privacy Requirement**: Zero telemetry, zero analytics, zero external network pings. All processing runs 100% locally.
+
+### 📖 AI Agent & Roadmap References:
+- **[AGENTS.md](AGENTS.md)**: Engineering handbook with architecture rules and step-by-step implementation playbooks for upcoming features.
+- **[ROADMAP.md](ROADMAP.md)**: Complete specifications, user stories, and acceptance criteria for all 10 planned features.
 
 ---
 
@@ -228,6 +234,27 @@ npm run build
 npm run build:app
 ```
 Packaged installers will be saved in the `release/` directory.
+
+---
+
+## 🗺️ Roadmap & Future Plans (Approved 10-Feature Backlog)
+
+The open-source evolution of **Audio Guest Book Studio** is driven by real-world wedding events and photo booth operations. Below are the **10 community-approved roadmap features** scheduled for implementation (see [ROADMAP.md](ROADMAP.md) for full technical specifications and [AGENTS.md](AGENTS.md) for AI implementation playbooks):
+
+| # | Feature | Target User | Highlights | Status |
+| :-: | :--- | :--- | :--- | :---: |
+| **01** | **Batch Export Mode (SD Card Processor)** | Rental Booths & Photographers | Drop a folder of 50–100 guest `.wav` files and export individual MP4 clips in 1 click | 📋 Planned |
+| **02** | **Social Safe-Zone Overlays & Aspect Ratios** | Couples & Social Creators | Instagram Reels & TikTok UI overlay guides; native `9:16`, `16:9`, `1:1`, and `4:5` | 📋 Planned |
+| **03** | **Audio Noise Cleanup & Speech Clarifier** | Vintage Telephones | Multi-stage local DSP (80Hz high-pass, line-hum notch, dynamic noise gate, presence boost) | 📋 Planned |
+| **04** | **Transparent Alpha Video Export** | Wedding Videographers & Editors | Apple ProRes 4444 & WebM with alpha channel to overlay directly on 4K cinematic films | 📋 Planned |
+| **05** | **Silence Trimmer & Outgoing Greeting Prepend** | Rental Operators & Couples | Auto-trim dead air before/after messages; prepend couple's voicemail prompt + vintage beep | 📋 Planned |
+| **06** | **Polaroid & Retro Photo Collage Templates** | Vintage Weddings & Events | Tilted Polaroid frame with handwritten script font, photo booth strip, and vinyl record sleeve | 📋 Planned |
+| **07** | **Looping Video & Animated B-Roll Backgrounds** | Creators & Reels Marketers | MP4/WebM video background loops (flickering candlelight, bokeh flares, 8mm film grain) | 📋 Planned |
+| **08** | **Local AI Speech-to-Text Subtitles (Whisper)** | Couples & Mobile Viewers | 100% offline Whisper transcription; dynamic karaoke-style synchronized subtitles | 📋 Planned |
+| **09** | **Fine-Grained Waveform Styling & Gradients** | Designers & Event Stylists | Linear/radial multi-stop color gradients (Rose Gold, Champagne, Emerald), particle physics | 📋 Planned |
+| **10** | **Dynamic QR Code Gallery Watermark** | Rental Businesses & Event Hosts | Offline scannable QR code overlay linking guests directly to the couple's online audio gallery | 📋 Planned |
+
+> 💡 **For AI coding agents and human contributors**: To contribute or implement any feature from this list, see the step-by-step playbooks in [AGENTS.md](AGENTS.md) and full specs in [ROADMAP.md](ROADMAP.md).
 
 ---
 

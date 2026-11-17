@@ -45,6 +45,16 @@ Wedding voicemails are deeply personal and sentimental recordings. Any pull requ
 
 ---
 
+## 🗺️ What to Work On (Roadmap & AI Playbooks)
+
+Looking for a feature or enhancement to contribute?
+- **[ROADMAP.md](ROADMAP.md)** contains the complete list of **10 community-approved future features**, detailing user stories, architecture designs, and acceptance criteria.
+- **[AGENTS.md](AGENTS.md)** provides explicit developer notes, architecture guidelines, and step-by-step playbooks for both human contributors and AI pair-programming agents (Claude Code, Cursor, Codex, Windsurf, Antigravity, Gemini CLI).
+
+Choose an unassigned item from [ROADMAP.md](ROADMAP.md) and open an issue or pull request referencing it!
+
+---
+
 ## 📐 Architecture Guidelines
 
 - **Decoupled Engine & UI**: Audio synthesis and video encoding logic belong in `src/engine/`. React components in `src/components/` must remain presentation-focused.
