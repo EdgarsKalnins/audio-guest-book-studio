@@ -13,6 +13,7 @@ import {
   Stack,
   Camera,
   FilmReel,
+  ChatCenteredText,
 } from '@phosphor-icons/react';
 import {
   StudioConfig,
@@ -23,6 +24,7 @@ import {
   TimelineTrack,
   DEFAULT_FRAME_CONFIG,
   DEFAULT_MOTION_CONFIG,
+  DEFAULT_SUBTITLE_CONFIG,
 } from './types/studio';
 import { AudioEngine } from './engine/audioEngine';
 import { runExportPipeline } from './engine/frameGenerator';
@@ -33,6 +35,7 @@ import { MediaDropzone } from './components/MediaDropzone';
 import { VisualizerPanel } from './components/VisualizerPanel';
 import { FrameTemplatePanel } from './components/FrameTemplatePanel';
 import { MotionBackgroundPanel } from './components/MotionBackgroundPanel';
+import { SubtitlePanel } from './components/SubtitlePanel';
 import { TypographyPanel } from './components/TypographyPanel';
 import { QrWatermarkPanel } from './components/QrWatermarkPanel';
 import { AudioToolsPanel } from './components/AudioToolsPanel';
@@ -65,6 +68,7 @@ export const App: React.FC = () => {
       showTimer: true,
       fontSize: 1.0,
     },
+    subtitles: DEFAULT_SUBTITLE_CONFIG,
     qrWatermark: {
       enabled: false,
       url: 'https://momentbox.lv',
@@ -87,7 +91,7 @@ export const App: React.FC = () => {
     gapBetweenTracks: 0.5,
   });
 
-  const [activeTab, setActiveTab] = useState<'visualizer' | 'frames' | 'motion' | 'typography' | 'qr' | 'audio'>('visualizer');
+  const [activeTab, setActiveTab] = useState<'visualizer' | 'frames' | 'motion' | 'subtitles' | 'typography' | 'qr' | 'audio'>('visualizer');
   const [bgImage, setBgImage] = useState<HTMLImageElement | null>(null);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isExitModalOpen, setIsExitModalOpen] = useState(false);
@@ -961,6 +965,18 @@ export const App: React.FC = () => {
             <span className="sm:hidden">B-Roll</span>
           </button>
           <button
+            onClick={() => setActiveTab('subtitles')}
+            className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
+              activeTab === 'subtitles'
+                ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-white/[0.08] font-semibold'
+                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40'
+            }`}
+          >
+            <ChatCenteredText className="w-3.5 h-3.5 text-amber-500" weight="regular" />
+            <span className="hidden sm:inline">Captions</span>
+            <span className="sm:hidden">Sub</span>
+          </button>
+          <button
             onClick={() => setActiveTab('typography')}
             className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
               activeTab === 'typography'
@@ -1031,6 +1047,10 @@ export const App: React.FC = () => {
 
           {activeTab === 'motion' && (
             <MotionBackgroundPanel config={config} onChange={setConfig} />
+          )}
+
+          {activeTab === 'subtitles' && (
+            <SubtitlePanel config={config} updateConfig={setConfig} />
           )}
 
           {activeTab === 'typography' && (

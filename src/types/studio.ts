@@ -241,6 +241,42 @@ export interface QrWatermarkConfig {
   size: number; // base size (e.g. 100 to 200, default 130)
 }
 
+export type SubtitleStyle = 'karaoke-gold' | 'minimal-pill' | 'classic-serif' | 'cinematic-caps';
+
+export interface SubtitleWord {
+  word: string;
+  start: number;
+  end: number;
+}
+
+export interface SubtitleSegment {
+  id: string;
+  start: number;
+  end: number;
+  text: string;
+  words: SubtitleWord[];
+}
+
+export interface SubtitleConfig {
+  enabled: boolean;
+  style: SubtitleStyle;
+  fontSize: number; // 0.8 to 1.6, default 1.0
+  position: 'bottom' | 'center' | 'top';
+  highlightColor: string;
+  textColor: string;
+  segments: SubtitleSegment[];
+}
+
+export const DEFAULT_SUBTITLE_CONFIG: SubtitleConfig = {
+  enabled: false,
+  style: 'karaoke-gold',
+  fontSize: 1.0,
+  position: 'bottom',
+  highlightColor: '#d7ba7e',
+  textColor: '#ffffff',
+  segments: [],
+};
+
 export interface TypographyConfig {
   enabled: boolean;
   coupleNames: string;
@@ -305,6 +341,7 @@ export interface StudioConfig {
   motion: MotionBackgroundConfig;
   qrWatermark: QrWatermarkConfig;
   typography: TypographyConfig;
+  subtitles: SubtitleConfig;
   audioSettings: AudioSettings;
   audioPath: string | null;
   audioName: string | null;

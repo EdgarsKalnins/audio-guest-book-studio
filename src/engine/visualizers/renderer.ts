@@ -2,6 +2,7 @@ import { StudioConfig, VisualizerStyle, GRADIENT_PRESETS } from '../../types/stu
 import { drawQrBadge } from '../qrGenerator';
 import { renderFrameTemplate } from './frames';
 import { renderMotionBackground } from './motionBackground';
+import { drawSubtitles } from './subtitleRenderer';
 
 export function getVisualizerPattern(
   ctx: CanvasRenderingContext2D,
@@ -185,6 +186,11 @@ export function drawStudioFrame(
   // 5. Draw Dynamic QR Code Watermark (always on top of visualizer and background)
   if (config.qrWatermark && config.qrWatermark.enabled) {
     drawQrBadge(ctx, width, height, config.qrWatermark);
+  }
+
+  // 6. Draw Animated Karaoke Subtitles
+  if (config.subtitles && config.subtitles.enabled) {
+    drawSubtitles(ctx, width, height, config.subtitles, currentTime);
   }
 }
 
