@@ -1,5 +1,5 @@
-import React from 'react';
-import { Activity, Sparkles, Sliders, Palette } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Activity, Sparkles, Sliders, Palette, ChevronDown, Check } from 'lucide-react';
 import { StudioConfig, VISUALIZER_PRESETS, COLOR_OPTIONS, VisualizerStyle } from '../types/studio';
 
 interface VisualizerPanelProps {
@@ -8,50 +8,110 @@ interface VisualizerPanelProps {
 }
 
 export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({ config, updateConfig }) => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+
   const setStyle = (style: VisualizerStyle) => {
     updateConfig((prev) => ({ ...prev, visualizerStyle: style }));
+    setIsDropdownOpen(false);
   };
 
   const setColor = (hex: string) => {
     updateConfig((prev) => ({ ...prev, visualizerColor: hex }));
   };
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
+
+  const currentPreset = VISUALIZER_PRESETS.find((p) => p.id === config.visualizerStyle) || VISUALIZER_PRESETS[0];
+
   return (
     <div className="space-y-5">
-      {/* Visualizer Preset Cards */}
-      <div>
-        <label className="block text-xs font-semibold text-[#a89f94] uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-          <Activity className="w-3.5 h-3.5 text-gold-400" />
-          Centered Visualizer Style
+      {/* Custom Luxury Dropdown Selector */}
+      <div className="relative" ref={dropdownRef}>
+        <label className="block text-xs font-semibold text-[#a89f94] uppercase tracking-wider mb-2 flex items-center justify-between">
+          <span className="flex items-center gap-1.5">
+            <Activity className="w-3.5 h-3.5 text-gold-400" />
+            Visualizer Effect Style
+          </span>
+          <span className="text-[10px] text-gold-400/80 font-normal">
+            {VISUALIZER_PRESETS.length} Styles
+          </span>
         </label>
-        <div className="grid grid-cols-1 gap-2">
-          {VISUALIZER_PRESETS.map((preset) => {
-            const isSelected = config.visualizerStyle === preset.id;
-            return (
-              <button
-                key={preset.id}
-                onClick={() => setStyle(preset.id)}
-                className={`p-3 rounded-xl border text-left transition-all flex items-center justify-between ${
-                  isSelected
-                    ? 'border-gold-500/60 bg-[#211c19] text-[#f7f3ee] shadow-md ring-1 ring-gold-500/30'
-                    : 'border-[#2d2722] bg-[#141211] text-[#9c9389] hover:bg-[#1a1715] hover:text-[#d4ccc2]'
-                }`}
-              >
-                <div>
-                  <p className="text-sm font-medium">{preset.name}</p>
-                  <p className="text-xs opacity-75 mt-0.5">{preset.description}</p>
-                </div>
-                <div
-                  className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0 ${
-                    isSelected ? 'border-gold-400 bg-gold-400' : 'border-[#4a4038]'
+
+        {/* Dropdown Trigger Button */}
+        <button
+          type="button"
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          className={`w-full p-3.5 rounded-xl border text-left transition-all flex items-center justify-between ${
+            isDropdownOpen
+              ? 'border-gold-500 bg-[#211c19] text-[#f7f3ee] ring-1 ring-gold-500/40 shadow-lg'
+              : 'border-[#2d2722] bg-[#141211] text-[#e8e4df] hover:border-gold-500/40 hover:bg-[#1a1715]'
+          }`}
+        >
+          <div className="flex items-center gap-3 min-w-0 pr-2">
+            <div className="w-8 h-8 rounded-lg bg-gold-500/15 border border-gold-500/30 flex items-center justify-center shrink-0">
+              <Activity className="w-4 h-4 text-gold-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-[#f8f5f0] truncate">{currentPreset.name}</p>
+              <p className="text-[11px] text-[#9c9389] truncate mt-0.5">{currentPreset.description}</p>
+            </div>
+          </div>
+          <ChevronDown
+            className={`w-4 h-4 text-gold-400 shrink-0 transition-transform duration-200 ${
+              isDropdownOpen ? 'rotate-180' : ''
+            }`}
+          />
+        </button>
+
+        {/* Popover Menu */}
+        {isDropdownOpen && (
+          <div className="absolute top-full left-0 right-0 mt-2 z-40 bg-[#171413] border border-[#3b332d] rounded-2xl shadow-2xl overflow-hidden py-1.5 max-h-80 overflow-y-auto custom-scrollbar animate-fade-in">
+            <div className="px-3 py-1.5 text-[10px] uppercase font-bold tracking-wider text-[#7d746a] border-b border-[#26211d]">
+              Choose Visualizer Style
+            </div>
+            {VISUALIZER_PRESETS.map((preset) => {
+              const isSelected = config.visualizerStyle === preset.id;
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => setStyle(preset.id)}
+                  className={`w-full px-3.5 py-2.5 text-left transition-all flex items-center justify-between border-l-2 ${
+                    isSelected
+                      ? 'border-gold-400 bg-gold-500/10 text-gold-200 font-medium'
+                      : 'border-transparent text-[#d4ccc2] hover:bg-[#221d1a] hover:text-[#f8f5f0]'
                   }`}
                 >
-                  {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-black" />}
-                </div>
-              </button>
-            );
-          })}
-        </div>
+                  <div className="min-w-0 pr-3">
+                    <p className={`text-xs ${isSelected ? 'text-gold-300 font-semibold' : 'text-[#e8e4df]'}`}>
+                      {preset.name}
+                    </p>
+                    <p className="text-[10px] text-[#8e8478] truncate mt-0.5">{preset.description}</p>
+                  </div>
+                  {isSelected && (
+                    <div className="w-5 h-5 rounded-full bg-gold-500/20 flex items-center justify-center shrink-0">
+                      <Check className="w-3 h-3 text-gold-400" />
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Wedding Color Palette */}

@@ -203,6 +203,12 @@ export async function runWebCodecsHardwareExport(
     } else if (target instanceof ArrayBufferTarget && window.electronAPI) {
       const mp4VideoBuffer = new Uint8Array(target.buffer);
       tempVideoPath = await window.electronAPI.saveTempVideo(mp4VideoBuffer);
+    } else if (target instanceof ArrayBufferTarget) {
+      // Browser environment fallback: convert in-memory MP4 buffer into downloadable Blob URL
+      const blob = new Blob([target.buffer], { type: 'video/mp4' });
+      const blobUrl = URL.createObjectURL(blob);
+      onProgress(100, totalFrames, totalFrames);
+      return blobUrl;
     } else {
       tempVideoPath = outputPath;
     }

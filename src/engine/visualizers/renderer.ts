@@ -161,6 +161,15 @@ export function drawStudioFrame(
   }
 
   switch (config.visualizerStyle) {
+    case 'line_wave':
+      drawClassicHairlineWave(ctx, centerX, centerY, width, height, timeDomainData, config, currentTime);
+      break;
+    case 'line_mirror':
+      drawMirroredCenterLine(ctx, centerX, centerY, width, height, frequencyData, config);
+      break;
+    case 'line_horizon':
+      drawCleanPulseHorizon(ctx, centerX, centerY, width, height, timeDomainData, config, currentTime);
+      break;
     case 'bars':
       drawCenteredBars(ctx, centerX, centerY, width, height, frequencyData, config);
       break;
@@ -506,4 +515,159 @@ function drawPill(ctx: CanvasRenderingContext2D, x: number, y: number, w: number
   ctx.arcTo(x, y, x + r, y, r);
   ctx.closePath();
   ctx.fill();
+}
+
+function drawClassicHairlineWave(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  width: number,
+  height: number,
+  timeData: Float32Array,
+  config: StudioConfig,
+  currentTime: number
+) {
+  const baseScale = width / 1080;
+  const totalWidth = width * 0.72 * config.visualizerScale;
+  const startX = cx - totalWidth / 2;
+  const maxAmp = height * 0.14 * config.visualizerScale;
+  const points = 120;
+  const step = totalWidth / points;
+
+  ctx.save();
+  ctx.strokeStyle = config.visualizerColor;
+  ctx.lineWidth = 1.8 * baseScale;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  // Hairline guide baseline
+  ctx.beginPath();
+  ctx.strokeStyle = `${config.visualizerColor}28`;
+  ctx.moveTo(startX - 20 * baseScale, cy);
+  ctx.lineTo(startX + totalWidth + 20 * baseScale, cy);
+  ctx.stroke();
+
+  // Active wave curve
+  ctx.strokeStyle = config.visualizerColor;
+  ctx.beginPath();
+  for (let i = 0; i <= points; i++) {
+    const x = startX + i * step;
+    const sampleIdx = Math.floor((i / points) * (timeData.length - 1));
+    const audioVal = timeData[sampleIdx] || 0;
+    const taper = Math.sin((i / points) * Math.PI);
+    const ambient = Math.sin(i * 0.18 + currentTime * 3) * 6 * taper;
+    const y = cy + (audioVal * maxAmp + ambient) * taper;
+
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Subtle center anchor pip
+  ctx.fillStyle = config.visualizerColor;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 2.5 * baseScale, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawMirroredCenterLine(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  width: number,
+  height: number,
+  data: Uint8Array,
+  config: StudioConfig
+) {
+  const baseScale = width / 1080;
+  const lineCount = 64;
+  const totalWidth = width * 0.70 * config.visualizerScale;
+  const spacing = totalWidth / lineCount;
+  const startX = cx - totalWidth / 2;
+  const maxHalfHeight = height * 0.12 * config.visualizerScale;
+
+  ctx.save();
+  ctx.strokeStyle = config.visualizerColor;
+  ctx.lineWidth = 1.4 * baseScale;
+  ctx.lineCap = 'round';
+
+  // Center horizon hairline
+  ctx.beginPath();
+  ctx.strokeStyle = `${config.visualizerColor}33`;
+  ctx.moveTo(startX - 15 * baseScale, cy);
+  ctx.lineTo(startX + totalWidth + 15 * baseScale, cy);
+  ctx.stroke();
+
+  ctx.strokeStyle = config.visualizerColor;
+
+  for (let i = 0; i < lineCount; i++) {
+    const distFromCenter = Math.abs(i - lineCount / 2) / (lineCount / 2);
+    const dataIdx = Math.floor((1 - distFromCenter * 0.75) * (data.length * 0.42));
+    const val = (data[dataIdx] || 0) / 255;
+    const taper = Math.sin(((i + 0.5) / lineCount) * Math.PI);
+    const h = Math.max(3 * baseScale, val * maxHalfHeight * taper);
+
+    const x = startX + i * spacing + spacing / 2;
+
+    ctx.beginPath();
+    ctx.moveTo(x, cy - h);
+    ctx.lineTo(x, cy + h);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawCleanPulseHorizon(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  width: number,
+  height: number,
+  timeData: Float32Array,
+  config: StudioConfig,
+  currentTime: number
+) {
+  const baseScale = width / 1080;
+  const totalWidth = width * 0.75 * config.visualizerScale;
+  const startX = cx - totalWidth / 2;
+  const maxAmp = height * 0.15 * config.visualizerScale;
+  const steps = 140;
+  const dx = totalWidth / steps;
+
+  ctx.save();
+  ctx.strokeStyle = config.visualizerColor;
+  ctx.lineWidth = 1.6 * baseScale;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  ctx.beginPath();
+  for (let i = 0; i <= steps; i++) {
+    const x = startX + i * dx;
+    const progress = i / steps; // 0 to 1
+    let envelope = 0;
+    if (progress >= 0.2 && progress <= 0.8) {
+      const pNorm = (progress - 0.2) / 0.6;
+      envelope = Math.pow(Math.sin(pNorm * Math.PI), 2.5);
+    }
+
+    const sampleIdx = Math.floor(progress * (timeData.length - 1));
+    const audioVal = timeData[sampleIdx] || 0;
+    const ripple = Math.sin(progress * 28 + currentTime * 4) * 4 * envelope;
+    const y = cy + (audioVal * maxAmp + ripple) * envelope;
+
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Center marker
+  ctx.fillStyle = config.visualizerColor;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 3 * baseScale, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
 }

@@ -167,9 +167,11 @@ function setupIPCHandlers() {
   // Select output save file path for single export
   ipcMain.handle('dialog:selectSavePath', async (_, defaultName: string) => {
     if (!win) return null;
+    const downloadsDir = app.getPath('downloads');
+    const safeName = defaultName || 'wedding-audio-video.mp4';
     const res = await dialog.showSaveDialog(win, {
       title: 'Export Video Destination',
-      defaultPath: defaultName || 'wedding-audio-video.mp4',
+      defaultPath: path.join(downloadsDir, safeName),
       filters: [{ name: 'MP4 Video', extensions: ['mp4'] }],
     });
     if (res.canceled) return null;
@@ -396,11 +398,23 @@ function setupIPCHandlers() {
     }
   );
 
-  // Reveal in Finder / Explorer
+  // Reveal in Finder / Explorer (always resolves to absolute path)
   ipcMain.handle('shell:showItemInFolder', async (_, filePath: string) => {
-    if (fs.existsSync(filePath)) {
-      shell.showItemInFolder(filePath);
-      return true;
+    try {
+      if (!filePath) return false;
+      const cleanPath = filePath.replace(/^file:\/\//, '');
+      const absPath = path.resolve(cleanPath);
+      if (fs.existsSync(absPath)) {
+        shell.showItemInFolder(absPath);
+        return true;
+      }
+      const dir = path.dirname(absPath);
+      if (fs.existsSync(dir)) {
+        shell.openPath(dir);
+        return true;
+      }
+    } catch (e) {
+      console.warn('[Shell] showItemInFolder failed:', e);
     }
     return false;
   });

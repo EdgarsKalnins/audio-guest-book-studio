@@ -30,13 +30,13 @@ import demoPhotoUrl from './assets/demo-photo.jpg';
 export const App: React.FC = () => {
   const [config, setConfig] = useState<StudioConfig>({
     aspectRatio: '9:16',
-    visualizerStyle: 'bars',
+    visualizerStyle: 'line_wave', // Classic hairline wave default
     visualizerColor: '#d7ba7e',
     visualizerScale: 1.0,
     visualizerOpacity: 0.95,
     visualizerGlow: true,
     typography: {
-      enabled: true,
+      enabled: false, // Disabled by default per user request
       coupleNames: 'Sarah & Michael',
       dateText: 'October 14, 2024',
       titleText: 'Wedding Audio Guestbook',
@@ -493,6 +493,19 @@ export const App: React.FC = () => {
         percentage: 100,
         outputFilePath: finalPath,
       });
+
+      // If running in browser without Electron, trigger instant browser file download
+      if (!window.electronAPI && finalPath && finalPath.startsWith('blob:')) {
+        const downloadName = `${(config.audioName || 'wedding-audio-video')
+          .replace(/\.[^/.]+$/, '')
+          .replace(/[^a-zA-Z0-9_-]/g, '_')}.mp4`;
+        const a = document.createElement('a');
+        a.href = finalPath;
+        a.download = downloadName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg !== 'Export cancelled') {
@@ -519,6 +532,16 @@ export const App: React.FC = () => {
   const handleShowInFolder = (path: string) => {
     if (window.electronAPI) {
       window.electronAPI.showInFolder(path);
+    } else if (path && path.startsWith('blob:')) {
+      const downloadName = `${(config.audioName || 'wedding-audio-video')
+        .replace(/\.[^/.]+$/, '')
+        .replace(/[^a-zA-Z0-9_-]/g, '_')}.mp4`;
+      const a = document.createElement('a');
+      a.href = path;
+      a.download = downloadName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
   };
 

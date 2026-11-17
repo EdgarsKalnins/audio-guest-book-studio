@@ -33,14 +33,17 @@ describe('Studio Configurations & Presets', () => {
     });
   });
 
-  it('includes all 5 required centered wedding visualizers', () => {
+  it('includes centered wedding visualizers including 3 classic line styles', () => {
     const ids = VISUALIZER_PRESETS.map((p) => p.id);
     expect(ids).toContain('bars');
     expect(ids).toContain('wave');
     expect(ids).toContain('ring');
     expect(ids).toContain('mirror');
     expect(ids).toContain('particles');
-    expect(VISUALIZER_PRESETS.length).toBe(5);
+    expect(ids).toContain('line_wave');
+    expect(ids).toContain('line_mirror');
+    expect(ids).toContain('line_horizon');
+    expect(VISUALIZER_PRESETS.length).toBe(8);
   });
 
   it('contains wedding color options with valid hex codes', () => {

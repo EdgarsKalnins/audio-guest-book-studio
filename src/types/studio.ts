@@ -1,4 +1,12 @@
-export type VisualizerStyle = 'bars' | 'wave' | 'ring' | 'mirror' | 'particles';
+export type VisualizerStyle =
+  | 'bars'
+  | 'wave'
+  | 'ring'
+  | 'mirror'
+  | 'particles'
+  | 'line_wave'
+  | 'line_mirror'
+  | 'line_horizon';
 
 export type AspectRatioPreset = '9:16' | '1:1' | '16:9';
 
@@ -23,6 +31,9 @@ export interface VisualizerPreset {
 }
 
 export const VISUALIZER_PRESETS: VisualizerPreset[] = [
+  { id: 'line_wave', name: 'Classic Hairline Wave', description: 'Delicate single continuous audio wave with soft gold glow' },
+  { id: 'line_mirror', name: 'Mirrored Center Line', description: 'Fine frequency hairlines extending above & below center axis' },
+  { id: 'line_horizon', name: 'Clean Pulse Horizon', description: 'Minimalist straight line with central voice pulse vibrations' },
   { id: 'bars', name: 'Voice Memo Bars', description: 'Smooth rounded bars pulsing from the center' },
   { id: 'wave', name: 'Sine Ribbon', description: 'Flowing romantic waves with soft ambient glow' },
   { id: 'ring', name: 'Circular Halo', description: 'Center radiating ring reacting to voice frequencies' },

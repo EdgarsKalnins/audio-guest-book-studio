@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, AlertCircle, Folder, X, Play, Loader2, Sparkles, Layers } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Folder, Download, X, Play, Loader2, Sparkles, Layers } from 'lucide-react';
 import { ExportProgress, BatchItem } from '../types/studio';
 
 interface ExportModalProps {
@@ -221,7 +221,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                 <div>
                   <h4 className="text-lg font-semibold text-[#f5ebd7]">Video Export Complete!</h4>
                   <p className="text-xs text-[#9c9389] mt-1 max-w-sm mx-auto truncate font-mono">
-                    {progress.outputFilePath}
+                    {progress.outputFilePath?.startsWith('blob:')
+                      ? `${progress.currentItemName || 'wedding_audio_video'}.mp4`
+                      : progress.outputFilePath}
                   </p>
                 </div>
 
@@ -230,8 +232,17 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                     onClick={() => progress.outputFilePath && onShowInFolder(progress.outputFilePath)}
                     className="px-4 py-2 rounded-xl bg-gold-500 hover:bg-gold-400 text-black font-semibold text-xs transition-all shadow-md flex items-center gap-1.5"
                   >
-                    <Folder className="w-4 h-4" />
-                    Show in Finder
+                    {window.electronAPI ? (
+                      <>
+                        <Folder className="w-4 h-4" />
+                        Show in Finder
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-4 h-4" />
+                        Download Video
+                      </>
+                    )}
                   </button>
                   <button
                     onClick={onClose}
