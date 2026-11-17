@@ -1,6 +1,8 @@
 import { app, BrowserWindow, ipcMain, dialog, shell, protocol, net } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
+import os from 'node:os';
+import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { VideoExporter, ExportStartOptions } from './exporter';
 
@@ -115,7 +117,26 @@ function setupIPCHandlers() {
     const res = await dialog.showOpenDialog(win, {
       title: 'Select Wedding Audio Recording(s)',
       filters: [
-        { name: 'Audio Files', extensions: ['wav', 'mp3', 'm4a', 'aac', 'ogg', 'flac'] },
+        {
+          name: 'Audio Recordings (*.wav, *.mp3, *.m4a, *.aac, *.ogg, *.flac, *.aiff, etc.)',
+          extensions: [
+            'wav',
+            'mp3',
+            'm4a',
+            'aac',
+            'ogg',
+            'flac',
+            'aiff',
+            'aif',
+            'wma',
+            'opus',
+            'webm',
+            'amr',
+            'm4r',
+            'caf',
+          ],
+        },
+        { name: 'All Files (*.*)', extensions: ['*'] },
       ],
       properties: ['openFile', 'multiSelections'],
     });
@@ -199,6 +220,53 @@ function setupIPCHandlers() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       throw new Error(`Failed to read file ${filePath}: ${msg}`);
+    }
+  });
+
+  // Write temporary master sequence WAV file for FFmpeg export
+  ipcMain.handle('audio:writeWavFile', async (_, wavBytes: Uint8Array, fileName: string) => {
+    try {
+      const tempDir = path.join(os.tmpdir(), 'wedding_studio_timeline');
+      if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir, { recursive: true });
+      }
+      const safeName = fileName || `master_timeline_${Date.now()}.wav`;
+      const targetPath = path.join(tempDir, safeName);
+      await fs.promises.writeFile(targetPath, Buffer.from(wavBytes));
+      return targetPath;
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new Error(`Failed to write timeline WAV file: ${msg}`);
+    }
+  });
+
+  // Transcode any exotic audio format into PCM WAV using bundled FFmpeg
+  ipcMain.handle('audio:transcodeToWav', async (_, filePath: string) => {
+    try {
+      const cleanPath = filePath.replace(/^file:\/\//, '');
+      const dummyExporter = new VideoExporter();
+      const ffmpegBin = dummyExporter.resolveFfmpegPath();
+      const tempOut = path.join(os.tmpdir(), `transcode_${Date.now()}.wav`);
+
+      execFileSync(ffmpegBin, [
+        '-y',
+        '-i', cleanPath,
+        '-ar', '44100',
+        '-ac', '2',
+        '-c:a', 'pcm_s16le',
+        tempOut,
+      ]);
+
+      const buf = await fs.promises.readFile(tempOut);
+      try {
+        fs.unlinkSync(tempOut);
+      } catch {
+        // Ignored
+      }
+      return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new Error(`Failed to transcode audio file ${filePath}: ${msg}`);
     }
   });
 

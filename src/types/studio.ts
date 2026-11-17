@@ -69,6 +69,15 @@ export interface BatchItem {
   outputPath?: string;
 }
 
+export interface TimelineTrack {
+  id: string;
+  name: string;
+  path: string;
+  duration: number;
+  startTime: number;
+  endTime: number;
+}
+
 export interface StudioConfig {
   aspectRatio: AspectRatioPreset;
   visualizerStyle: VisualizerStyle;
@@ -83,6 +92,8 @@ export interface StudioConfig {
   audioDuration: number;
   imagePath: string | null;
   batchQueue: BatchItem[];
+  timelineTracks: TimelineTrack[];
+  gapBetweenTracks: number;
 }
 
 export interface ExportProgress {

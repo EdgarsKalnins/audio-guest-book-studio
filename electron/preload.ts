@@ -61,6 +61,10 @@ const api = {
 
   // File system utilities
   readFile: (filePath: string) => ipcRenderer.invoke('fs:readFile', filePath),
+  writeWavFile: (wavBytes: Uint8Array, fileName: string): Promise<string> =>
+    ipcRenderer.invoke('audio:writeWavFile', wavBytes, fileName),
+  transcodeToWav: (filePath: string): Promise<ArrayBuffer> =>
+    ipcRenderer.invoke('audio:transcodeToWav', filePath),
   showInFolder: (filePath: string) => ipcRenderer.invoke('shell:showItemInFolder', filePath),
 
   // Video Export IPC

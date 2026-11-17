@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Sparkles,
-  Layers,
   Download,
-  FolderOpen,
   Volume2,
   Type,
   Activity,
-  FolderArchive,
+  ListMusic,
 } from 'lucide-react';
 import {
   StudioConfig,
@@ -15,6 +13,7 @@ import {
   BatchItem,
   ASPECT_RATIOS,
   AspectRatioPreset,
+  TimelineTrack,
 } from './types/studio';
 import { AudioEngine } from './engine/audioEngine';
 import { runExportPipeline } from './engine/frameGenerator';
@@ -48,13 +47,15 @@ export const App: React.FC = () => {
     audioSettings: {
       trimStart: 0,
       trimEnd: 0,
-      voiceBoost: true,
+      voiceBoost: false, // Enhancements only on request (OFF by default)
     },
     audioPath: null,
     audioName: null,
     audioDuration: 0,
     imagePath: null,
     batchQueue: [],
+    timelineTracks: [],
+    gapBetweenTracks: 0.5,
   });
 
   const [activeTab, setActiveTab] = useState<'visualizer' | 'typography' | 'audio'>('visualizer');
@@ -69,6 +70,8 @@ export const App: React.FC = () => {
 
   const audioEngineRef = useRef<AudioEngine>(new AudioEngine());
   const isCancelledRef = useRef<boolean>(false);
+  // Store all decoded track sources for seamless sequence re-concatenation
+  const loadedTrackSourcesRef = useRef<Array<{ id: string; name: string; path: string; buffer: AudioBuffer }>>([]);
 
   // 1. Initial Load: Auto-load bundled demo wedding assets for immediate testing
   useEffect(() => {
@@ -117,15 +120,35 @@ export const App: React.FC = () => {
       const arrayBuffer = await response.arrayBuffer();
       const decoded = await audioEngineRef.current.loadAudioFromBuffer(arrayBuffer);
 
+      const demoTrack = {
+        id: 'demo-track-1',
+        name: 'Sarah & Michael - Wedding Message #1',
+        path: resolvedAudioDiskPath,
+        buffer: decoded,
+      };
+
+      loadedTrackSourcesRef.current = [demoTrack];
+
+      const demoTimeline: TimelineTrack = {
+        id: demoTrack.id,
+        name: demoTrack.name,
+        path: demoTrack.path,
+        duration: decoded.duration,
+        startTime: 0,
+        endTime: decoded.duration,
+      };
+
       setConfig((prev) => ({
         ...prev,
         audioPath: resolvedAudioDiskPath,
-        audioName: 'Sarah & Michael - Wedding Message #1.mp3',
+        audioName: demoTrack.name,
         audioDuration: decoded.duration,
+        timelineTracks: [demoTimeline],
         audioSettings: {
           ...prev.audioSettings,
           trimStart: 0,
           trimEnd: decoded.duration,
+          voiceBoost: false, // Enhancements only on request
         },
       }));
     } catch (err) {
@@ -133,39 +156,156 @@ export const App: React.FC = () => {
     }
   };
 
-  // Helper to load audio from a local file path, URL, or File object
-  const loadAudioSource = async (fileOrPath: string, fileName: string, fileBlob?: File) => {
+  // Decode audio buffer from file, URL, or transcode fallback for any exotic format
+  const decodeAudioSource = async (fileOrPath: string, fileBlob?: File): Promise<AudioBuffer> => {
+    let arrayBuffer: ArrayBuffer;
+    if (fileBlob) {
+      arrayBuffer = await fileBlob.arrayBuffer();
+    } else if (fileOrPath.startsWith('blob:') || fileOrPath.startsWith('http')) {
+      const res = await fetch(fileOrPath);
+      arrayBuffer = await res.arrayBuffer();
+    } else if (window.electronAPI) {
+      arrayBuffer = await window.electronAPI.readFile(fileOrPath);
+    } else {
+      const res = await fetch(fileOrPath);
+      arrayBuffer = await res.arrayBuffer();
+    }
+
+    // Try native Web Audio API decoding
+    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const tempCtx = new AudioCtx();
+
     try {
-      let arrayBuffer: ArrayBuffer;
-      if (fileBlob) {
-        arrayBuffer = await fileBlob.arrayBuffer();
-      } else if (fileOrPath.startsWith('blob:') || fileOrPath.startsWith('http')) {
-        const res = await fetch(fileOrPath);
-        arrayBuffer = await res.arrayBuffer();
-      } else if (window.electronAPI) {
-        arrayBuffer = await window.electronAPI.readFile(fileOrPath);
-      } else {
-        const res = await fetch(fileOrPath);
-        arrayBuffer = await res.arrayBuffer();
+      const decoded = await tempCtx.decodeAudioData(arrayBuffer.slice(0));
+      tempCtx.close();
+      return decoded;
+    } catch (nativeErr) {
+      tempCtx.close();
+      // If Web Audio API fails on an exotic audio format (e.g. vintage telecom audio, WMA, AIFF):
+      if (window.electronAPI && typeof window.electronAPI.transcodeToWav === 'function' && fileOrPath) {
+        console.log('[Audio] Native decode failed, transcoding via FFmpeg fallback:', fileOrPath);
+        const pcmBuf = await window.electronAPI.transcodeToWav(fileOrPath);
+        const retryCtx = new AudioCtx();
+        const decoded = await retryCtx.decodeAudioData(pcmBuf.slice(0));
+        retryCtx.close();
+        return decoded;
+      }
+      throw nativeErr;
+    }
+  };
+
+  // Adds one or multiple audio recordings directly into the ONE continuous timeline sequence
+  const addAudioTracksToSequence = async (
+    filesToAdd: Array<{ path: string; name: string; fileBlob?: File }>,
+    replaceExisting = false
+  ) => {
+    try {
+      const newDecodedSources: Array<{ id: string; name: string; path: string; buffer: AudioBuffer }> = [];
+
+      for (let i = 0; i < filesToAdd.length; i++) {
+        const item = filesToAdd[i];
+        try {
+          const buffer = await decodeAudioSource(item.path, item.fileBlob);
+          newDecodedSources.push({
+            id: `track-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 6)}`,
+            name: item.name.replace(/\.[^/.]+$/, ''),
+            path: item.path,
+            buffer,
+          });
+        } catch (itemErr) {
+          console.error(`Could not decode audio track ${item.name}:`, itemErr);
+        }
       }
 
-      const decoded = await audioEngineRef.current.loadAudioFromBuffer(arrayBuffer);
+      if (newDecodedSources.length === 0) {
+        alert('Could not decode any of the selected audio files.');
+        return;
+      }
+
+      // Combine with existing sequence or replace
+      const combinedSources = replaceExisting
+        ? newDecodedSources
+        : [...loadedTrackSourcesRef.current, ...newDecodedSources];
+
+      loadedTrackSourcesRef.current = combinedSources;
+
+      // Stitches all tracks into one continuous timeline sequence in the audio engine
+      const { masterBuffer, tracks } = await audioEngineRef.current.loadSequencedTracks(
+        combinedSources,
+        config.gapBetweenTracks
+      );
+
+      const summaryName =
+        tracks.length > 1
+          ? `${tracks.length} Wedding Voicemails (${tracks[0].name} + ${tracks.length - 1} more)`
+          : tracks[0].name;
 
       setConfig((prev) => ({
         ...prev,
-        audioPath: fileOrPath,
-        audioName: fileName,
-        audioDuration: decoded.duration,
+        audioPath: tracks[0].path || 'sequence',
+        audioName: summaryName,
+        audioDuration: masterBuffer.duration,
+        timelineTracks: tracks,
         audioSettings: {
           ...prev.audioSettings,
           trimStart: 0,
-          trimEnd: decoded.duration,
+          trimEnd: masterBuffer.duration,
         },
       }));
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      alert(`Could not load audio file: ${msg}`);
+      alert(`Error adding audio to timeline sequence: ${msg}`);
     }
+  };
+
+  // Remove a track from the timeline sequence
+  const handleRemoveTrack = async (trackId: string) => {
+    loadedTrackSourcesRef.current = loadedTrackSourcesRef.current.filter((t) => t.id !== trackId);
+
+    if (loadedTrackSourcesRef.current.length === 0) {
+      audioEngineRef.current.stop();
+      setConfig((prev) => ({
+        ...prev,
+        audioPath: null,
+        audioName: null,
+        audioDuration: 0,
+        timelineTracks: [],
+        audioSettings: {
+          ...prev.audioSettings,
+          trimStart: 0,
+          trimEnd: 0,
+        },
+      }));
+      return;
+    }
+
+    const { masterBuffer, tracks } = await audioEngineRef.current.loadSequencedTracks(
+      loadedTrackSourcesRef.current,
+      config.gapBetweenTracks
+    );
+
+    const summaryName =
+      tracks.length > 1
+        ? `${tracks.length} Wedding Voicemails (${tracks[0].name} + ${tracks.length - 1} more)`
+        : tracks[0].name;
+
+    setConfig((prev) => ({
+      ...prev,
+      audioPath: tracks[0].path,
+      audioName: summaryName,
+      audioDuration: masterBuffer.duration,
+      timelineTracks: tracks,
+      audioSettings: {
+        ...prev.audioSettings,
+        trimStart: 0,
+        trimEnd: masterBuffer.duration,
+      },
+    }));
+  };
+
+  // Jump playhead directly to the start of a specific track in the sequence
+  const handleSeekTrack = (startTime: number) => {
+    audioEngineRef.current.seek(startTime);
   };
 
   // Helper to load background photo
@@ -210,7 +350,7 @@ export const App: React.FC = () => {
       const ext = (f.name.toLowerCase().split('.').pop() || '').toLowerCase();
       const isAudio =
         f.type.startsWith('audio/') ||
-        ['wav', 'mp3', 'm4a', 'aac', 'ogg', 'flac', 'aiff'].includes(ext);
+        ['wav', 'mp3', 'm4a', 'aac', 'ogg', 'flac', 'aiff', 'aif', 'wma', 'opus', 'webm', 'amr'].includes(ext);
       const isImage =
         f.type.startsWith('image/') ||
         ['jpg', 'jpeg', 'png', 'webp', 'bmp'].includes(ext);
@@ -235,89 +375,38 @@ export const App: React.FC = () => {
       loadImageSource(imgPath || URL.createObjectURL(imageFile), imageFile);
     }
 
-    // If audio file(s) were dropped
-    if (audioFiles.length === 1) {
-      const single = audioFiles[0];
-      let p = '';
-      if (window.electronAPI && typeof window.electronAPI.getPathForFile === 'function') {
-        p = window.electronAPI.getPathForFile(single);
-      }
-      if (!p) {
-        const anyFile = single as unknown as { path?: string };
-        p = anyFile.path || '';
-      }
-      loadAudioSource(p || URL.createObjectURL(single), single.name, single);
-    } else if (audioFiles.length > 1) {
-      // Multiple audio files -> Add to batch queue
-      const newItems: BatchItem[] = audioFiles.map((f, idx) => {
+    // If audio file(s) were dropped: add ALL of them into ONE timeline sequence!
+    if (audioFiles.length > 0) {
+      const itemsToAdd = audioFiles.map((f) => {
         let p = '';
         if (window.electronAPI && typeof window.electronAPI.getPathForFile === 'function') {
           p = window.electronAPI.getPathForFile(f);
         }
         if (!p) {
-          const anyF = f as unknown as { path?: string };
-          p = anyF.path || '';
+          const anyFile = f as unknown as { path?: string };
+          p = anyFile.path || '';
         }
         return {
-          id: `${Date.now()}-${idx}`,
-          name: f.name,
           path: p || URL.createObjectURL(f),
-          status: 'idle',
+          name: f.name,
+          fileBlob: f,
         };
       });
 
-      setConfig((prev) => ({
-        ...prev,
-        batchQueue: [...prev.batchQueue, ...newItems],
-      }));
-
-      // Also load the first one into the live preview
-      loadAudioSource(newItems[0].path, newItems[0].name, audioFiles[0]);
-
-      setIsBatchMode(true);
-      setIsExportModalOpen(true);
+      addAudioTracksToSequence(itemsToAdd, false);
     }
   };
 
-  const handleAudioFilesSelected = (files: FileList) => {
-    handleFileDrop(files);
-  };
-
-  const handleImageFileSelected = (file: File) => {
-    let imgPath = '';
-    if (window.electronAPI && typeof window.electronAPI.getPathForFile === 'function') {
-      imgPath = window.electronAPI.getPathForFile(file);
-    }
-    if (!imgPath) {
-      const anyFile = file as unknown as { path?: string };
-      imgPath = anyFile.path || '';
-    }
-    loadImageSource(imgPath || URL.createObjectURL(file), file);
-  };
-
-  // Pick audio file dialog
+  // Pick audio file(s) dialog: adds them to the timeline sequence automatically
   const handlePickAudio = async () => {
     if (window.electronAPI) {
       const result = await window.electronAPI.openAudioFiles();
       if (result && result.length > 0) {
-        if (result.length === 1) {
-          loadAudioSource(result[0].path, result[0].name);
-        } else {
-          // Multiple files selected
-          const newItems: BatchItem[] = (result as Array<{ path: string; name: string }>).map((item, idx) => ({
-            id: `${Date.now()}-${idx}`,
-            name: item.name,
-            path: item.path,
-            status: 'idle',
-          }));
-          setConfig((prev) => ({
-            ...prev,
-            batchQueue: [...prev.batchQueue, ...newItems],
-          }));
-          loadAudioSource(result[0].path, result[0].name);
-          setIsBatchMode(true);
-          setIsExportModalOpen(true);
-        }
+        const items = (result as Array<{ path: string; name: string }>).map((item) => ({
+          path: item.path,
+          name: item.name,
+        }));
+        addAudioTracksToSequence(items, false);
       }
     }
   };
@@ -337,23 +426,33 @@ export const App: React.FC = () => {
     audioEngineRef.current.setVoiceBoost(enabled);
   };
 
-  // Single Video Export
+  // Video Export for the complete continuous timeline sequence
   const handleStartSingleExport = async () => {
-    if (!config.audioPath) {
-      alert('Please load an audio file first.');
+    if (!config.audioPath || config.audioDuration <= 0) {
+      alert('Please add audio recording(s) to the timeline first.');
       return;
     }
 
     let outPath = '';
     if (window.electronAPI) {
-      const defaultName = `${(config.audioName || 'wedding-message')
+      const defaultName = `${(config.audioName || 'wedding-audio-sequence')
         .replace(/\.[^/.]+$/, '')
-        .replace(/[^a-zA-Z0-9_-]/g, '_')}_visualizer.mp4`;
+        .replace(/[^a-zA-Z0-9_-]/g, '_')}_continuous.mp4`;
       const selected = await window.electronAPI.selectSavePath(defaultName);
-      if (!selected) return; // User cancelled dialog
+      if (!selected) return;
       outPath = selected;
     } else {
       outPath = 'export.mp4';
+    }
+
+    // Generate the concatenated master WAV file for the entire continuous sequence
+    let audioExportPath = config.audioPath;
+    const masterWavBytes = audioEngineRef.current.getMasterWavBytes();
+    if (masterWavBytes && window.electronAPI && typeof window.electronAPI.writeWavFile === 'function') {
+      audioExportPath = await window.electronAPI.writeWavFile(
+        masterWavBytes,
+        `wedding_sequence_${Date.now()}.wav`
+      );
     }
 
     setIsBatchMode(false);
@@ -361,7 +460,7 @@ export const App: React.FC = () => {
     setExportProgress({
       status: 'preparing',
       percentage: 0,
-      currentItemName: config.audioName || 'Audio Message',
+      currentItemName: config.audioName || 'Wedding Voicemail Sequence',
     });
 
     isCancelledRef.current = false;
@@ -371,7 +470,7 @@ export const App: React.FC = () => {
         audioEngine: audioEngineRef.current,
         bgImage,
         config,
-        audioFilePath: config.audioPath,
+        audioFilePath: audioExportPath,
         outputPath: outPath,
         onProgress: (pct, frame, total) => {
           setExportProgress((prev) => ({
@@ -403,102 +502,6 @@ export const App: React.FC = () => {
         setIsExportModalOpen(false);
       }
     }
-  };
-
-  // Batch Export All
-  const handleStartBatchExport = async () => {
-    if (config.batchQueue.length === 0) return;
-
-    let targetDir = batchOutputDir;
-    if (!targetDir && window.electronAPI) {
-      const chosen = await window.electronAPI.selectFolder();
-      if (!chosen) return;
-      targetDir = chosen;
-      setBatchOutputDir(chosen);
-    }
-    if (!targetDir) {
-      targetDir = '/tmp';
-    }
-
-    setExportProgress({ status: 'rendering', percentage: 0 });
-
-    for (let i = 0; i < config.batchQueue.length; i++) {
-      if (isCancelledRef.current) {
-        break; // Clean batch abort
-      }
-      const item = config.batchQueue[i];
-
-      // Update status to rendering
-      setConfig((prev) => ({
-        ...prev,
-        batchQueue: prev.batchQueue.map((q) =>
-          q.id === item.id ? { ...q, status: 'rendering', progress: 0 } : q
-        ),
-      }));
-
-      try {
-        // Load and decode item audio
-        let arrayBuf: ArrayBuffer;
-        if (window.electronAPI) {
-          arrayBuf = await window.electronAPI.readFile(item.path);
-        } else {
-          const res = await fetch(item.path);
-          arrayBuf = await res.arrayBuffer();
-        }
-
-        await audioEngineRef.current.loadAudioFromBuffer(arrayBuf);
-
-        const safeBase = item.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_');
-        const cleanDir = targetDir.endsWith('/') ? targetDir.slice(0, -1) : targetDir;
-        const outFilePath = `${cleanDir}/${safeBase}_visualizer.mp4`;
-
-        isCancelledRef.current = false;
-
-        await runExportPipeline({
-          audioEngine: audioEngineRef.current,
-          bgImage,
-          config: {
-            ...config,
-            audioDuration: audioEngineRef.current.duration,
-            audioSettings: {
-              ...config.audioSettings,
-              trimStart: 0,
-              trimEnd: audioEngineRef.current.duration,
-            },
-          },
-          audioFilePath: item.path,
-          outputPath: outFilePath,
-          onProgress: (pct) => {
-            setConfig((prev) => ({
-              ...prev,
-              batchQueue: prev.batchQueue.map((q) =>
-                q.id === item.id ? { ...q, progress: pct } : q
-              ),
-            }));
-          },
-          onStatus: () => {},
-          isCancelledRef,
-        });
-
-        // Mark done
-        setConfig((prev) => ({
-          ...prev,
-          batchQueue: prev.batchQueue.map((q) =>
-            q.id === item.id ? { ...q, status: 'done', outputPath: outFilePath } : q
-          ),
-        }));
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
-        setConfig((prev) => ({
-          ...prev,
-          batchQueue: prev.batchQueue.map((q) =>
-            q.id === item.id ? { ...q, status: 'error', error: msg } : q
-          ),
-        }));
-      }
-    }
-
-    setExportProgress({ status: 'completed', percentage: 100, outputFilePath: targetDir });
   };
 
   const handleCancelExport = () => {
@@ -541,18 +544,11 @@ export const App: React.FC = () => {
             </div>
           </div>
 
-          {/* Batch Queue Trigger Badge */}
-          {config.batchQueue.length > 0 && (
-            <button
-              onClick={() => {
-                setIsBatchMode(true);
-                setIsExportModalOpen(true);
-              }}
-              className="px-2.5 py-1 rounded-lg bg-gold-500/15 hover:bg-gold-500/25 border border-gold-500/30 text-gold-300 text-xs font-medium flex items-center gap-1.5 transition-colors"
-            >
-              <FolderArchive className="w-3.5 h-3.5" />
-              Batch ({config.batchQueue.length})
-            </button>
+          {config.timelineTracks && config.timelineTracks.length > 1 && (
+            <span className="px-2.5 py-1 rounded-lg bg-gold-500/15 border border-gold-500/30 text-gold-300 text-xs font-medium flex items-center gap-1.5">
+              <ListMusic className="w-3.5 h-3.5" />
+              {config.timelineTracks.length} in Sequence
+            </span>
           )}
         </div>
 
@@ -602,8 +598,20 @@ export const App: React.FC = () => {
                 onPickAudio={handlePickAudio}
                 onPickImage={handlePickImage}
                 onLoadDemo={loadDemoAssets}
-                onAudioFileSelected={handleAudioFilesSelected}
-                onImageFileSelected={handleImageFileSelected}
+                onAudioFileSelected={(files) => handleFileDrop(files)}
+                onImageFileSelected={(file) => {
+                  let imgPath = '';
+                  if (window.electronAPI && typeof window.electronAPI.getPathForFile === 'function') {
+                    imgPath = window.electronAPI.getPathForFile(file);
+                  }
+                  if (!imgPath) {
+                    const anyFile = file as unknown as { path?: string };
+                    imgPath = anyFile.path || '';
+                  }
+                  loadImageSource(imgPath || URL.createObjectURL(file), file);
+                }}
+                onRemoveTrack={handleRemoveTrack}
+                onSeekTrack={handleSeekTrack}
               />
               <VisualizerPanel config={config} updateConfig={setConfig} />
             </>
@@ -626,11 +634,13 @@ export const App: React.FC = () => {
         <div className="p-5 border-t border-[#24201d] bg-[#12100f] space-y-2.5">
           <button
             onClick={handleStartSingleExport}
-            disabled={!config.audioPath}
+            disabled={!config.audioPath || config.audioDuration <= 0}
             className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-gold-500 via-gold-400 to-gold-500 hover:brightness-105 active:scale-[0.99] text-black font-semibold text-sm transition-all shadow-xl shadow-gold-500/20 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             <Download className="w-4 h-4 text-black" />
-            Export 1080p MP4 Video
+            {config.timelineTracks && config.timelineTracks.length > 1
+              ? `Export Continuous 1080p Video (${config.timelineTracks.length} Tracks)`
+              : 'Export 1080p MP4 Video'}
           </button>
 
           <p className="text-[11px] text-center text-[#7a7269]">
@@ -639,7 +649,7 @@ export const App: React.FC = () => {
         </div>
       </div>
 
-      {/* Export / Progress / Batch Modal */}
+      {/* Export / Progress Modal */}
       <ExportModal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
@@ -648,19 +658,9 @@ export const App: React.FC = () => {
         onShowInFolder={handleShowInFolder}
         batchQueue={config.batchQueue}
         isBatchMode={isBatchMode}
-        onStartBatch={handleStartBatchExport}
-        onRemoveBatchItem={(id) =>
-          setConfig((prev) => ({
-            ...prev,
-            batchQueue: prev.batchQueue.filter((q) => q.id !== id),
-          }))
-        }
-        onClearBatch={() =>
-          setConfig((prev) => ({
-            ...prev,
-            batchQueue: [],
-          }))
-        }
+        onStartBatch={() => {}}
+        onRemoveBatchItem={() => {}}
+        onClearBatch={() => {}}
         onSelectBatchFolder={async () => {
           if (window.electronAPI) {
             const chosen = await window.electronAPI.selectFolder();

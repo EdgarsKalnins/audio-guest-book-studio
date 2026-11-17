@@ -1,4 +1,6 @@
 import { computeFFT } from './fft';
+import { concatenateAudioBuffers, encodeAudioBufferToWav } from './audioConcatenator';
+import { TimelineTrack } from '../types/studio';
 
 export class AudioEngine {
   private ctx: AudioContext | null = null;
@@ -54,6 +56,44 @@ export class AudioEngine {
     this.duration = decoded.duration;
 
     return decoded;
+  }
+
+  /**
+   * Stitches multiple audio tracks into one continuous timeline sequence.
+   */
+  public async loadSequencedTracks(
+    tracksInput: Array<{ id: string; name: string; path: string; buffer: AudioBuffer }>,
+    gapSeconds = 0.5
+  ): Promise<{ masterBuffer: AudioBuffer; tracks: TimelineTrack[] }> {
+    this.initContext();
+    if (!this.ctx) throw new Error('AudioContext unavailable');
+
+    this.stop();
+    this.pauseOffset = 0;
+
+    const buffers = tracksInput.map((t) => t.buffer);
+    const { masterBuffer, tracks: sequenced } = concatenateAudioBuffers(this.ctx, buffers, gapSeconds);
+
+    this.audioBuffer = masterBuffer;
+    this.duration = masterBuffer.duration;
+
+    // Attach original track names and paths
+    const finalTracks: TimelineTrack[] = sequenced.map((seq, idx) => ({
+      ...seq,
+      id: tracksInput[idx].id,
+      name: tracksInput[idx].name,
+      path: tracksInput[idx].path,
+    }));
+
+    return { masterBuffer, tracks: finalTracks };
+  }
+
+  /**
+   * Generates a 16-bit PCM WAV binary for the current timeline buffer.
+   */
+  public getMasterWavBytes(): Uint8Array | null {
+    if (!this.audioBuffer) return null;
+    return encodeAudioBufferToWav(this.audioBuffer);
   }
 
   public setVoiceBoost(enabled: boolean) {

@@ -243,11 +243,27 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
             </button>
 
             <div className="flex flex-col">
-              <span className="text-xs font-medium text-[#e8e4df] truncate max-w-[220px]">
-                {config.audioName || 'No audio loaded'}
+              <span className="text-xs font-medium text-[#e8e4df] truncate max-w-[320px]">
+                {config.timelineTracks && config.timelineTracks.length > 1 ? (
+                  <>
+                    <span className="text-gold-400 font-semibold mr-1.5">
+                      Sequence ({config.timelineTracks.length} tracks):
+                    </span>
+                    {config.timelineTracks.find(
+                      (t) => currentTime >= t.startTime && currentTime <= t.endTime + 0.1
+                    )?.name || config.audioName}
+                  </>
+                ) : (
+                  config.audioName || 'No audio loaded'
+                )}
               </span>
               <span className="text-[11px] text-[#8e857c]">
                 {formatTime(currentTime)} / {formatTime(dur)}
+                {config.timelineTracks && config.timelineTracks.length > 1 && (
+                  <span className="ml-2 text-gold-400/80">
+                    • 1 Continuous Video
+                  </span>
+                )}
               </span>
             </div>
           </div>
@@ -292,6 +308,24 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
               <div className="w-full text-center text-xs text-[#5a524a]">Drop audio to display waveform</div>
             )}
           </div>
+
+          {/* Track Division Markers if multiple tracks are sequenced */}
+          {dur > 0 && config.timelineTracks && config.timelineTracks.length > 1 && (
+            config.timelineTracks.map((t, idx) => {
+              if (idx === 0) return null;
+              const pct = (t.startTime / dur) * 100;
+              return (
+                <div
+                  key={t.id}
+                  style={{ left: `${pct}%` }}
+                  className="absolute top-0 bottom-0 w-[1.5px] bg-gold-400/50 z-10 pointer-events-none"
+                  title={`${t.name} (starts at ${formatTime(t.startTime)})`}
+                >
+                  <div className="w-1.5 h-1.5 -ml-[2px] bg-gold-400 rounded-full" />
+                </div>
+              );
+            })
+          )}
 
           {/* Playhead Indicator Line */}
           {dur > 0 && (
