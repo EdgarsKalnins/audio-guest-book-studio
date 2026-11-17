@@ -501,15 +501,18 @@ export const App: React.FC = () => {
     }
 
     let outPath = '';
+    const isTransparent = config.backgroundMode === 'transparent';
+    const defaultExt = isTransparent ? (config.exportFormat === 'webm' ? 'webm' : 'mov') : 'mp4';
+
     if (window.electronAPI) {
       const defaultName = `${(config.audioName || 'wedding-audio-sequence')
         .replace(/\.[^/.]+$/, '')
-        .replace(/[^a-zA-Z0-9_-]/g, '_')}_continuous.mp4`;
+        .replace(/[^a-zA-Z0-9_-]/g, '_')}_continuous.${defaultExt}`;
       const selected = await window.electronAPI.selectSavePath(defaultName);
       if (!selected) return;
       outPath = selected;
     } else {
-      outPath = 'export.mp4';
+      outPath = `export.${defaultExt}`;
     }
 
     // Immediately stop live preview audio to free audio device & system resources
@@ -805,6 +808,7 @@ export const App: React.FC = () => {
             <>
               <MediaDropzone
                 config={config}
+                updateConfig={setConfig}
                 onPickAudio={handlePickAudio}
                 onPickImage={handlePickImage}
                 onLoadDemo={loadDemoAssets}

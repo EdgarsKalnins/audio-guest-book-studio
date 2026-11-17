@@ -293,7 +293,12 @@ function setupIPCHandlers() {
     const res = await dialog.showSaveDialog(win, {
       title: 'Export Video Destination',
       defaultPath: path.join(downloadsDir, safeName),
-      filters: [{ name: 'MP4 Video', extensions: ['mp4'] }],
+      filters: [
+        { name: 'Video Files (*.mp4, *.mov, *.webm)', extensions: ['mp4', 'mov', 'webm'] },
+        { name: 'Apple ProRes 4444 (*.mov)', extensions: ['mov'] },
+        { name: 'WebM Video (*.webm)', extensions: ['webm'] },
+        { name: 'MP4 Video (*.mp4)', extensions: ['mp4'] },
+      ],
     });
     if (res.canceled) return null;
     return res.filePath;

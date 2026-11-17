@@ -33,14 +33,17 @@ export function createStaticBackgroundCache(
   bgImage: HTMLImageElement | null,
   config: StudioConfig
 ): HTMLCanvasElement {
+  const isTransparent = config.backgroundMode === 'transparent';
   const cacheCanvas = document.createElement('canvas');
   cacheCanvas.width = width;
   cacheCanvas.height = height;
-  const ctx = cacheCanvas.getContext('2d', { alpha: false });
+  const ctx = cacheCanvas.getContext('2d', { alpha: isTransparent });
   if (!ctx) return cacheCanvas;
 
-  // 1. Draw Background Photo (Cover mode)
-  if (bgImage && bgImage.complete && bgImage.naturalWidth > 0) {
+  // 1. Draw Background Photo (or clear if transparent)
+  if (isTransparent) {
+    ctx.clearRect(0, 0, width, height);
+  } else if (bgImage && bgImage.complete && bgImage.naturalWidth > 0 && config.backgroundMode !== 'solid') {
     const imgRatio = bgImage.naturalWidth / bgImage.naturalHeight;
     const canvasRatio = width / height;
     let renderW = width;
@@ -92,11 +95,6 @@ export function createStaticBackgroundCache(
     drawTypography(ctx, width, height, config.typography);
   }
 
-  // 3. Draw Dynamic QR Code Watermark (if enabled)
-  if (config.qrWatermark && config.qrWatermark.enabled) {
-    drawQrBadge(ctx, width, height, config.qrWatermark);
-  }
-
   return cacheCanvas;
 }
 
@@ -119,8 +117,10 @@ export function drawStudioFrame(
     // Clear canvas
     ctx.clearRect(0, 0, width, height);
 
-    // 1. Draw Background Image (Cover mode)
-    if (bgImage && bgImage.complete && bgImage.naturalWidth > 0) {
+    // 1. Draw Background Image (Cover mode, unless transparent mode is active)
+    if (config.backgroundMode === 'transparent') {
+      // Retain clear transparent canvas for genuine alpha export
+    } else if (bgImage && bgImage.complete && bgImage.naturalWidth > 0 && config.backgroundMode !== 'solid') {
       const imgRatio = bgImage.naturalWidth / bgImage.naturalHeight;
       const canvasRatio = width / height;
       let renderW = width;
@@ -236,8 +236,8 @@ export function drawStudioFrame(
     drawTimer(ctx, centerX, centerY + (height * 0.18 * config.visualizerScale), currentTime, duration, config, pattern);
   }
 
-  // 5. Draw Dynamic QR Code Watermark (when static background cache is not used)
-  if (!staticBackgroundCache && config.qrWatermark && config.qrWatermark.enabled) {
+  // 5. Draw Dynamic QR Code Watermark (always on top of visualizer and background)
+  if (config.qrWatermark && config.qrWatermark.enabled) {
     drawQrBadge(ctx, width, height, config.qrWatermark);
   }
 }

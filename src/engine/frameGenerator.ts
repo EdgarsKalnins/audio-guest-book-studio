@@ -57,6 +57,9 @@ async function runFfmpegPipeExport(options: RenderPipelineOptions): Promise<stri
   // Pre-render static background & typography once
   const staticCache = createStaticBackgroundCache(width, height, bgImage, config);
 
+  const isTransparent = config.backgroundMode === 'transparent';
+  const chosenFormat = config.exportFormat || (isTransparent ? 'prores' : 'mp4');
+
   // 1. Tell Electron main to start FFmpeg
   if (window.electronAPI) {
     await window.electronAPI.startExport({
@@ -70,6 +73,8 @@ async function runFfmpegPipeExport(options: RenderPipelineOptions): Promise<stri
       trimStart,
       trimEnd,
       voiceBoost: config.audioSettings.voiceBoost,
+      format: chosenFormat,
+      transparent: isTransparent,
     });
   }
 
@@ -77,7 +82,7 @@ async function runFfmpegPipeExport(options: RenderPipelineOptions): Promise<stri
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
-  const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
+  const ctx = canvas.getContext('2d', { alpha: isTransparent, desynchronized: true });
   if (!ctx) throw new Error('Could not get 2D canvas context');
 
   try {
@@ -130,8 +135,10 @@ async function runFfmpegPipeExport(options: RenderPipelineOptions): Promise<stri
         staticCache
       );
 
+      const mimeType = isTransparent ? 'image/png' : 'image/jpeg';
+      const quality = isTransparent ? undefined : 0.86;
       const blob = await new Promise<Blob | null>((resolve) => {
-        canvas.toBlob((b) => resolve(b), 'image/jpeg', 0.86);
+        canvas.toBlob((b) => resolve(b), mimeType, quality);
       });
 
       if (!blob) throw new Error('Failed to capture frame blob');

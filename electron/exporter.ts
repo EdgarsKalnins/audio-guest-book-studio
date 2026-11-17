@@ -14,6 +14,8 @@ export interface ExportStartOptions {
   trimStart: number;
   trimEnd: number;
   voiceBoost: boolean;
+  format?: 'mp4' | 'prores' | 'webm';
+  transparent?: boolean;
 }
 
 export class VideoExporter {
@@ -45,6 +47,78 @@ export class VideoExporter {
     this.onDrainCallback = cb;
   }
 
+  public buildFfmpegArgs(options: ExportStartOptions, exportWidth: number, exportHeight: number): string[] {
+    const isTransparent = Boolean(
+      options.transparent ||
+      options.format === 'prores' ||
+      options.format === 'webm' ||
+      options.outputPath.endsWith('.mov') ||
+      options.outputPath.endsWith('.webm')
+    );
+
+    const inputPipeCodec = isTransparent ? 'png' : 'mjpeg';
+
+    const audioArgs: string[] = [];
+    if (options.trimStart > 0) {
+      audioArgs.push('-ss', options.trimStart.toString());
+    }
+    if (options.duration > 0) {
+      audioArgs.push('-t', options.duration.toString());
+    }
+    audioArgs.push('-i', options.audioPath);
+
+    const audioFilterArgs: string[] = [];
+    if (options.voiceBoost) {
+      audioFilterArgs.push('-af', 'loudnorm=I=-16:TP=-1.5:LRA=11');
+    }
+
+    let videoCodecArgs: string[];
+    let audioCodecArgs: string[];
+
+    if (options.format === 'prores' || options.outputPath.endsWith('.mov')) {
+      // Apple ProRes 4444 with genuine 10-bit alpha for DaVinci Resolve, Premiere & Final Cut
+      videoCodecArgs = [
+        '-c:v', 'prores_ks',
+        '-profile:v', '4',
+        '-pix_fmt', 'yuva444p10le',
+      ];
+      audioCodecArgs = ['-c:a', 'pcm_s16le'];
+    } else if (options.format === 'webm' || options.outputPath.endsWith('.webm')) {
+      // Google VP9 with alpha channel
+      videoCodecArgs = [
+        '-c:v', 'libvpx-vp9',
+        '-pix_fmt', 'yuva420p',
+        '-b:v', '0',
+        '-crf', '22',
+      ];
+      audioCodecArgs = ['-c:a', 'libopus', '-b:a', '128k'];
+    } else {
+      // Universal H.264 MP4
+      videoCodecArgs = [
+        '-c:v', 'libx264',
+        '-preset', 'veryfast',
+        '-pix_fmt', 'yuv420p',
+        '-crf', '19',
+      ];
+      audioCodecArgs = ['-c:a', 'aac', '-b:a', '192k'];
+    }
+
+    return [
+      '-y',
+      '-f', 'image2pipe',
+      '-vcodec', inputPipeCodec,
+      '-r', options.fps.toString(),
+      '-s', `${exportWidth}x${exportHeight}`,
+      '-i', 'pipe:0',
+      ...audioArgs,
+      ...audioFilterArgs,
+      ...videoCodecArgs,
+      ...audioCodecArgs,
+      '-shortest',
+      options.outputPath,
+    ];
+  }
+
   public start(
     options: ExportStartOptions,
     onProgress: (percent: number, frame: number) => void,
@@ -74,45 +148,7 @@ export class VideoExporter {
     const ffmpegPath = this.resolveFfmpegPath();
     console.log('[Exporter] Using FFmpeg path:', ffmpegPath);
 
-    // Robustness 3: Precise input audio timing (-ss <start> and -t <duration>)
-    const audioArgs: string[] = [];
-    if (options.trimStart > 0) {
-      audioArgs.push('-ss', options.trimStart.toString());
-    }
-    if (options.duration > 0) {
-      audioArgs.push('-t', options.duration.toString());
-    }
-    audioArgs.push('-i', options.audioPath);
-
-    // Audio filter: Voice Boost volume normalization
-    const audioFilterArgs: string[] = [];
-    if (options.voiceBoost) {
-      audioFilterArgs.push('-af', 'loudnorm=I=-16:TP=-1.5:LRA=11');
-    }
-
-    const args = [
-      '-y',
-      // Video input from stdin pipe
-      '-f', 'image2pipe',
-      '-vcodec', 'mjpeg',
-      '-r', options.fps.toString(),
-      '-s', `${exportWidth}x${exportHeight}`,
-      '-i', 'pipe:0',
-      // Audio input
-      ...audioArgs,
-      ...audioFilterArgs,
-      // Video encoding settings
-      '-c:v', 'libx264',
-      '-preset', 'veryfast',
-      '-pix_fmt', 'yuv420p',
-      '-crf', '19',
-      // Audio encoding
-      '-c:a', 'aac',
-      '-b:a', '192k',
-      '-shortest',
-      options.outputPath,
-    ];
-
+    const args = this.buildFfmpegArgs(options, exportWidth, exportHeight);
     console.log('[Exporter] Spawning FFmpeg with args:', args.join(' '));
 
     try {

@@ -323,7 +323,11 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
       {/* Center Stage: Viewport Container with Canvas */}
       <div className="relative flex-1 w-full flex items-center justify-center min-h-0 my-1 sm:my-2">
         <div
-          className="relative max-h-full max-w-full rounded-2xl overflow-hidden shadow-2xl border border-zinc-300 dark:border-white/10 flex items-center justify-center bg-black transition-all"
+          className={`relative max-h-full max-w-full rounded-2xl overflow-hidden shadow-2xl border border-zinc-300 dark:border-white/10 flex items-center justify-center transition-all ${
+            config.backgroundMode === 'transparent'
+              ? 'bg-[linear-gradient(45deg,#232328_25%,transparent_25%),linear-gradient(-45deg,#232328_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#232328_75%),linear-gradient(-45deg,transparent_75%,#232328_75%)] bg-[size:24px_24px] bg-[#141417]'
+              : 'bg-black'
+          }`}
           style={{
             aspectRatio: `${aspect.width} / ${aspect.height}`,
             height: config.aspectRatio === '9:16' || config.aspectRatio === '4:5' ? '100%' : 'auto',

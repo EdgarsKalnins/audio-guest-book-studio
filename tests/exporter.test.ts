@@ -61,6 +61,64 @@ describe('VideoExporter', () => {
     // Clean up
     fs.rmSync(path.dirname(tempDir), { recursive: true, force: true });
   });
+
+  it('constructs correct FFmpeg flags for transparent Apple ProRes 4444 export', () => {
+    const exporter = new VideoExporter();
+    const args = exporter.buildFfmpegArgs(
+      {
+        outputPath: 'output.mov',
+        audioPath: 'dummy.mp3',
+        width: 1080,
+        height: 1920,
+        fps: 30,
+        duration: 1,
+        totalFrames: 30,
+        trimStart: 0,
+        trimEnd: 1,
+        voiceBoost: false,
+        format: 'prores',
+        transparent: true,
+      },
+      1080,
+      1920
+    );
+
+    // Must use PNG pipe for true RGBA alpha input
+    expect(args).toContain('image2pipe');
+    expect(args[args.indexOf('-vcodec') + 1]).toBe('png');
+
+    // Must use prores_ks with profile 4 and yuva444p10le pixel format
+    expect(args).toContain('prores_ks');
+    expect(args).toContain('yuva444p10le');
+    expect(args).toContain('pcm_s16le');
+  });
+
+  it('constructs correct FFmpeg flags for transparent WebM VP9 export', () => {
+    const exporter = new VideoExporter();
+    const args = exporter.buildFfmpegArgs(
+      {
+        outputPath: 'output.webm',
+        audioPath: 'dummy.mp3',
+        width: 1080,
+        height: 1920,
+        fps: 30,
+        duration: 1,
+        totalFrames: 30,
+        trimStart: 0,
+        trimEnd: 1,
+        voiceBoost: false,
+        format: 'webm',
+        transparent: true,
+      },
+      1080,
+      1920
+    );
+
+    expect(args[args.indexOf('-vcodec') + 1]).toBe('png');
+    expect(args).toContain('libvpx-vp9');
+    expect(args).toContain('yuva420p');
+    expect(args).toContain('libopus');
+  });
 });
 
   it('performs real end-to-end video compilation with FFmpeg', async () => {

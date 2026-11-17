@@ -189,6 +189,8 @@ export interface StudioConfig {
   audioName: string | null;
   audioDuration: number;
   imagePath: string | null;
+  backgroundMode?: 'photo' | 'solid' | 'transparent';
+  exportFormat?: 'mp4' | 'prores' | 'webm';
   batchQueue: BatchItem[];
   timelineTracks: TimelineTrack[];
   gapBetweenTracks: number;

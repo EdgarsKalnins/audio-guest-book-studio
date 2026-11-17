@@ -14,6 +14,7 @@ import { StudioConfig } from '../types/studio';
 
 interface MediaDropzoneProps {
   config: StudioConfig;
+  updateConfig?: (updater: (prev: StudioConfig) => StudioConfig) => void;
   onPickAudio: () => void;
   onPickImage: () => void;
   onLoadDemo: () => void;
@@ -25,6 +26,7 @@ interface MediaDropzoneProps {
 
 export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
   config,
+  updateConfig,
   onPickAudio,
   onPickImage,
   onLoadDemo,
@@ -258,60 +260,110 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
         )}
       </div>
 
-      {/* Background Image Dropzone */}
+      {/* Background Image / Canvas Mode Dropzone */}
       <div>
-        <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-2">
-          2. Background Wedding Photo
-        </label>
-        <div
-          onClick={triggerImagePicker}
-          onDragOver={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setIsImageDragOver(true);
-          }}
-          onDragLeave={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setIsImageDragOver(false);
-          }}
-          onDrop={handleImageDrop}
-          className={`relative border-2 border-dashed rounded-xl p-3.5 cursor-pointer transition-all flex items-center gap-3.5 ${
-            isImageDragOver
-              ? 'border-zinc-500 dark:border-white/50 bg-zinc-100 dark:bg-[#1f1f24] ring-2 ring-black/5 dark:ring-white/10 scale-[1.005]'
-              : config.imagePath
-              ? 'border-zinc-300 dark:border-white/20 bg-white dark:bg-[#18181c] hover:border-zinc-400 dark:hover:border-white/30 shadow-sm'
-              : 'border-zinc-200 dark:border-white/[0.12] bg-zinc-50 dark:bg-[#141417] hover:border-zinc-300 dark:hover:border-white/20'
-          }`}
-        >
-          <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 flex items-center justify-center shrink-0 overflow-hidden text-zinc-700 dark:text-zinc-300 shadow-sm">
-            {isImageDragOver ? (
-              <CloudArrowUp weight="light" className="w-5 h-5 animate-bounce" />
-            ) : config.imagePath ? (
-              <img
-                src={getDisplayThumbnail()}
-                alt="Thumbnail"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <ImageIcon weight="light" className="w-5 h-5" />
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            {config.imagePath ? (
-              <>
-                <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">Custom Background Photo</p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Click or drag image to change</p>
-              </>
-            ) : (
-              <>
-                <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Import wedding photo</p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">JPG, PNG, WEBP (auto-scales to frame)</p>
-              </>
-            )}
-          </div>
-          <UploadSimple weight="light" className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
+            2. Background Canvas & Photo
+          </label>
         </div>
+
+        {/* Background Style Mode Chips (Photo, Solid, Transparent) */}
+        <div className="grid grid-cols-3 gap-1.5 mb-2.5">
+          <button
+            type="button"
+            onClick={() => updateConfig?.((prev) => ({ ...prev, backgroundMode: 'photo' }))}
+            className={`py-1.5 px-2 rounded-lg text-xs font-medium border text-center transition-all ${
+              (config.backgroundMode ?? 'photo') === 'photo'
+                ? 'border-zinc-400 dark:border-white/30 bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-sm font-semibold'
+                : 'border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#18181c] text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-[#1f1f24]'
+            }`}
+          >
+            Photo
+          </button>
+          <button
+            type="button"
+            onClick={() => updateConfig?.((prev) => ({ ...prev, backgroundMode: 'solid' }))}
+            className={`py-1.5 px-2 rounded-lg text-xs font-medium border text-center transition-all ${
+              config.backgroundMode === 'solid'
+                ? 'border-zinc-400 dark:border-white/30 bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-sm font-semibold'
+                : 'border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#18181c] text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-[#1f1f24]'
+            }`}
+          >
+            Solid
+          </button>
+          <button
+            type="button"
+            onClick={() => updateConfig?.((prev) => ({ ...prev, backgroundMode: 'transparent' }))}
+            className={`py-1.5 px-2 rounded-lg text-xs font-medium border text-center transition-all flex items-center justify-center gap-1.5 ${
+              config.backgroundMode === 'transparent'
+                ? 'border-amber-400/80 dark:border-amber-400/60 bg-amber-500/10 text-zinc-950 dark:text-white shadow-sm font-semibold ring-1 ring-amber-400/30'
+                : 'border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#18181c] text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-[#1f1f24]'
+            }`}
+          >
+            <span className="w-2.5 h-2.5 rounded-full border border-black/20 dark:border-white/20 bg-[linear-gradient(45deg,#888_25%,transparent_25%),linear-gradient(-45deg,#888_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#888_75%),linear-gradient(-45deg,transparent_75%,#888_75%)] bg-[size:4px_4px]" />
+            Transparent
+          </button>
+        </div>
+
+        {config.backgroundMode === 'transparent' ? (
+          <div className="p-3.5 rounded-xl border border-amber-400/30 dark:border-amber-400/20 bg-amber-500/5 dark:bg-amber-400/5 text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed shadow-sm">
+            <span className="font-semibold text-amber-700 dark:text-amber-400 block mb-0.5">
+              Genuine Alpha Channel Active
+            </span>
+            Canvas renders with complete transparency. Perfect for dragging directly onto wedding videos in Premiere Pro, DaVinci Resolve, and Final Cut Pro.
+          </div>
+        ) : (
+          <div
+            onClick={triggerImagePicker}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsImageDragOver(true);
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsImageDragOver(false);
+            }}
+            onDrop={handleImageDrop}
+            className={`relative border-2 border-dashed rounded-xl p-3.5 cursor-pointer transition-all flex items-center gap-3.5 ${
+              isImageDragOver
+                ? 'border-zinc-500 dark:border-white/50 bg-zinc-100 dark:bg-[#1f1f24] ring-2 ring-black/5 dark:ring-white/10 scale-[1.005]'
+                : config.imagePath
+                ? 'border-zinc-300 dark:border-white/20 bg-white dark:bg-[#18181c] hover:border-zinc-400 dark:hover:border-white/30 shadow-sm'
+                : 'border-zinc-200 dark:border-white/[0.12] bg-zinc-50 dark:bg-[#141417] hover:border-zinc-300 dark:hover:border-white/20'
+            }`}
+          >
+            <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 flex items-center justify-center shrink-0 overflow-hidden text-zinc-700 dark:text-zinc-300 shadow-sm">
+              {isImageDragOver ? (
+                <CloudArrowUp weight="light" className="w-5 h-5 animate-bounce" />
+              ) : config.imagePath ? (
+                <img
+                  src={getDisplayThumbnail()}
+                  alt="Thumbnail"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <ImageIcon weight="light" className="w-5 h-5" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              {config.imagePath ? (
+                <>
+                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">Custom Background Photo</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Click or drag image to change</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Import wedding photo</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">JPG, PNG, WEBP (auto-scales to frame)</p>
+                </>
+              )}
+            </div>
+            <UploadSimple weight="light" className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
+          </div>
+        )}
       </div>
     </div>
   );
