@@ -13,7 +13,7 @@ import {
   Quotes,
   Check,
 } from '@phosphor-icons/react';
-import { parseSrtOrVtt, computeWordTimings, formatSecondsToSrtTimestamp } from '../engine/subtitleEngine';
+import { parseSrtOrVtt, computeWordTimings } from '../engine/subtitleEngine';
 
 interface SubtitlePanelProps {
   config: StudioConfig;
@@ -198,54 +198,75 @@ export const SubtitlePanel: React.FC<SubtitlePanelProps> = ({ config, updateConf
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Header & Toggle */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h3 className="text-sm font-semibold tracking-wider text-stone-200 uppercase flex items-center gap-2">
-            <ChatCenteredText className="w-4 h-4 text-amber-400" />
-            Animated Speech Subtitles (Whisper AI)
-          </h3>
-          <p className="text-xs text-stone-400 mt-1">
-            Display synchronized karaoke-style subtitles highlighting word-by-word as guests speak.
-          </p>
+    <div className="space-y-4">
+      {/* 1. Master Enable / Disable Toggle Card */}
+      <div className="p-3.5 rounded-2xl bg-white dark:bg-[#18181c] border border-zinc-200 dark:border-white/[0.08] shadow-sm flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${
+            isEnabled
+              ? 'bg-amber-100 dark:bg-amber-950/70 text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-500/30'
+              : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 border border-zinc-200 dark:border-white/10'
+          }`}>
+            <ChatCenteredText weight="bold" className="w-4 h-4" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+              Synchronized Subtitles
+            </p>
+            <p className="text-[10px] text-zinc-500 dark:text-zinc-400">
+              Karaoke word-by-word active highlighting
+            </p>
+          </div>
         </div>
-        <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-0.5">
-          <input
-            type="checkbox"
-            checked={isEnabled}
-            onChange={(e) => handleToggle(e.target.checked)}
-            className="sr-only peer"
+
+        <button
+          type="button"
+          onClick={() => handleToggle(!isEnabled)}
+          className={`w-10 h-6 rounded-full transition-colors relative ${
+            isEnabled
+              ? 'bg-[#dfc596]'
+              : 'bg-zinc-300 dark:bg-zinc-800 border border-zinc-300 dark:border-white/10'
+          }`}
+          aria-label="Toggle subtitles"
+        >
+          <span
+            className={`absolute top-0.5 w-5 h-5 rounded-full transition-transform ${
+              isEnabled ? 'right-0.5 bg-zinc-950 shadow-sm' : 'left-0.5 bg-white dark:bg-zinc-400'
+            }`}
           />
-          <div className="w-9 h-5 bg-stone-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
-        </label>
+        </button>
       </div>
 
       {isEnabled && (
-        <div className="space-y-5">
+        <div className="space-y-4 animate-fade-in">
           {/* Style Presets */}
-          <div className="space-y-2">
-            <span className="text-xs text-stone-300 font-medium block">Subtitle Style</span>
+          <div>
+            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-2">
+              Subtitle Visual Style
+            </label>
             <div className="grid grid-cols-2 gap-2">
               {styleOptions.map((st) => {
                 const isSelected = currentStyle === st.id;
                 return (
                   <button
                     key={st.id}
+                    type="button"
                     onClick={() => handleStyleChange(st.id)}
                     className={`p-2.5 rounded-xl border text-left transition-all ${
                       isSelected
-                        ? 'bg-amber-500/10 border-amber-500/60 shadow-sm'
-                        : 'bg-stone-900 border-stone-800 text-stone-400 hover:border-stone-700 hover:text-stone-200'
+                        ? 'border-amber-400/80 dark:border-amber-400/60 bg-amber-500/10 text-zinc-950 dark:text-white shadow-sm ring-1 ring-amber-400/30 font-semibold'
+                        : 'border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#18181c] text-zinc-700 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-white/20 hover:bg-zinc-50 dark:hover:bg-[#1f1f24] shadow-sm'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className={`text-xs font-semibold ${isSelected ? 'text-amber-200' : 'text-stone-200'}`}>
+                      <span className={`text-xs ${isSelected ? 'font-semibold text-zinc-950 dark:text-white' : 'font-medium'}`}>
                         {st.name}
                       </span>
-                      {isSelected && <Check className="w-3 h-3 text-amber-400" weight="bold" />}
+                      {isSelected && <Check className="w-3.5 h-3.5 text-amber-500" weight="bold" />}
                     </div>
-                    <span className="text-[10px] text-stone-500 block mt-0.5">{st.subtitle}</span>
+                    <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block mt-0.5">
+                      {st.subtitle}
+                    </span>
                   </button>
                 );
               })}
@@ -253,18 +274,21 @@ export const SubtitlePanel: React.FC<SubtitlePanelProps> = ({ config, updateConf
           </div>
 
           {/* Position & Size */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <span className="text-xs text-stone-300 font-medium block">Vertical Position</span>
-              <div className="grid grid-cols-3 gap-1 bg-stone-900 p-1 rounded-lg border border-stone-800">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="p-3.5 rounded-xl bg-white dark:bg-[#18181c] border border-zinc-200 dark:border-white/[0.08] shadow-sm space-y-2">
+              <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider block">
+                Position
+              </span>
+              <div className="grid grid-cols-3 gap-1 bg-zinc-100 dark:bg-zinc-900 p-1 rounded-lg border border-zinc-200 dark:border-white/[0.06]">
                 {(['bottom', 'center', 'top'] as const).map((pos) => (
                   <button
                     key={pos}
+                    type="button"
                     onClick={() => handlePositionChange(pos)}
-                    className={`py-1 text-[11px] font-medium rounded capitalize transition ${
+                    className={`py-1 text-xs font-medium rounded-md capitalize transition-all ${
                       position === pos
-                        ? 'bg-amber-500/20 text-amber-200 font-semibold'
-                        : 'text-stone-400 hover:text-stone-200'
+                        ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-sm font-semibold'
+                        : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
                     }`}
                   >
                     {pos}
@@ -273,10 +297,12 @@ export const SubtitlePanel: React.FC<SubtitlePanelProps> = ({ config, updateConf
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-xs text-stone-300 font-medium">
-                <span>Font Size</span>
-                <span className="text-amber-300/90 font-mono text-[11px]">{Math.round(fontSize * 100)}%</span>
+            <div className="p-3.5 rounded-xl bg-white dark:bg-[#18181c] border border-zinc-200 dark:border-white/[0.08] shadow-sm space-y-2">
+              <div className="flex justify-between text-xs text-zinc-800 dark:text-zinc-200 font-medium">
+                <span className="font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">Scale</span>
+                <span className="text-zinc-600 dark:text-zinc-300 font-mono text-[11px]">
+                  {Math.round(fontSize * 100)}%
+                </span>
               </div>
               <input
                 type="range"
@@ -285,13 +311,13 @@ export const SubtitlePanel: React.FC<SubtitlePanelProps> = ({ config, updateConf
                 step="0.05"
                 value={fontSize}
                 onChange={(e) => handleFontSizeChange(parseFloat(e.target.value))}
-                className="w-full accent-amber-500 bg-stone-800 rounded-lg h-1.5 cursor-pointer mt-2"
+                className="w-full accent-[#dfc596] cursor-pointer mt-2"
               />
             </div>
           </div>
 
           {/* Action Bar (Import & Quick Generate) */}
-          <div className="flex items-center gap-2 pt-1">
+          <div className="flex items-center gap-2">
             <input
               ref={fileInputRef}
               type="file"
@@ -300,41 +326,44 @@ export const SubtitlePanel: React.FC<SubtitlePanelProps> = ({ config, updateConf
               onChange={handleImportSrtFile}
             />
             <button
+              type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="flex-1 py-2 px-3 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-200 border border-stone-800 text-xs font-medium flex items-center justify-center gap-1.5 transition active:scale-[0.99]"
+              className="flex-1 py-2 px-3 rounded-xl bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-white/10 text-xs font-medium flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-[0.99]"
             >
-              <UploadSimple className="w-3.5 h-3.5 text-stone-400" />
+              <UploadSimple className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
               Import SRT / VTT
             </button>
             <button
+              type="button"
               onClick={handleAddSampleGreeting}
-              className="flex-1 py-2 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-200 border border-amber-500/30 text-xs font-medium flex items-center justify-center gap-1.5 transition active:scale-[0.99]"
+              className="flex-1 py-2 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-zinc-900 dark:text-amber-200 border border-amber-400/40 text-xs font-medium flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-[0.99]"
             >
-              <Sparkle className="w-3.5 h-3.5 text-amber-400" />
+              <Sparkle className="w-3.5 h-3.5 text-amber-500" />
               Auto-Align Sample
             </button>
           </div>
 
           {/* Subtitle Segments List */}
-          <div className="space-y-2.5 pt-2 border-t border-stone-800/80">
+          <div className="space-y-2 pt-2 border-t border-zinc-200 dark:border-white/[0.08]">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-stone-300 font-medium">
+              <span className="font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
                 Dialogue Lines ({segments.length})
               </span>
               <button
+                type="button"
                 onClick={handleAddSegment}
-                className="text-amber-400 hover:text-amber-300 flex items-center gap-1 text-[11px] font-medium"
+                className="text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 text-xs font-medium"
               >
-                <Plus className="w-3 h-3" />
+                <Plus className="w-3.5 h-3.5" />
                 Add Line
               </button>
             </div>
 
             {segments.length === 0 ? (
-              <div className="p-4 rounded-xl border border-dashed border-stone-800 text-center space-y-1.5">
-                <Quotes className="w-5 h-5 text-stone-500 mx-auto" />
-                <p className="text-xs text-stone-400">No subtitles added yet</p>
-                <p className="text-[10px] text-stone-500">
+              <div className="p-4 rounded-xl border border-dashed border-zinc-200 dark:border-white/10 text-center space-y-1.5 bg-zinc-50 dark:bg-[#141417]">
+                <Quotes className="w-5 h-5 text-zinc-400 mx-auto" />
+                <p className="text-xs text-zinc-600 dark:text-zinc-400">No subtitles added yet</p>
+                <p className="text-[11px] text-zinc-400 dark:text-zinc-500">
                   Import an SRT file or click "Auto-Align Sample" to generate instant captions.
                 </p>
               </div>
@@ -343,17 +372,17 @@ export const SubtitlePanel: React.FC<SubtitlePanelProps> = ({ config, updateConf
                 {segments.map((seg, idx) => (
                   <div
                     key={seg.id}
-                    className="p-2.5 rounded-lg bg-stone-900 border border-stone-800/80 space-y-2"
+                    className="p-3 rounded-xl bg-white dark:bg-[#18181c] border border-zinc-200 dark:border-white/[0.08] shadow-sm space-y-2 transition-all"
                   >
-                    <div className="flex items-center justify-between text-[11px] text-stone-400">
-                      <span className="font-mono text-amber-400/90 font-medium">#{idx + 1}</span>
-                      <div className="flex items-center gap-1.5 font-mono text-[10px]">
+                    <div className="flex items-center justify-between text-xs text-zinc-500">
+                      <span className="font-mono text-zinc-700 dark:text-zinc-300 font-medium">#{idx + 1}</span>
+                      <div className="flex items-center gap-1.5 font-mono text-[11px]">
                         <input
                           type="number"
                           step="0.1"
                           value={seg.start}
                           onChange={(e) => handleUpdateSegment(seg.id, seg.text, parseFloat(e.target.value) || 0, seg.end)}
-                          className="w-14 px-1 py-0.5 bg-stone-800 rounded border border-stone-700 text-stone-200 text-center"
+                          className="w-14 px-1.5 py-0.5 bg-zinc-50 dark:bg-[#141417] rounded-lg border border-zinc-200 dark:border-white/10 text-zinc-800 dark:text-zinc-200 text-center focus:outline-none focus:border-amber-400"
                         />
                         <span>→</span>
                         <input
@@ -361,13 +390,15 @@ export const SubtitlePanel: React.FC<SubtitlePanelProps> = ({ config, updateConf
                           step="0.1"
                           value={seg.end}
                           onChange={(e) => handleUpdateSegment(seg.id, seg.text, seg.start, parseFloat(e.target.value) || 0)}
-                          className="w-14 px-1 py-0.5 bg-stone-800 rounded border border-stone-700 text-stone-200 text-center"
+                          className="w-14 px-1.5 py-0.5 bg-zinc-50 dark:bg-[#141417] rounded-lg border border-zinc-200 dark:border-white/10 text-zinc-800 dark:text-zinc-200 text-center focus:outline-none focus:border-amber-400"
                         />
                         <span>s</span>
                       </div>
                       <button
+                        type="button"
                         onClick={() => handleRemoveSegment(seg.id)}
-                        className="text-stone-500 hover:text-rose-400 p-0.5 transition"
+                        className="text-zinc-400 hover:text-rose-500 p-1 transition-colors rounded"
+                        title="Delete line"
                       >
                         <Trash className="w-3.5 h-3.5" />
                       </button>
@@ -376,7 +407,7 @@ export const SubtitlePanel: React.FC<SubtitlePanelProps> = ({ config, updateConf
                       value={seg.text}
                       rows={2}
                       onChange={(e) => handleUpdateSegment(seg.id, e.target.value)}
-                      className="w-full text-xs bg-stone-950 border border-stone-800 rounded p-1.5 text-stone-200 focus:outline-none focus:border-amber-500/50 resize-none font-sans"
+                      className="w-full text-xs bg-zinc-50 dark:bg-[#141417] border border-zinc-200 dark:border-white/10 rounded-xl p-2 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#dfc596]/40 focus:border-[#dfc596] resize-none font-sans"
                     />
                   </div>
                 ))}

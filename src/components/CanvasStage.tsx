@@ -266,13 +266,14 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
                 <button
                   key={r}
                   onClick={() => setRatio(r)}
-                  className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-medium tracking-wide transition-all ${
+                  className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-medium tracking-wide transition-all ${
                     isSelected
                       ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-sm border border-zinc-300 dark:border-white/10 font-semibold'
                       : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800/40'
                   }`}
                 >
-                  {rData.label} <span className="opacity-60 text-[10px]">({r})</span>
+                  <span className="hidden md:inline">{rData.label} </span>
+                  <span>{r}</span>
                 </button>
               );
             })}

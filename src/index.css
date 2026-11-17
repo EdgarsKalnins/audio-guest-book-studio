@@ -88,7 +88,7 @@
   -webkit-app-region: no-drag;
 }
 
-/* Pro-grade subtle dark scrollbar */
+/* Pro-grade subtle scrollbar (Day & Night support) */
 .custom-scrollbar::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -97,11 +97,26 @@
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #27272a;
+  background: rgba(161, 161, 170, 0.4);
   border-radius: 9999px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(161, 161, 170, 0.7);
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #27272a;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #3f3f46;
+}
+
+/* Hide scrollbar utility for smooth horizontal tab navigation */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Range input styling for studio sliders */

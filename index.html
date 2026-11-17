@@ -6,7 +6,9 @@
     <title>Audio Guest Book Studio</title>
     <script>
       try {
-        if (localStorage.getItem('wedding_studio_theme') === 'light') {
+        var p = new URLSearchParams(window.location.search).get('theme');
+        var theme = p || localStorage.getItem('wedding_studio_theme');
+        if (theme === 'light') {
           document.documentElement.classList.remove('dark');
         } else {
           document.documentElement.classList.add('dark');
