@@ -36,7 +36,7 @@ cd audio-guest-book-studio
 # 2. Install dependencies
 npm install
 
-# 3. Run automated test suite (59 unit & integration tests across 12 suites)
+# 3. Run automated test suite (60 unit & integration tests across 12 suites)
 npm test
 
 # 4. Compile production bundles

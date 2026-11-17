@@ -218,3 +218,38 @@ describe('VideoExporter', () => {
     // Clean up
     fs.rmSync(tempDir, { recursive: true, force: true });
   }, 15000);
+
+  it('buildMuxArgs constructs container-aware arguments for WebM and MP4 containers', () => {
+    const exporter = new VideoExporter();
+
+    // 1. WebM test: must use libopus and NEVER use -movflags +faststart
+    const webmArgs = exporter.buildMuxArgs({
+      videoPath: '/tmp/temp.webm',
+      audioPath: '/tmp/audio.wav',
+      outputPath: '/tmp/out.webm',
+      voiceBoost: false,
+      trimStart: 0,
+      duration: 5,
+    });
+    expect(webmArgs).toContain('libopus');
+    expect(webmArgs).not.toContain('+faststart');
+    expect(webmArgs).toContain('-t');
+    expect(webmArgs[webmArgs.indexOf('-t') + 1]).toBe('5');
+
+    // 2. MP4 test: must use aac and include -movflags +faststart
+    const mp4Args = exporter.buildMuxArgs({
+      videoPath: '/tmp/temp.mp4',
+      audioPath: '/tmp/raw.mp3',
+      outputPath: '/tmp/out.mp4',
+      voiceBoost: true,
+      trimStart: 2.5,
+      duration: 10,
+    });
+    expect(mp4Args).toContain('aac');
+    expect(mp4Args).toContain('+faststart');
+    expect(mp4Args).toContain('loudnorm=I=-16:TP=-1.5:LRA=11');
+    expect(mp4Args).toContain('-ss');
+    expect(mp4Args[mp4Args.indexOf('-ss') + 1]).toBe('2.5');
+    expect(mp4Args).toContain('-t');
+    expect(mp4Args[mp4Args.indexOf('-t') + 1]).toBe('10');
+  });

@@ -36,7 +36,7 @@ Before writing a single line of code, any agent MUST adhere to these 4 core tene
 
 4. **Test-Driven Verification**:
    - Always run `npm test` before concluding any task.
-   - All 18+ existing Vitest unit and integration tests must pass.
+   - All 60 existing Vitest unit and integration tests must pass.
    - When introducing new audio logic or export options, write corresponding tests in `tests/`.
 
 ---
@@ -163,8 +163,9 @@ When building, fixing, or extending features that cross the bridge between the E
    - When the user trims the timeline (`trimStart` / `trimEnd`) and exports a continuous master video, `audioEngine.getMasterWavBytes(trimStart, trimEnd)` produces an already normalized WAV file (`wedding_sequence_*.wav`) starting at `00:00.000`.
    - Any downstream call to `startExport` with this pre-trimmed master file **MUST pass `trimStart: 0`** to FFmpeg. Passing the original `trimStart` causes FFmpeg to apply `-ss trimStart` a second time, erroneously cutting off the guest's speech.
 
-3. **Container-Aware Audio Multiplexing**:
-   - In `electron/main.ts` (`export:muxVideoAndAudio`), never apply MP4-specific flags like `-movflags +faststart` or AAC audio (`-c:a aac`) to Matroska/WebM containers (`.webm`).
+3. **Container-Aware Audio Multiplexing & Lossless Trimming**:
+   - In `electron/main.ts` and `electron/exporter.ts` (`export:muxVideoAndAudio` / `VideoExporter.buildMuxArgs`), never apply MP4-specific flags like `-movflags +faststart` or AAC audio (`-c:a aac`) to Matroska/WebM containers (`.webm`).
+   - Pass normalized `trimStart` and `duration` parameters to `muxVideoAndAudio` so hardware WebCodecs video streams are multiplexed with audio that starts at the exact second without clipping speech.
    - Always branch based on destination container:
      - `.webm`: `-c:a libopus -b:a 128k` (omit faststart).
      - `.mov`: `-c:a pcm_s16le` or `-c:a aac -b:a 192k` with `-movflags +faststart`.

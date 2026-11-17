@@ -119,6 +119,52 @@ export class VideoExporter {
     ];
   }
 
+  /**
+   * Constructs optimal container-aware FFmpeg arguments for lossless audio/video multiplexing
+   */
+  public buildMuxArgs(options: {
+    videoPath: string;
+    audioPath: string;
+    outputPath: string;
+    voiceBoost: boolean;
+    trimStart?: number;
+    duration?: number;
+  }): string[] {
+    const isWebm = options.outputPath.endsWith('.webm');
+    const audioCodecArgs = isWebm
+      ? ['-c:a', 'libopus', '-b:a', '128k']
+      : ['-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-ac', '2'];
+    const movflagsArgs = isWebm ? [] : ['-movflags', '+faststart'];
+
+    const audioFilterArgs: string[] = [];
+    if (options.voiceBoost) {
+      audioFilterArgs.push('-af', 'loudnorm=I=-16:TP=-1.5:LRA=11');
+    }
+
+    const audioSeekArgs: string[] = [];
+    if (typeof options.trimStart === 'number' && options.trimStart > 0) {
+      audioSeekArgs.push('-ss', options.trimStart.toString());
+    }
+    if (typeof options.duration === 'number' && options.duration > 0) {
+      audioSeekArgs.push('-t', options.duration.toString());
+    }
+
+    return [
+      '-y',
+      '-i', options.videoPath,
+      ...audioSeekArgs,
+      '-i', options.audioPath,
+      '-map', '0:v:0',
+      '-map', '1:a:0',
+      '-c:v', 'copy',
+      ...audioFilterArgs,
+      ...audioCodecArgs,
+      ...movflagsArgs,
+      '-shortest',
+      options.outputPath,
+    ];
+  }
+
   public start(
     options: ExportStartOptions,
     onProgress: (percent: number, frame: number) => void,

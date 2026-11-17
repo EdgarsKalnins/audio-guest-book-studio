@@ -491,11 +491,20 @@ function setupIPCHandlers() {
   // 1-second lossless multiplexer: combines WebCodecs hardware-encoded video with audio (-c:v copy)
   ipcMain.handle(
     'export:muxVideoAndAudio',
-    async (_, { videoPath, audioPath, outputPath, voiceBoost }: {
+    async (_, {
+      videoPath,
+      audioPath,
+      outputPath,
+      voiceBoost,
+      trimStart,
+      duration,
+    }: {
       videoPath: string;
       audioPath: string;
       outputPath: string;
       voiceBoost: boolean;
+      trimStart?: number;
+      duration?: number;
     }) => {
       return new Promise((resolve, reject) => {
         const dummyExporter = new VideoExporter();
@@ -506,30 +515,14 @@ function setupIPCHandlers() {
           fs.mkdirSync(outDir, { recursive: true });
         }
 
-        const audioFilterArgs: string[] = [];
-        if (voiceBoost) {
-          audioFilterArgs.push('-af', 'loudnorm=I=-16:TP=-1.5:LRA=11');
-        }
-
-        const isWebm = outputPath.endsWith('.webm');
-        const audioCodecArgs = isWebm
-          ? ['-c:a', 'libopus', '-b:a', '128k']
-          : ['-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-ac', '2'];
-        const movflagsArgs = isWebm ? [] : ['-movflags', '+faststart'];
-
-        const args = [
-          '-y',
-          '-i', videoPath,
-          '-i', audioPath,
-          '-map', '0:v:0', // Explicitly take video from input 0
-          '-map', '1:a:0', // Explicitly take audio from input 1
-          '-c:v', 'copy',  // Zero re-encoding of video! Runs at 10,000+ FPS
-          ...audioFilterArgs,
-          ...audioCodecArgs,
-          ...movflagsArgs, // Instant start for Apple QuickTime / iPhone / Web (MP4/MOV only)
-          '-shortest',
+        const args = dummyExporter.buildMuxArgs({
+          videoPath,
+          audioPath,
           outputPath,
-        ];
+          voiceBoost,
+          trimStart,
+          duration,
+        });
 
         console.log('[Muxer] Spawning lossless audio-video mux:', args.join(' '));
         const proc = spawn(ffmpegBin, args);

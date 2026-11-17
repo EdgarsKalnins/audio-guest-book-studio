@@ -90,6 +90,8 @@ const api = {
     audioPath: string;
     outputPath: string;
     voiceBoost: boolean;
+    trimStart?: number;
+    duration?: number;
   }): Promise<string> => ipcRenderer.invoke('export:muxVideoAndAudio', options),
 
   // Export event listeners

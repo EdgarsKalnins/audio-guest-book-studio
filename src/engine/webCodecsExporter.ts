@@ -249,12 +249,17 @@ export async function runWebCodecsHardwareExport(
       tempVideoPath = outputPath;
     }
 
+    const isPreTrimmedMaster = audioFilePath.includes('wedding_sequence_');
+    const muxAudioTrimStart = isPreTrimmedMaster ? 0 : trimStart;
+
     if (window.electronAPI && typeof window.electronAPI.muxVideoAndAudio === 'function') {
       const finalPath = await window.electronAPI.muxVideoAndAudio({
         videoPath: tempVideoPath,
         audioPath: audioFilePath,
         outputPath,
         voiceBoost: config.audioSettings.voiceBoost,
+        trimStart: muxAudioTrimStart,
+        duration: exportDuration,
       });
 
       onProgress(100, totalFrames, totalFrames);
