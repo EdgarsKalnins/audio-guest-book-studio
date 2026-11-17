@@ -145,7 +145,16 @@ export function drawStudioFrame(
     }
   }
 
-  // 3. Draw Centered Audio Visualizer
+  // 3. Compute Vocal Speech Intensity in Human Voice Band (150Hz - 2800Hz, bins 2 to 32)
+  let voiceSum = 0;
+  for (let b = 2; b <= 32; b++) {
+    voiceSum += frequencyData[b] || 0;
+  }
+  const voiceAvg = voiceSum / 31; // 0 to 255
+  // Dynamic Vocal Punch: 1.0x at rest up to 2.5x during spoken words
+  const vocalPunch = 1.0 + Math.pow(Math.min(1.0, voiceAvg / 130), 1.1) * 1.5;
+
+  // Draw Centered Audio Visualizer
   const centerY = config.typography.enabled ? height * 0.52 : height * 0.5;
   const centerX = width * 0.5;
 
@@ -154,7 +163,7 @@ export function drawStudioFrame(
 
   if (config.visualizerGlow) {
     ctx.shadowColor = config.visualizerColor;
-    ctx.shadowBlur = 18;
+    ctx.shadowBlur = 14 + (voiceAvg / 255) * 22; // Glow expands intensely during speech!
   } else {
     ctx.shadowColor = 'transparent';
     ctx.shadowBlur = 0;
@@ -162,28 +171,28 @@ export function drawStudioFrame(
 
   switch (config.visualizerStyle) {
     case 'line_wave':
-      drawClassicHairlineWave(ctx, centerX, centerY, width, height, timeDomainData, config, currentTime);
+      drawClassicHairlineWave(ctx, centerX, centerY, width, height, timeDomainData, config, currentTime, vocalPunch, voiceAvg);
       break;
     case 'line_mirror':
-      drawMirroredCenterLine(ctx, centerX, centerY, width, height, frequencyData, config);
+      drawMirroredCenterLine(ctx, centerX, centerY, width, height, frequencyData, config, vocalPunch, voiceAvg);
       break;
     case 'line_horizon':
-      drawCleanPulseHorizon(ctx, centerX, centerY, width, height, timeDomainData, config, currentTime);
+      drawCleanPulseHorizon(ctx, centerX, centerY, width, height, timeDomainData, config, currentTime, vocalPunch, voiceAvg);
       break;
     case 'bars':
-      drawCenteredBars(ctx, centerX, centerY, width, height, frequencyData, config);
+      drawCenteredBars(ctx, centerX, centerY, width, height, frequencyData, config, vocalPunch, voiceAvg);
       break;
     case 'wave':
-      drawSineRibbon(ctx, centerX, centerY, width, height, timeDomainData, config, currentTime);
+      drawSineRibbon(ctx, centerX, centerY, width, height, timeDomainData, config, currentTime, vocalPunch, voiceAvg);
       break;
     case 'ring':
-      drawCircularHalo(ctx, centerX, centerY, width, height, frequencyData, config);
+      drawCircularHalo(ctx, centerX, centerY, width, height, frequencyData, config, vocalPunch, voiceAvg);
       break;
     case 'mirror':
-      drawSymmetricalMirror(ctx, centerX, centerY, width, height, frequencyData, config);
+      drawSymmetricalMirror(ctx, centerX, centerY, width, height, frequencyData, config, vocalPunch, voiceAvg);
       break;
     case 'particles':
-      drawStardust(ctx, centerX, centerY, width, height, frequencyData, config, currentTime);
+      drawStardust(ctx, centerX, centerY, width, height, frequencyData, config, currentTime, vocalPunch, voiceAvg);
       break;
   }
 
@@ -259,7 +268,9 @@ function drawCenteredBars(
   width: number,
   height: number,
   data: Uint8Array,
-  config: StudioConfig
+  config: StudioConfig,
+  vocalPunch: number = 1.0,
+  voiceAvg: number = 0
 ) {
   const barCount = 42;
   const totalWidth = width * 0.65 * config.visualizerScale;
@@ -276,7 +287,11 @@ function drawCenteredBars(
     const dataIndex = Math.floor((1 - distFromCenter * 0.7) * (data.length * 0.45));
     const rawVal = data[dataIndex] || 0;
     const normVal = Math.min(1, Math.max(0.08, rawVal / 255));
-    const h = normVal * maxBarHeight;
+    
+    // Vocal speech punch concentrated at center (mono voice enhancement)
+    const centerWeight = Math.pow(Math.cos(distFromCenter * (Math.PI / 2)), 1.8);
+    const dynamicPunch = 1.0 + (vocalPunch - 1.0) * centerWeight;
+    const h = normVal * maxBarHeight * dynamicPunch;
 
     const x = startX + i * spacing + (spacing - barWidth) / 2;
     const y = cy - h / 2;
@@ -294,7 +309,9 @@ function drawSineRibbon(
   height: number,
   timeData: Float32Array,
   config: StudioConfig,
-  currentTime: number
+  currentTime: number,
+  vocalPunch: number = 1.0,
+  voiceAvg: number = 0
 ) {
   const totalWidth = width * 0.75 * config.visualizerScale;
   const startX = cx - totalWidth / 2;
@@ -314,8 +331,12 @@ function drawSineRibbon(
     const audioVal = timeData[sampleIdx] || 0;
     // Window function to taper at edges
     const taper = Math.sin((i / 64) * Math.PI);
+    const normalizedDist = Math.abs(i - 32) / 32;
+    const centerWeight = Math.pow(Math.cos(normalizedDist * (Math.PI / 2)), 1.6);
+    const dynamicPunch = 1.0 + (vocalPunch - 1.0) * centerWeight;
+
     const wave = Math.sin(i * 0.25 + currentTime * 5) * 15 * taper;
-    const y = cy + (audioVal * maxAmp + wave) * taper;
+    const y = cy + (audioVal * maxAmp * dynamicPunch + wave) * taper;
 
     if (i === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
@@ -332,8 +353,12 @@ function drawSineRibbon(
     const sampleIdx = Math.floor(((64 - i) / 64) * timeData.length);
     const audioVal = timeData[sampleIdx] || 0;
     const taper = Math.sin((i / 64) * Math.PI);
+    const normalizedDist = Math.abs(i - 32) / 32;
+    const centerWeight = Math.pow(Math.cos(normalizedDist * (Math.PI / 2)), 1.6);
+    const dynamicPunch = 1.0 + (vocalPunch - 1.0) * centerWeight;
+
     const wave = Math.sin(i * 0.35 - currentTime * 4.2) * 18 * taper;
-    const y = cy + (audioVal * maxAmp * 0.7 - wave) * taper;
+    const y = cy + (audioVal * maxAmp * 0.7 * dynamicPunch - wave) * taper;
 
     if (i === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
@@ -349,30 +374,36 @@ function drawCircularHalo(
   width: number,
   height: number,
   data: Uint8Array,
-  config: StudioConfig
+  config: StudioConfig,
+  vocalPunch: number = 1.0,
+  voiceAvg: number = 0
 ) {
   const baseRadius = width * 0.16 * config.visualizerScale;
   const maxSpike = width * 0.12 * config.visualizerScale;
   const segments = 60;
+  const voiceBoost = (voiceAvg / 255);
 
   ctx.strokeStyle = config.visualizerColor;
   ctx.lineWidth = 2.5 * (width / 1080);
   ctx.lineCap = 'round';
 
-  // Inner ring
+  // Inner ring dynamically breathes when speaking
+  const activeRadius = baseRadius * (1.0 + voiceBoost * 0.18);
   ctx.beginPath();
-  ctx.arc(cx, cy, baseRadius * 0.85, 0, Math.PI * 2);
+  ctx.arc(cx, cy, activeRadius * 0.85, 0, Math.PI * 2);
   ctx.stroke();
 
-  // Radiating rays
+  // Radiating rays with vocal punch
   for (let i = 0; i < segments; i++) {
     const angle = (i / segments) * Math.PI * 2;
     const dataIdx = Math.floor((Math.abs(Math.sin(angle)) * 0.5) * (data.length * 0.5));
     const val = (data[dataIdx] || 0) / 255;
-    const len = baseRadius + Math.max(6, val * maxSpike);
+    const verticalWeight = Math.pow(Math.abs(Math.sin(angle)), 1.2);
+    const dynamicPunch = 1.0 + (vocalPunch - 1.0) * verticalWeight;
+    const len = activeRadius + Math.max(6, val * maxSpike * dynamicPunch);
 
-    const x1 = cx + Math.cos(angle) * baseRadius;
-    const y1 = cy + Math.sin(angle) * baseRadius;
+    const x1 = cx + Math.cos(angle) * activeRadius;
+    const y1 = cy + Math.sin(angle) * activeRadius;
     const x2 = cx + Math.cos(angle) * len;
     const y2 = cy + Math.sin(angle) * len;
 
@@ -390,7 +421,9 @@ function drawSymmetricalMirror(
   width: number,
   height: number,
   data: Uint8Array,
-  config: StudioConfig
+  config: StudioConfig,
+  vocalPunch: number = 1.0,
+  voiceAvg: number = 0
 ) {
   const barCount = 36;
   const totalWidth = width * 0.65 * config.visualizerScale;
@@ -405,7 +438,11 @@ function drawSymmetricalMirror(
     const distCenter = 1 - Math.abs(i - barCount / 2) / (barCount / 2);
     const dataIdx = Math.floor(distCenter * (data.length * 0.4));
     const val = (data[dataIdx] || 0) / 255;
-    const halfH = Math.max(3, val * maxBarHeight);
+
+    // Center vocal punch: mono voice amplifies center bars prominently
+    const centerWeight = Math.pow(distCenter, 1.4);
+    const dynamicPunch = 1.0 + (vocalPunch - 1.0) * centerWeight;
+    const halfH = Math.max(3, val * maxBarHeight * dynamicPunch);
 
     const x = startX + i * spacing + (spacing - barWidth) / 2;
 
@@ -432,7 +469,9 @@ function drawStardust(
   height: number,
   data: Uint8Array,
   config: StudioConfig,
-  currentTime: number
+  currentTime: number,
+  vocalPunch: number = 1.0,
+  voiceAvg: number = 0
 ) {
   const particleCount = 48;
   const avgEnergy = (data[4] + data[10] + data[18] || 0) / (3 * 255);
@@ -445,10 +484,10 @@ function drawStardust(
     const baseDist = (Math.sqrt(i / particleCount)) * maxRadius;
     const angle = seed + currentTime * (0.2 + (i % 5) * 0.05);
 
-    const dist = baseDist * (1 + avgEnergy * 0.4);
+    const dist = baseDist * (1 + avgEnergy * vocalPunch * 0.45);
     const px = cx + Math.cos(angle) * dist;
     const py = cy + Math.sin(angle) * dist;
-    const pSize = (1.5 + (i % 4) * 1.5 + avgEnergy * 3.5) * (width / 1080);
+    const pSize = (1.5 + (i % 4) * 1.5 + (voiceAvg / 255) * 4.0) * (width / 1080);
 
     ctx.beginPath();
     ctx.arc(px, py, pSize, 0, Math.PI * 2);
@@ -525,7 +564,9 @@ function drawClassicHairlineWave(
   height: number,
   timeData: Float32Array,
   config: StudioConfig,
-  currentTime: number
+  currentTime: number,
+  vocalPunch: number = 1.0,
+  voiceAvg: number = 0
 ) {
   const baseScale = width / 1080;
   const totalWidth = width * 0.72 * config.visualizerScale;
@@ -547,7 +588,7 @@ function drawClassicHairlineWave(
   ctx.lineTo(startX + totalWidth + 20 * baseScale, cy);
   ctx.stroke();
 
-  // Active wave curve
+  // Active wave curve with intense center vocal punch
   ctx.strokeStyle = config.visualizerColor;
   ctx.beginPath();
   for (let i = 0; i <= points; i++) {
@@ -555,18 +596,23 @@ function drawClassicHairlineWave(
     const sampleIdx = Math.floor((i / points) * (timeData.length - 1));
     const audioVal = timeData[sampleIdx] || 0;
     const taper = Math.sin((i / points) * Math.PI);
+    const normalizedDist = Math.abs(i - points / 2) / (points / 2);
+    const centerWeight = Math.pow(Math.cos(normalizedDist * (Math.PI / 2)), 1.8);
+    const dynamicPunch = 1.0 + (vocalPunch - 1.0) * centerWeight;
+
     const ambient = Math.sin(i * 0.18 + currentTime * 3) * 6 * taper;
-    const y = cy + (audioVal * maxAmp + ambient) * taper;
+    const y = cy + (audioVal * maxAmp * dynamicPunch + ambient) * taper;
 
     if (i === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   }
   ctx.stroke();
 
-  // Subtle center anchor pip
+  // Dynamic center anchor pip - expands with speech
   ctx.fillStyle = config.visualizerColor;
   ctx.beginPath();
-  ctx.arc(cx, cy, 2.5 * baseScale, 0, Math.PI * 2);
+  const pipRadius = (2.5 + (voiceAvg / 255) * 4.5) * baseScale;
+  ctx.arc(cx, cy, pipRadius, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.restore();
@@ -579,7 +625,9 @@ function drawMirroredCenterLine(
   width: number,
   height: number,
   data: Uint8Array,
-  config: StudioConfig
+  config: StudioConfig,
+  vocalPunch: number = 1.0,
+  voiceAvg: number = 0
 ) {
   const baseScale = width / 1080;
   const lineCount = 64;
@@ -607,7 +655,11 @@ function drawMirroredCenterLine(
     const dataIdx = Math.floor((1 - distFromCenter * 0.75) * (data.length * 0.42));
     const val = (data[dataIdx] || 0) / 255;
     const taper = Math.sin(((i + 0.5) / lineCount) * Math.PI);
-    const h = Math.max(3 * baseScale, val * maxHalfHeight * taper);
+
+    // Center vocal punch: mono voice amplifies center lines prominently
+    const centerWeight = Math.pow(1 - distFromCenter, 1.5);
+    const dynamicPunch = 1.0 + (vocalPunch - 1.0) * centerWeight;
+    const h = Math.max(3 * baseScale, val * maxHalfHeight * taper * dynamicPunch);
 
     const x = startX + i * spacing + spacing / 2;
 
@@ -628,7 +680,9 @@ function drawCleanPulseHorizon(
   height: number,
   timeData: Float32Array,
   config: StudioConfig,
-  currentTime: number
+  currentTime: number,
+  vocalPunch: number = 1.0,
+  voiceAvg: number = 0
 ) {
   const baseScale = width / 1080;
   const totalWidth = width * 0.75 * config.visualizerScale;
@@ -655,18 +709,23 @@ function drawCleanPulseHorizon(
 
     const sampleIdx = Math.floor(progress * (timeData.length - 1));
     const audioVal = timeData[sampleIdx] || 0;
+    const normalizedDist = Math.abs(progress - 0.5) / 0.5;
+    const centerWeight = Math.pow(Math.cos(normalizedDist * (Math.PI / 2)), 1.6);
+    const dynamicPunch = 1.0 + (vocalPunch - 1.0) * centerWeight;
+
     const ripple = Math.sin(progress * 28 + currentTime * 4) * 4 * envelope;
-    const y = cy + (audioVal * maxAmp + ripple) * envelope;
+    const y = cy + (audioVal * maxAmp * dynamicPunch + ripple) * envelope;
 
     if (i === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   }
   ctx.stroke();
 
-  // Center marker
+  // Dynamic center marker - radiates when speaking
   ctx.fillStyle = config.visualizerColor;
   ctx.beginPath();
-  ctx.arc(cx, cy, 3 * baseScale, 0, Math.PI * 2);
+  const markerRadius = (3.0 + (voiceAvg / 255) * 5.0) * baseScale;
+  ctx.arc(cx, cy, markerRadius, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.restore();
