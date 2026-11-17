@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #0c0b0a;
+    color: #e8e4df;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+/* Custom delicate luxury scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #2b2520;
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #d7ba7e;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

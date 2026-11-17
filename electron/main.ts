@@ -1,0 +1,214 @@
+import { app, BrowserWindow, ipcMain, dialog, shell } from 'electron';
+import path from 'node:path';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { VideoExporter, ExportStartOptions } from './exporter';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+process.env.APP_ROOT = path.join(__dirname, '..');
+
+export const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'];
+export const MAIN_DIST = path.join(process.env.APP_ROOT, 'dist-electron');
+export const RENDERER_DIST = path.join(process.env.APP_ROOT, 'dist');
+
+process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
+  ? path.join(process.env.APP_ROOT, 'public')
+  : RENDERER_DIST;
+
+let win: BrowserWindow | null = null;
+let currentExporter: VideoExporter | null = null;
+
+function createWindow() {
+  const preloadPath = fs.existsSync(path.join(__dirname, 'preload.mjs'))
+    ? path.join(__dirname, 'preload.mjs')
+    : path.join(__dirname, 'preload.js');
+
+  win = new BrowserWindow({
+    title: 'Wedding Audio Studio',
+    width: 1280,
+    height: 840,
+    minWidth: 1060,
+    minHeight: 700,
+    backgroundColor: '#0f0e0d',
+    titleBarStyle: 'hiddenInset', // Sleek native macOS styling
+    trafficLightPosition: { x: 16, y: 16 },
+    webPreferences: {
+      preload: preloadPath,
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+
+  if (VITE_DEV_SERVER_URL) {
+    win.loadURL(VITE_DEV_SERVER_URL);
+  } else {
+    win.loadFile(path.join(RENDERER_DIST, 'index.html'));
+  }
+
+  win.on('closed', () => {
+    win = null;
+    if (currentExporter) {
+      currentExporter.cancel();
+      currentExporter = null;
+    }
+  });
+}
+
+// App lifecycle
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
+});
+
+app.on('activate', () => {
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow();
+  }
+});
+
+app.whenReady().then(() => {
+  setupIPCHandlers();
+  createWindow();
+});
+
+function setupIPCHandlers() {
+  // Open audio file(s)
+  ipcMain.handle('dialog:openAudio', async () => {
+    if (!win) return null;
+    const res = await dialog.showOpenDialog(win, {
+      title: 'Select Wedding Audio Recording(s)',
+      filters: [
+        { name: 'Audio Files', extensions: ['wav', 'mp3', 'm4a', 'aac', 'ogg', 'flac'] },
+      ],
+      properties: ['openFile', 'multiSelections'],
+    });
+    if (res.canceled) return null;
+    return res.filePaths.map((fp) => ({
+      path: fp,
+      name: path.basename(fp),
+    }));
+  });
+
+  // Open background image
+  ipcMain.handle('dialog:openImage', async () => {
+    if (!win) return null;
+    const res = await dialog.showOpenDialog(win, {
+      title: 'Select Background Image',
+      filters: [
+        { name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'webp'] },
+      ],
+      properties: ['openFile'],
+    });
+    if (res.canceled || res.filePaths.length === 0) return null;
+    return {
+      path: res.filePaths[0],
+      name: path.basename(res.filePaths[0]),
+    };
+  });
+
+  // Select output save file path for single export
+  ipcMain.handle('dialog:selectSavePath', async (_, defaultName: string) => {
+    if (!win) return null;
+    const res = await dialog.showSaveDialog(win, {
+      title: 'Export Video Destination',
+      defaultPath: defaultName || 'wedding-audio-video.mp4',
+      filters: [{ name: 'MP4 Video', extensions: ['mp4'] }],
+    });
+    if (res.canceled) return null;
+    return res.filePath;
+  });
+
+  // Select output folder for batch export
+  ipcMain.handle('dialog:selectFolder', async () => {
+    if (!win) return null;
+    const res = await dialog.showOpenDialog(win, {
+      title: 'Select Destination Folder for Batch Export',
+      properties: ['openDirectory', 'createDirectory'],
+    });
+    if (res.canceled || res.filePaths.length === 0) return null;
+    return res.filePaths[0];
+  });
+
+  // Read file as buffer
+  ipcMain.handle('fs:readFile', async (_, filePath: string) => {
+    try {
+      const buf = await fs.promises.readFile(filePath);
+      return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new Error(`Failed to read file ${filePath}: ${msg}`);
+    }
+  });
+
+  // Reveal in Finder / Explorer
+  ipcMain.handle('shell:showItemInFolder', async (_, filePath: string) => {
+    if (fs.existsSync(filePath)) {
+      shell.showItemInFolder(filePath);
+      return true;
+    }
+    return false;
+  });
+
+  // Video Export: Start
+  ipcMain.handle('export:start', async (_, options: ExportStartOptions) => {
+    if (currentExporter) {
+      currentExporter.cancel();
+      currentExporter = null;
+    }
+
+    currentExporter = new VideoExporter();
+    currentExporter.start(
+      options,
+      (percent, frame) => {
+        if (win) {
+          win.webContents.send('export:progress', { percentage: percent, frame });
+        }
+      },
+      (outputPath) => {
+        if (win) {
+          win.webContents.send('export:complete', { outputPath });
+        }
+        currentExporter = null;
+      },
+      (error) => {
+        if (win) {
+          win.webContents.send('export:error', { error });
+        }
+        currentExporter = null;
+      }
+    );
+    return true;
+  });
+
+  // Video Export: Write Frame
+  ipcMain.handle('export:frame', async (_, frameData: Uint8Array) => {
+    if (!currentExporter) return false;
+    const buffer = Buffer.from(frameData.buffer, frameData.byteOffset, frameData.byteLength);
+    return currentExporter.writeFrame(buffer, (percent, frame) => {
+      if (win) {
+        win.webContents.send('export:progress', { percentage: percent, frame });
+      }
+    });
+  });
+
+  // Video Export: Finish
+  ipcMain.handle('export:finish', async () => {
+    if (currentExporter) {
+      currentExporter.finish();
+      return true;
+    }
+    return false;
+  });
+
+  // Video Export: Cancel
+  ipcMain.handle('export:cancel', async () => {
+    if (currentExporter) {
+      currentExporter.cancel();
+      currentExporter = null;
+      return true;
+    }
+    return false;
+  });
+}

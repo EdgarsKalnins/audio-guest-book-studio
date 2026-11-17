@@ -1,0 +1,96 @@
+export type VisualizerStyle = 'bars' | 'wave' | 'ring' | 'mirror' | 'particles';
+
+export type AspectRatioPreset = '9:16' | '1:1' | '16:9';
+
+export interface AspectRatioDetails {
+  id: AspectRatioPreset;
+  label: string;
+  width: number;
+  height: number;
+  subtitle: string;
+}
+
+export const ASPECT_RATIOS: Record<AspectRatioPreset, AspectRatioDetails> = {
+  '9:16': { id: '9:16', label: 'Story / Reel', width: 1080, height: 1920, subtitle: '9:16 Mobile Vertical' },
+  '1:1': { id: '1:1', label: 'Square Post', width: 1080, height: 1080, subtitle: '1:1 Instagram Square' },
+  '16:9': { id: '16:9', label: 'Landscape', width: 1920, height: 1080, subtitle: '16:9 Widescreen / TV' },
+};
+
+export interface VisualizerPreset {
+  id: VisualizerStyle;
+  name: string;
+  description: string;
+}
+
+export const VISUALIZER_PRESETS: VisualizerPreset[] = [
+  { id: 'bars', name: 'Voice Memo Bars', description: 'Smooth rounded bars pulsing from the center' },
+  { id: 'wave', name: 'Sine Ribbon', description: 'Flowing romantic waves with soft ambient glow' },
+  { id: 'ring', name: 'Circular Halo', description: 'Center radiating ring reacting to voice frequencies' },
+  { id: 'mirror', name: 'Symmetrical Wave', description: 'Mirrored frequency bars reflecting top & bottom' },
+  { id: 'particles', name: 'Stardust Spark', description: 'Floating shimmering particles reacting to sound' },
+];
+
+export interface ColorOption {
+  name: string;
+  hex: string;
+}
+
+export const COLOR_OPTIONS: ColorOption[] = [
+  { name: 'Champagne Gold', hex: '#d7ba7e' },
+  { name: 'Ivory White', hex: '#ffffff' },
+  { name: 'Rose Gold', hex: '#e8a598' },
+  { name: 'Warm Cream', hex: '#fdf3de' },
+  { name: 'Pure Platinum', hex: '#e2e8f0' },
+];
+
+export interface TypographyConfig {
+  enabled: boolean;
+  coupleNames: string;
+  dateText: string;
+  titleText: string;
+  fontFamily: 'Cormorant Garamond' | 'Playfair Display' | 'Inter';
+  showTimer: boolean;
+  fontSize: number; // 1 = normal, 1.2 = large, etc.
+}
+
+export interface AudioSettings {
+  trimStart: number;
+  trimEnd: number;
+  voiceBoost: boolean;
+}
+
+export interface BatchItem {
+  id: string;
+  name: string;
+  path: string;
+  status: 'idle' | 'rendering' | 'done' | 'error';
+  progress?: number;
+  error?: string;
+  outputPath?: string;
+}
+
+export interface StudioConfig {
+  aspectRatio: AspectRatioPreset;
+  visualizerStyle: VisualizerStyle;
+  visualizerColor: string;
+  visualizerScale: number;
+  visualizerOpacity: number;
+  visualizerGlow: boolean;
+  typography: TypographyConfig;
+  audioSettings: AudioSettings;
+  audioPath: string | null;
+  audioName: string | null;
+  audioDuration: number;
+  imagePath: string | null;
+  batchQueue: BatchItem[];
+}
+
+export interface ExportProgress {
+  status: 'idle' | 'preparing' | 'rendering' | 'muxing' | 'completed' | 'error';
+  currentFrame?: number;
+  totalFrames?: number;
+  percentage: number;
+  currentItemName?: string;
+  outputFilePath?: string;
+  error?: string;
+}
