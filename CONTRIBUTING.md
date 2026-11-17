@@ -23,8 +23,14 @@ Wedding voicemails are deeply personal and sentimental recordings. Any pull requ
 ## 🛠️ Development Setup
 
 1. **Fork and Clone**
+   Fork the repository on GitHub ([https://github.com/EdgarsKalnins/audio-guest-book-studio](https://github.com/EdgarsKalnins/audio-guest-book-studio)) to your own account, then clone your fork:
    ```bash
    git clone https://github.com/<your-username>/audio-guest-book-studio.git
+   cd audio-guest-book-studio
+   ```
+   Or clone directly for local development:
+   ```bash
+   git clone https://github.com/EdgarsKalnins/audio-guest-book-studio.git
    cd audio-guest-book-studio
    ```
 
@@ -87,7 +93,7 @@ Before submitting a Pull Request, please ensure:
    ```bash
    git commit -m "feat: add orbital particle visualizer variant"
    ```
-3. Push to your fork and submit a PR against `main`.
+3. Push to your fork and submit a PR against `main` on [https://github.com/EdgarsKalnins/audio-guest-book-studio](https://github.com/EdgarsKalnins/audio-guest-book-studio).
 4. Provide a clear description of the problem solved, screenshots of any UI changes (both in Dark Mode and Light Mode), and instructions for manual verification.
 
 Thank you for helping preserve wedding memories with elegance and privacy! ❤️

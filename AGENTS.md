@@ -1,8 +1,8 @@
 # 🤖 AI Agent Engineering Handbook & Guidelines (`AGENTS.md`)
 
 > **For AI Coding Agents**: Claude Code, Cursor, Codex, Windsurf, Antigravity, OpenCode, and Gemini CLI.  
-> **Repository**: [Audio Guest Book Studio](https://github.com/your-username/audio-guest-book-studio)  
-> **Maintainer**: Edgars Kalniņš ([Momentbox.lv](https://momentbox.lv)), Riga, Latvia.
+> **Repository**: [Audio Guest Book Studio](https://github.com/EdgarsKalnins/audio-guest-book-studio)  
+> **Maintainer**: [Edgars Kalniņš](https://github.com/EdgarsKalnins) ([Momentbox.lv](https://momentbox.lv)), Riga, Latvia.
 
 ---
 

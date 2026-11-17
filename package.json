@@ -5,9 +5,16 @@
   "license": "MIT",
   "author": {
     "name": "Edgars Kalniņš",
-    "url": "https://momentbox.lv"
+    "url": "https://github.com/EdgarsKalnins"
   },
-  "homepage": "https://momentbox.lv",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EdgarsKalnins/audio-guest-book-studio.git"
+  },
+  "bugs": {
+    "url": "https://github.com/EdgarsKalnins/audio-guest-book-studio/issues"
+  },
+  "homepage": "https://github.com/EdgarsKalnins/audio-guest-book-studio#readme",
   "keywords": [
     "audio guest book",
     "wedding audio guestbook",

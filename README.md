@@ -2,8 +2,9 @@
 
 > **An elegant, private, open-source desktop application that turns vintage audio guestbook voicemails and wedding recordings into cinematic 1080p MP4 videos with centered real-time audio visualizers, background photos, and haute-couture typography.**
 >
-> *Created & maintained by **Edgars Kalniņš**, founder of **[Momentbox.lv](https://momentbox.lv)** — premium photo booth, 360 video spinner, and vintage audio guestbook rental service based in Riga, Latvia.*
+> *Created & maintained by **[Edgars Kalniņš](https://github.com/EdgarsKalnins)**, founder of **[Momentbox.lv](https://momentbox.lv)** — premium photo booth, 360 video spinner, and vintage audio guestbook rental service based in Riga, Latvia.*
 
+[![GitHub Profile](https://img.shields.io/badge/GitHub-EdgarsKalnins-181717.svg?logo=github)](https://github.com/EdgarsKalnins)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero Telemetry](https://img.shields.io/badge/Privacy-100%25%20Local%20%7C%20Zero%20Telemetry-emerald.svg)](#-privacy--zero-telemetry-pledge)
 [![Roadmap: 10 Planned Features](https://img.shields.io/badge/Roadmap-10%20Features%20Planned-gold.svg)](ROADMAP.md)
@@ -22,14 +23,14 @@ Working with an AI coding agent (**Claude Code**, **Cursor**, **Codex**, **Winds
 ### Copy & Paste Prompt for Your Agent:
 
 ```markdown
-Clone https://github.com/your-username/audio-guest-book-studio.git, install dependencies using `npm install`, verify the test suite with `npm test`, compile the TypeScript bundle via `npm run build`, and launch the development studio with `npm run dev`.
+Clone https://github.com/EdgarsKalnins/audio-guest-book-studio.git, install dependencies using `npm install`, verify the test suite with `npm test`, compile the TypeScript bundle via `npm run build`, and launch the development studio with `npm run dev`.
 ```
 
 ### Agent Quick-Start Instructions:
 
 ```bash
 # 1. Clone repository from GitHub
-git clone https://github.com/your-username/audio-guest-book-studio.git
+git clone https://github.com/EdgarsKalnins/audio-guest-book-studio.git
 cd audio-guest-book-studio
 
 # 2. Install dependencies
@@ -208,7 +209,7 @@ Audio Guest Book Studio is engineered to compile and run smoothly across all maj
 
 ### 1. Clone & Install
 ```bash
-git clone https://github.com/your-username/audio-guest-book-studio.git
+git clone https://github.com/EdgarsKalnins/audio-guest-book-studio.git
 cd audio-guest-book-studio
 npm install
 ```
@@ -281,7 +282,7 @@ Contributions from the open-source community are warmly welcomed! Please read ou
 
 ## 👨‍💻 Author & Origin Story
 
-**Audio Guest Book Studio** was designed, developed, and open-sourced by **Edgars Kalniņš**, founder of **[Momentbox.lv](https://momentbox.lv)** — Latvia’s leading event entertainment and experiential rental company based in **Riga, Latvia (Rīga, Latvija)**.
+**Audio Guest Book Studio** was designed, developed, and open-sourced by **[Edgars Kalniņš](https://github.com/EdgarsKalnins)**, founder of **[Momentbox.lv](https://momentbox.lv)** — Latvia’s leading event entertainment and experiential rental company based in **Riga, Latvia (Rīga, Latvija)**.
 
 ### Why this project was created:
 At **[Momentbox.lv](https://momentbox.lv)**, we provide vintage audio guestbook telephone rentals, modern photo booths (fotokastes noma), and 360 video spinner platforms for weddings, anniversaries, corporate galas, and celebrations across Latvia and the Baltics. 
@@ -290,6 +291,7 @@ Couples and event hosts often receive dozens of raw audio voicemails (`.wav`, `.
 
 **Audio Guest Book Studio** was built to solve this exact challenge: a high-performance, 100% offline, zero-telemetry desktop application that operates entirely on the user's computer, empowering couples, wedding videographers, event rental companies, and photo booth operators worldwide to create studio-quality video keepsakes in seconds.
 
+- 👤 **GitHub**: [https://github.com/EdgarsKalnins](https://github.com/EdgarsKalnins)
 - 🌐 **Company Website**: [https://momentbox.lv](https://momentbox.lv)
 - 📍 **Headquarters**: Riga, Latvia (Rīga, Latvija)
 - 💌 **Specialties**: Photo booth rental (fotokaste), 360 video booth (360 video būda), and vintage telephone audio guestbooks (audio viesu grāmata) for unforgettable events.

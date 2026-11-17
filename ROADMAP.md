@@ -1,6 +1,6 @@
 # 🗺️ Product Roadmap & Future Plans
 
-> **Audio Guest Book Studio** is an open-source, local-first desktop application designed by **Edgars Kalniņš** ([Momentbox.lv](https://momentbox.lv)) to turn vintage audio guestbook voicemails and wedding recordings into high-definition, cinema-grade MP4 videos.
+> **Audio Guest Book Studio** is an open-source, local-first desktop application designed by **[Edgars Kalniņš](https://github.com/EdgarsKalnins)** ([Momentbox.lv](https://momentbox.lv)) to turn vintage audio guestbook voicemails and wedding recordings into high-definition, cinema-grade MP4 videos.
 
 This document outlines the **10 approved roadmap features** scheduled for implementation. Every feature adheres to the project's strict **100% Offline & Zero-Telemetry Pledge**: all processing, audio DSP, video encoding, and AI models execute strictly locally on the user's computer with zero cloud dependence.
 
@@ -193,4 +193,4 @@ flowchart LR
 
 ---
 
-*Authored by **Edgars Kalniņš** & the **[Momentbox.lv](https://momentbox.lv)** open-source team. Riga, Latvia.*
+*Authored by **[Edgars Kalniņš](https://github.com/EdgarsKalnins)** & the **[Momentbox.lv](https://momentbox.lv)** open-source team. Riga, Latvia.*
