@@ -74,6 +74,16 @@ const api = {
   finishExport: () => ipcRenderer.invoke('export:finish'),
   cancelExport: () => ipcRenderer.invoke('export:cancel'),
 
+  // Hardware WebCodecs fast muxing
+  saveTempVideo: (videoBuffer: Uint8Array): Promise<string> =>
+    ipcRenderer.invoke('fs:saveTempVideo', videoBuffer),
+  muxVideoAndAudio: (options: {
+    videoPath: string;
+    audioPath: string;
+    outputPath: string;
+    voiceBoost: boolean;
+  }): Promise<string> => ipcRenderer.invoke('export:muxVideoAndAudio', options),
+
   // Export event listeners
   onExportProgress: (callback: (data: { percentage: number; frame: number }) => void) => {
     const handler = (_: unknown, data: { percentage: number; frame: number }) => callback(data);

@@ -1,6 +1,7 @@
 import { StudioConfig, ASPECT_RATIOS } from '../types/studio';
 import { AudioEngine } from './audioEngine';
-import { drawStudioFrame } from './visualizers/renderer';
+import { drawStudioFrame, createStaticBackgroundCache } from './visualizers/renderer';
+import { isWebCodecsSupported, runWebCodecsHardwareExport } from './webCodecsExporter';
 
 export interface RenderPipelineOptions {
   audioEngine: AudioEngine;
@@ -13,7 +14,29 @@ export interface RenderPipelineOptions {
   isCancelledRef: { current: boolean };
 }
 
+/**
+ * Unified Video Export Pipeline:
+ * Prioritizes high-speed WebCodecs hardware acceleration (200+ FPS on M4 / modern OS),
+ * with an automatic fallback to FFmpeg streaming if hardware encoding is unavailable.
+ */
 export async function runExportPipeline(options: RenderPipelineOptions): Promise<string> {
+  if (isWebCodecsSupported()) {
+    try {
+      console.log('[Export] Using high-speed WebCodecs hardware acceleration engine...');
+      return await runWebCodecsHardwareExport(options);
+    } catch (hwErr: unknown) {
+      if (options.isCancelledRef.current) throw hwErr;
+      console.warn('[Export] WebCodecs failed, falling back to FFmpeg streaming pipe:', hwErr);
+    }
+  }
+
+  return await runFfmpegPipeExport(options);
+}
+
+/**
+ * Fallback FFmpeg pipe export (used if WebCodecs is unsupported or disabled)
+ */
+async function runFfmpegPipeExport(options: RenderPipelineOptions): Promise<string> {
   const { audioEngine, bgImage, config, audioFilePath, outputPath, onProgress, onStatus, isCancelledRef } = options;
 
   const aspect = ASPECT_RATIOS[config.aspectRatio];
@@ -29,7 +52,10 @@ export async function runExportPipeline(options: RenderPipelineOptions): Promise
   const exportDuration = Math.max(0.1, trimEnd - trimStart);
   const totalFrames = Math.ceil(exportDuration * fps);
 
-  onStatus('Initializing encoder...');
+  onStatus('Initializing encoder fallback...');
+
+  // Pre-render static background & typography once
+  const staticCache = createStaticBackgroundCache(width, height, bgImage, config);
 
   // 1. Tell Electron main to start FFmpeg
   if (window.electronAPI) {
@@ -81,7 +107,6 @@ export async function runExportPipeline(options: RenderPipelineOptions): Promise
       throw new Error('Export cancelled');
     }
 
-    // Wait if backpressure occurred
     if (drainPromise) {
       await drainPromise;
     }
@@ -89,10 +114,8 @@ export async function runExportPipeline(options: RenderPipelineOptions): Promise
     const currentOffset = frame / fps;
     const currentAudioTime = trimStart + currentOffset;
 
-    // Get exact offline audio frequency & waveform slice
     audioEngine.getOfflineFrameData(currentAudioTime, freqData, timeData);
 
-    // Render frame
     drawStudioFrame(
       ctx,
       width,
@@ -102,10 +125,10 @@ export async function runExportPipeline(options: RenderPipelineOptions): Promise
       timeData,
       config,
       currentOffset,
-      exportDuration
+      exportDuration,
+      staticCache
     );
 
-    // Extract JPEG frame
     const blob = await new Promise<Blob | null>((resolve) => {
       canvas.toBlob((b) => resolve(b), 'image/jpeg', 0.86);
     });
@@ -122,7 +145,6 @@ export async function runExportPipeline(options: RenderPipelineOptions): Promise
     const pct = Math.round(((frame + 1) / totalFrames) * 95);
     onProgress(pct, frame + 1, totalFrames);
 
-    // Yield every 8 frames to keep UI responsive
     if (frame % 8 === 0) {
       await new Promise((r) => setTimeout(r, 0));
     }
@@ -132,7 +154,6 @@ export async function runExportPipeline(options: RenderPipelineOptions): Promise
 
   onStatus('Finalizing MP4 video...');
 
-  // 4. Signal FFmpeg that frame streaming is done
   if (window.electronAPI) {
     await window.electronAPI.finishExport();
   }

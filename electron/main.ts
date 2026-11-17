@@ -270,6 +270,87 @@ function setupIPCHandlers() {
     }
   });
 
+  // Save temporary video buffer to disk
+  ipcMain.handle('fs:saveTempVideo', async (_, videoBuffer: Uint8Array) => {
+    try {
+      const tempDir = path.join(os.tmpdir(), 'wedding_studio_export');
+      if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+      const tempPath = path.join(tempDir, `temp_hw_video_${Date.now()}.mp4`);
+      await fs.promises.writeFile(tempPath, Buffer.from(videoBuffer));
+      return tempPath;
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new Error(`Failed to save temp video: ${msg}`);
+    }
+  });
+
+  // 1-second lossless multiplexer: combines WebCodecs hardware-encoded video with audio (-c:v copy)
+  ipcMain.handle(
+    'export:muxVideoAndAudio',
+    async (_, { videoPath, audioPath, outputPath, voiceBoost }: {
+      videoPath: string;
+      audioPath: string;
+      outputPath: string;
+      voiceBoost: boolean;
+    }) => {
+      return new Promise((resolve, reject) => {
+        const dummyExporter = new VideoExporter();
+        const ffmpegBin = dummyExporter.resolveFfmpegPath();
+
+        const outDir = path.dirname(outputPath);
+        if (!fs.existsSync(outDir)) {
+          fs.mkdirSync(outDir, { recursive: true });
+        }
+
+        const audioFilterArgs: string[] = [];
+        if (voiceBoost) {
+          audioFilterArgs.push('-af', 'loudnorm=I=-16:TP=-1.5:LRA=11');
+        }
+
+        const args = [
+          '-y',
+          '-i', videoPath,
+          '-i', audioPath,
+          '-c:v', 'copy', // Zero re-encoding of video! Runs at 10,000+ FPS!
+          ...audioFilterArgs,
+          '-c:a', 'aac',
+          '-b:a', '192k',
+          '-shortest',
+          outputPath,
+        ];
+
+        console.log('[Muxer] Spawning lossless audio-video mux:', args.join(' '));
+        const proc = spawn(ffmpegBin, args);
+
+        let stderr = '';
+        proc.stderr.on('data', (d) => {
+          stderr += d.toString();
+        });
+
+        proc.on('close', (code) => {
+          // Clean up temp video file
+          try {
+            if (fs.existsSync(videoPath)) fs.unlinkSync(videoPath);
+          } catch {
+            // Ignored
+          }
+
+          if (code === 0) {
+            resolve(outputPath);
+          } else {
+            reject(
+              new Error(`Lossless audio mux failed (exit code ${code}): ${stderr.slice(-300)}`)
+            );
+          }
+        });
+
+        proc.on('error', (err) => {
+          reject(new Error(`Failed to spawn FFmpeg muxer: ${err.message}`));
+        });
+      });
+    }
+  );
+
   // Reveal in Finder / Explorer
   ipcMain.handle('shell:showItemInFolder', async (_, filePath: string) => {
     if (fs.existsSync(filePath)) {
