@@ -8,6 +8,62 @@ export type VisualizerStyle =
   | 'line_mirror'
   | 'line_horizon';
 
+export type FrameTemplate = 'haute-couture' | 'polaroid' | 'photostrip' | 'vinyl';
+
+export type PhotoFilter = 'none' | 'vintage-warm' | 'black-and-white' | 'sepia';
+
+export interface FrameConfig {
+  template: FrameTemplate;
+  tiltAngle: number; // e.g. -2 to +2 degrees
+  showChinText: boolean;
+  chinText?: string;
+  photoFilter: PhotoFilter;
+  borderWidth?: number; // scale multiplier e.g. 1.0
+}
+
+export const DEFAULT_FRAME_CONFIG: FrameConfig = {
+  template: 'haute-couture',
+  tiltAngle: -1.2,
+  showChinText: true,
+  chinText: '',
+  photoFilter: 'none',
+  borderWidth: 1.0,
+};
+
+export interface FrameTemplateOption {
+  id: FrameTemplate;
+  name: string;
+  subtitle: string;
+  description: string;
+}
+
+export const FRAME_TEMPLATE_OPTIONS: FrameTemplateOption[] = [
+  {
+    id: 'haute-couture',
+    name: 'Haute Couture',
+    subtitle: 'Cinematic Full Bleed',
+    description: 'Borderless high-fashion layout with dark ambient radial vignette and timeless gold typography.',
+  },
+  {
+    id: 'polaroid',
+    name: 'Vintage Polaroid',
+    subtitle: 'Classic Instant Print',
+    description: 'Tactile off-white paper snapshot with organic physical tilt, soft 3D shadow, and handwritten ink chin notes.',
+  },
+  {
+    id: 'photostrip',
+    name: 'Photo Booth Strip',
+    subtitle: 'Retro 3-Shot Strip',
+    description: 'Nostalgic vertical photo booth strip layout displaying 3 sequential wedding moments alongside the sound wave.',
+  },
+  {
+    id: 'vinyl',
+    name: 'Vinyl Record Sleeve',
+    subtitle: '12" Album Jacket',
+    description: 'Spun glossy vinyl record peeking out from the album jacket cover with rotating grooves and center record label.',
+  },
+];
+
 export type AspectRatioPreset = '9:16' | '4:5' | '1:1' | '16:9';
 
 export type SafeZoneMode = 'off' | 'reels' | 'tiktok' | 'combined';
@@ -193,6 +249,7 @@ export interface StudioConfig {
   strokeWidth?: number;
   lineCap?: 'round' | 'butt' | 'square';
   particleDensity?: number;
+  frame: FrameConfig;
   qrWatermark: QrWatermarkConfig;
   typography: TypographyConfig;
   audioSettings: AudioSettings;

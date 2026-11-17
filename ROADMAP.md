@@ -15,7 +15,7 @@ This document outlines the **10 approved roadmap features** scheduled for implem
 | **03** | **Audio Noise Cleanup & Speech Clarifier** | All Users (Vintage Telephones) | Medium | Web Audio DSP / Biquad Filters | ✅ Completed |
 | **04** | **Transparent Alpha Video Export (WebM/ProRes)** | Wedding Videographers & Editors | Medium | FFmpeg `yuva420p` & ProRes 4444 | ✅ Completed |
 | **05** | **Silence Trimmer & Outgoing Greeting Prepend** | Rental Operators & Couples | Medium | Audio Buffer Scanning & Sequencing | ✅ Completed |
-| **06** | **Polaroid & Retro Photo Collage Templates** | Vintage Weddings & Events | Medium | Canvas Compositor / Frame Presets | 📋 Planned |
+| **06** | **Polaroid & Retro Photo Collage Templates** | Vintage Weddings & Events | Medium | Canvas Compositor / Frame Presets | ✅ Completed |
 | **07** | **Looping Video & Animated B-Roll Backgrounds** | Creators & Reels Marketers | High | HTML5 Video Canvas / FFmpeg Multi-Input | 📋 Planned |
 | **08** | **Local AI Speech-to-Text Subtitles (Whisper)** | Couples & Social Media Viewers | High | Whisper.cpp WASM / WebGPU (Local) | 📋 Planned |
 | **09** | **Fine-Grained Waveform Styling & Gradients** | Designers & Event Stylists | Low | Canvas Gradients / Particle Physics | ✅ Completed |
@@ -96,17 +96,19 @@ This document outlines the **10 approved roadmap features** scheduled for implem
 
 ---
 
-### 6. Polaroid & Retro Photo Collage Templates
-* **User Story**: As a couple planning a vintage or rustic wedding, I want our photo to look like a physical Polaroid snapshot with handwritten script notes or a 3-shot photo booth strip next to the waveform.
+### 6. Polaroid & Retro Photo Collage Templates `✅ Completed`
+* **User Story**: As a couple planning a vintage or rustic wedding, I want our photo to look like a physical Polaroid snapshot with handwritten script notes, a 3-shot photo booth strip, or a spinning vinyl record alongside the waveform.
 * **Architecture & Modules**:
-  - `src/engine/visualizers/frames.ts`: Modular canvas frame compositors:
-    - **Haute Couture**: Current borderless, full-bleed cinematic frame with soft ambient vignette.
-    - **Vintage Polaroid**: Classic white paper border with slight 2-degree tilt, realistic drop shadow, and couple names rendered in authentic handwritten cursive on the lower border.
-    - **Photo Booth Strip**: Vertical 3-frame photo strip layout alongside the audio visualizer.
-    - **Vinyl Record Sleeve**: Rotating vinyl disc peeking out from an album cover with circular audio vibrations.
+  - `src/engine/visualizers/frames.ts`: Modular 100% offline procedural canvas frame compositors:
+    - **Haute Couture**: Borderless, full-bleed cinematic frame with soft ambient vignette.
+    - **Vintage Polaroid**: Classic off-white paper card with physical tilt (-4° to +4°), realistic 3D shadow, inner bevel, and couple names rendered in cursive ink handwriting on the lower chin.
+    - **Photo Booth Strip**: Vertical 3-frame photo strip layout with progressive candid crops alongside the sound wave.
+    - **Vinyl Record Sleeve**: 12" album cover with realistic spinning glossy vinyl grooves (33 RPM) and gold label.
+  - `src/components/FrameTemplatePanel.tsx`: Dedicated Frames drawer with template swatches, tilt angle slider with reset, photo color grading filters (Natural, Warm Glow, B&W, Sepia), and handwritten chin note editor.
 * **Acceptance Criteria**:
-  - Frame layout scales responsively across all aspect ratios (`9:16`, `1:1`, `16:9`).
-  - High-resolution paper textures rendered procedurally via Canvas without external image dependencies.
+  - Frame layout scales responsively across all aspect ratios (`9:16`, `4:5`, `1:1`, `16:9`).
+  - Procedurally rendered via Canvas with zero external textures or network calls.
+  - Unit tests covering all 4 templates and color grading filters across all aspect ratios.
 
 ---
 
@@ -208,7 +210,7 @@ flowchart LR
     end
 
     subgraph Phase3["Phase 3: Creative & AI Evolution (Long Term)"]
-        F06["#06: Polaroid & Vintage Frame Templates"]
+        F06["#06: Polaroid & Vintage Frame Templates (Done)"]
         F07["#07: Looping Video & B-Roll Backgrounds"]
         F08["#08: Offline Whisper AI Subtitles"]
     end

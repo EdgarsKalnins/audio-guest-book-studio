@@ -11,6 +11,7 @@ import {
   Moon,
   QrCode,
   Stack,
+  Camera,
 } from '@phosphor-icons/react';
 import {
   StudioConfig,
@@ -19,6 +20,7 @@ import {
   ASPECT_RATIOS,
   AspectRatioPreset,
   TimelineTrack,
+  DEFAULT_FRAME_CONFIG,
 } from './types/studio';
 import { AudioEngine } from './engine/audioEngine';
 import { runExportPipeline } from './engine/frameGenerator';
@@ -27,6 +29,7 @@ import { BatchQueueManager } from './engine/batchExporter';
 import { CanvasStage } from './components/CanvasStage';
 import { MediaDropzone } from './components/MediaDropzone';
 import { VisualizerPanel } from './components/VisualizerPanel';
+import { FrameTemplatePanel } from './components/FrameTemplatePanel';
 import { TypographyPanel } from './components/TypographyPanel';
 import { QrWatermarkPanel } from './components/QrWatermarkPanel';
 import { AudioToolsPanel } from './components/AudioToolsPanel';
@@ -48,6 +51,7 @@ export const App: React.FC = () => {
     strokeWidth: 1.0,
     lineCap: 'round',
     particleDensity: 1.0,
+    frame: DEFAULT_FRAME_CONFIG,
     typography: {
       enabled: false, // Disabled by default per user request
       coupleNames: 'Sarah & Michael',
@@ -79,7 +83,7 @@ export const App: React.FC = () => {
     gapBetweenTracks: 0.5,
   });
 
-  const [activeTab, setActiveTab] = useState<'visualizer' | 'typography' | 'qr' | 'audio'>('visualizer');
+  const [activeTab, setActiveTab] = useState<'visualizer' | 'frames' | 'typography' | 'qr' | 'audio'>('visualizer');
   const [bgImage, setBgImage] = useState<HTMLImageElement | null>(null);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isExitModalOpen, setIsExitModalOpen] = useState(false);
@@ -926,8 +930,19 @@ export const App: React.FC = () => {
             }`}
           >
             <Waveform className="w-3.5 h-3.5" weight="regular" />
-            <span className="hidden sm:inline">Style & Media</span>
-            <span className="sm:hidden">Style</span>
+            <span className="hidden sm:inline">Visualizer</span>
+            <span className="sm:hidden">Wave</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('frames')}
+            className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
+              activeTab === 'frames'
+                ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-white/[0.08] font-semibold'
+                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40'
+            }`}
+          >
+            <Camera className="w-3.5 h-3.5 text-amber-500" weight="regular" />
+            <span>Frames</span>
           </button>
           <button
             onClick={() => setActiveTab('typography')}
@@ -992,6 +1007,10 @@ export const App: React.FC = () => {
               />
               <VisualizerPanel config={config} updateConfig={setConfig} />
             </>
+          )}
+
+          {activeTab === 'frames' && (
+            <FrameTemplatePanel config={config} onChange={setConfig} />
           )}
 
           {activeTab === 'typography' && (

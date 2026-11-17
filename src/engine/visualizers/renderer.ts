@@ -1,5 +1,6 @@
 import { StudioConfig, VisualizerStyle, GRADIENT_PRESETS } from '../../types/studio';
 import { drawQrBadge } from '../qrGenerator';
+import { renderFrameTemplate } from './frames';
 
 export function getVisualizerPattern(
   ctx: CanvasRenderingContext2D,
@@ -40,54 +41,11 @@ export function createStaticBackgroundCache(
   const ctx = cacheCanvas.getContext('2d', { alpha: isTransparent });
   if (!ctx) return cacheCanvas;
 
-  // 1. Draw Background Photo (or clear if transparent)
+  // 1. Draw Frame Template (Haute Couture, Vintage Polaroid, Photo Strip, Vinyl)
   if (isTransparent) {
     ctx.clearRect(0, 0, width, height);
-  } else if (bgImage && bgImage.complete && bgImage.naturalWidth > 0 && config.backgroundMode !== 'solid') {
-    const imgRatio = bgImage.naturalWidth / bgImage.naturalHeight;
-    const canvasRatio = width / height;
-    let renderW = width;
-    let renderH = height;
-    let offsetX = 0;
-    let offsetY = 0;
-
-    if (imgRatio > canvasRatio) {
-      renderW = height * imgRatio;
-      offsetX = -(renderW - width) / 2;
-    } else {
-      renderH = width / imgRatio;
-      offsetY = -(renderH - height) / 2;
-    }
-
-    ctx.drawImage(bgImage, offsetX, offsetY, renderW, renderH);
-
-    // Subtle dark cinematic vignette overlay
-    const vignette = ctx.createRadialGradient(
-      width / 2,
-      height / 2,
-      Math.min(width, height) * 0.25,
-      width / 2,
-      height / 2,
-      Math.max(width, height) * 0.75
-    );
-    vignette.addColorStop(0, 'rgba(10, 8, 7, 0.25)');
-    vignette.addColorStop(1, 'rgba(10, 8, 7, 0.65)');
-    ctx.fillStyle = vignette;
-    ctx.fillRect(0, 0, width, height);
   } else {
-    // Elegant fallback gradient if no image
-    const grad = ctx.createRadialGradient(
-      width / 2,
-      height / 2,
-      100,
-      width / 2,
-      height / 2,
-      Math.max(width, height) * 0.7
-    );
-    grad.addColorStop(0, '#2b1f1a');
-    grad.addColorStop(1, '#0e0b09');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, width, height);
+    renderFrameTemplate(ctx, width, height, bgImage, config, 0);
   }
 
   // 2. Draw Wedding Typography Overlay
@@ -110,61 +68,18 @@ export function drawStudioFrame(
   duration: number,
   staticBackgroundCache?: HTMLCanvasElement | null
 ) {
-  // If static layer cache is available, stamp it in one zero-copy draw call
-  if (staticBackgroundCache) {
+  const isVinyl = config.frame?.template === 'vinyl';
+
+  // If static layer cache is available and template is not dynamically rotating (vinyl):
+  if (staticBackgroundCache && !isVinyl) {
     ctx.drawImage(staticBackgroundCache, 0, 0, width, height);
   } else {
     // Clear canvas
     ctx.clearRect(0, 0, width, height);
 
-    // 1. Draw Background Image (Cover mode, unless transparent mode is active)
-    if (config.backgroundMode === 'transparent') {
-      // Retain clear transparent canvas for genuine alpha export
-    } else if (bgImage && bgImage.complete && bgImage.naturalWidth > 0 && config.backgroundMode !== 'solid') {
-      const imgRatio = bgImage.naturalWidth / bgImage.naturalHeight;
-      const canvasRatio = width / height;
-      let renderW = width;
-      let renderH = height;
-      let offsetX = 0;
-      let offsetY = 0;
-
-      if (imgRatio > canvasRatio) {
-        renderW = height * imgRatio;
-        offsetX = -(renderW - width) / 2;
-      } else {
-        renderH = width / imgRatio;
-        offsetY = -(renderH - height) / 2;
-      }
-
-      ctx.drawImage(bgImage, offsetX, offsetY, renderW, renderH);
-
-      // Subtle dark cinematic vignette overlay
-      const vignette = ctx.createRadialGradient(
-        width / 2,
-        height / 2,
-        Math.min(width, height) * 0.25,
-        width / 2,
-        height / 2,
-        Math.max(width, height) * 0.75
-      );
-      vignette.addColorStop(0, 'rgba(10, 8, 7, 0.25)');
-      vignette.addColorStop(1, 'rgba(10, 8, 7, 0.65)');
-      ctx.fillStyle = vignette;
-      ctx.fillRect(0, 0, width, height);
-    } else {
-      // Elegant fallback gradient if no image
-      const grad = ctx.createRadialGradient(
-        width / 2,
-        height / 2,
-        100,
-        width / 2,
-        height / 2,
-        Math.max(width, height) * 0.7
-      );
-      grad.addColorStop(0, '#2b1f1a');
-      grad.addColorStop(1, '#0e0b09');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, width, height);
+    // 1. Draw Frame Template
+    if (config.backgroundMode !== 'transparent') {
+      renderFrameTemplate(ctx, width, height, bgImage, config, currentTime);
     }
 
     // 2. Draw Wedding Typography Overlay
@@ -182,9 +97,34 @@ export function drawStudioFrame(
   // Dynamic Vocal Punch: 1.0x at rest up to 2.5x during spoken words
   const vocalPunch = 1.0 + Math.pow(Math.min(1.0, voiceAvg / 130), 1.1) * 1.5;
 
-  // Draw Centered Audio Visualizer
-  const centerY = config.typography.enabled ? height * 0.52 : height * 0.5;
-  const centerX = width * 0.5;
+  // Draw Audio Visualizer positioned harmoniously with active frame template
+  const isLandscape = width > height;
+  const template = config.frame?.template || 'haute-couture';
+  let centerY = config.typography.enabled ? height * 0.52 : height * 0.5;
+  let centerX = width * 0.5;
+
+  if (template === 'polaroid') {
+    if (isLandscape) {
+      centerX = width * 0.72;
+      centerY = height * 0.5;
+    } else {
+      centerY = height * 0.75;
+    }
+  } else if (template === 'photostrip') {
+    if (isLandscape) {
+      centerX = width * 0.68;
+      centerY = height * 0.5;
+    } else {
+      centerY = height * 0.78;
+    }
+  } else if (template === 'vinyl') {
+    if (isLandscape) {
+      centerX = width * 0.74;
+      centerY = height * 0.5;
+    } else {
+      centerY = height * 0.74;
+    }
+  }
 
   const pattern = getVisualizerPattern(ctx, centerX, centerY, width, height, config);
   const strokeMultiplier = config.strokeWidth ?? 1.0;
