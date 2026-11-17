@@ -2,9 +2,7 @@ import React, { useRef, useState } from 'react';
 import {
   MusicNotes,
   Image as ImageIcon,
-  Sparkle,
   UploadSimple,
-  ArrowsClockwise,
   CloudArrowUp,
   Plus,
   Trash,
@@ -17,7 +15,7 @@ interface MediaDropzoneProps {
   updateConfig?: (updater: (prev: StudioConfig) => StudioConfig) => void;
   onPickAudio: () => void;
   onPickImage: () => void;
-  onLoadDemo: () => void;
+  onLoadDemo?: () => void;
   onAudioFileSelected: (files: FileList) => void;
   onImageFileSelected: (file: File) => void;
   onRemoveTrack?: (id: string) => void;
@@ -120,21 +118,6 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
           }
         }}
       />
-
-      {/* Pro Studio Demo Banner */}
-      <div className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-[#18181c] border border-zinc-200 dark:border-white/[0.08] shadow-sm">
-        <div className="flex items-center gap-2">
-          <Sparkle weight="light" className="w-4 h-4 text-zinc-500 dark:text-zinc-400" />
-          <span className="text-xs font-medium text-zinc-800 dark:text-zinc-300">Quick Start Demo</span>
-        </div>
-        <button
-          onClick={onLoadDemo}
-          className="text-xs px-2.5 py-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-white/10 transition-all font-medium flex items-center gap-1.5 shadow-sm active:scale-95"
-        >
-          <ArrowsClockwise weight="light" className="w-3.5 h-3.5" />
-          Load Sample Guestbook
-        </button>
-      </div>
 
       {/* Audio Sequence Dropzone */}
       <div>
