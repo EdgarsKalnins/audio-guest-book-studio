@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Sparkles,
-  Download,
-  Volume2,
-  Type,
-  Activity,
-  ListMusic,
-  LogOut,
-} from 'lucide-react';
+  Sparkle,
+  DownloadSimple,
+  SpeakerHigh,
+  TextT,
+  Waveform,
+  Playlist,
+  SignOut,
+  Sun,
+  Moon,
+} from '@phosphor-icons/react';
 import {
   StudioConfig,
   ExportProgress,
@@ -70,6 +72,24 @@ export const App: React.FC = () => {
     status: 'idle',
     percentage: 0,
   });
+
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    const saved = localStorage.getItem('wedding_studio_theme');
+    return saved === 'light' ? 'light' : 'dark';
+  });
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('wedding_studio_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
 
   const audioEngineRef = useRef<AudioEngine>(new AudioEngine());
   const isCancelledRef = useRef<boolean>(false);
@@ -589,7 +609,7 @@ export const App: React.FC = () => {
   const isMac = window.electronAPI?.platform === 'darwin';
 
   return (
-    <div className="flex h-screen w-screen bg-[#0d0d0f] text-[#f4f4f5] font-sans overflow-hidden select-none">
+    <div className="flex h-screen w-screen bg-[#f4f4f6] dark:bg-[#0d0d0f] text-zinc-900 dark:text-[#f4f4f5] font-sans overflow-hidden select-none transition-colors duration-200">
       {/* LEFT AREA: Canvas Stage & Live Audio Scrubber */}
       <CanvasStage
         config={config}
@@ -601,74 +621,93 @@ export const App: React.FC = () => {
       />
 
       {/* RIGHT AREA: Studio Controls Side Panel */}
-      <div className="w-[430px] shrink-0 h-full flex flex-col bg-[#131316] border-l border-white/[0.08] overflow-hidden">
+      <div className="w-[430px] shrink-0 h-full flex flex-col bg-white dark:bg-[#131316] border-l border-zinc-200 dark:border-white/[0.08] overflow-hidden transition-colors duration-200">
         {/* Title Bar Header (cross-platform padding & window drag) */}
         <div
           className={`${
             isMac ? 'pt-7' : 'pt-4'
-          } px-6 pb-3.5 border-b border-white/[0.08] flex items-center justify-between app-drag-region bg-[#131316]`}
+          } px-6 pb-3.5 border-b border-zinc-200 dark:border-white/[0.08] flex items-center justify-between app-drag-region bg-white dark:bg-[#131316] transition-colors`}
         >
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-zinc-800 border border-white/10 flex items-center justify-center shadow-sm text-zinc-200">
-              <Sparkles className="w-3.5 h-3.5" />
+            <div className="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 flex items-center justify-center shadow-sm text-zinc-700 dark:text-zinc-200">
+              <Sparkle className="w-3.5 h-3.5" weight="fill" />
             </div>
             <div>
-              <h1 className="text-sm font-semibold tracking-tight text-zinc-100">Wedding Audio Studio</h1>
-              <p className="text-[11px] text-zinc-400">Guest Record Video Generator</p>
+              <h1 className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">Wedding Audio Studio</h1>
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Guest Record Video Generator</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 app-no-drag">
             {config.timelineTracks && config.timelineTracks.length > 1 && (
-              <span className="px-2.5 py-1 rounded-lg bg-zinc-800 border border-white/[0.08] text-zinc-300 text-xs font-medium flex items-center gap-1.5 shadow-sm">
-                <ListMusic className="w-3.5 h-3.5 text-zinc-400" />
+              <span className="px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/[0.08] text-zinc-700 dark:text-zinc-300 text-xs font-medium flex items-center gap-1.5 shadow-sm">
+                <Playlist className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
                 {config.timelineTracks.length} in Sequence
               </span>
             )}
+            {/* Day / Night Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-1.5 px-2.5 rounded-lg text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200/80 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-white/[0.06] transition-all flex items-center gap-1.5 text-xs font-medium shadow-sm"
+              title={theme === 'dark' ? 'Switch to Day Mode' : 'Switch to Night Mode'}
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? (
+                <>
+                  <Sun className="w-3.5 h-3.5 text-amber-400" weight="regular" />
+                  <span className="text-[11px]">Day</span>
+                </>
+              ) : (
+                <>
+                  <Moon className="w-3.5 h-3.5 text-indigo-500" weight="regular" />
+                  <span className="text-[11px]">Night</span>
+                </>
+              )}
+            </button>
             <button
               onClick={() => setIsExitModalOpen(true)}
-              className="p-1.5 px-2.5 rounded-lg text-zinc-400 hover:text-rose-300 hover:bg-rose-950/25 border border-white/[0.06] hover:border-rose-500/30 transition-all flex items-center gap-1.5 text-xs font-medium shadow-sm"
+              className="p-1.5 px-2.5 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-rose-600 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/25 border border-zinc-200 dark:border-white/[0.06] hover:border-rose-300 dark:hover:border-rose-500/30 transition-all flex items-center gap-1.5 text-xs font-medium shadow-sm"
               title="Exit Studio"
             >
-              <LogOut className="w-3.5 h-3.5" />
+              <SignOut className="w-3.5 h-3.5" />
               <span>Exit</span>
             </button>
           </div>
         </div>
 
         {/* Tab Navigation: Segmented Studio Control */}
-        <div className="flex items-center mx-6 my-3 p-1 rounded-xl bg-zinc-900 border border-white/[0.06] gap-1">
+        <div className="flex items-center mx-6 my-3 p-1 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-white/[0.06] gap-1 transition-colors">
           <button
             onClick={() => setActiveTab('visualizer')}
             className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
               activeTab === 'visualizer'
-                ? 'bg-zinc-800 text-zinc-100 shadow-sm border border-white/[0.08]'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40'
+                ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-white/[0.08]'
+                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40'
             }`}
           >
-            <Activity className="w-3.5 h-3.5" />
+            <Waveform className="w-3.5 h-3.5" weight="regular" />
             Style & Media
           </button>
           <button
             onClick={() => setActiveTab('typography')}
             className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
               activeTab === 'typography'
-                ? 'bg-zinc-800 text-zinc-100 shadow-sm border border-white/[0.08]'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40'
+                ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-white/[0.08]'
+                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40'
             }`}
           >
-            <Type className="w-3.5 h-3.5" />
+            <TextT className="w-3.5 h-3.5" weight="regular" />
             Typography
           </button>
           <button
             onClick={() => setActiveTab('audio')}
             className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
               activeTab === 'audio'
-                ? 'bg-zinc-800 text-zinc-100 shadow-sm border border-white/[0.08]'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40'
+                ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-white/[0.08]'
+                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40'
             }`}
           >
-            <Volume2 className="w-3.5 h-3.5" />
+            <SpeakerHigh className="w-3.5 h-3.5" weight="regular" />
             Voice Clean-up
           </button>
         </div>
@@ -715,13 +754,13 @@ export const App: React.FC = () => {
         </div>
 
         {/* Sticky Bottom Export Action Bar */}
-        <div className="p-5 border-t border-white/[0.08] bg-[#101013] space-y-2.5">
+        <div className="p-5 border-t border-zinc-200 dark:border-white/[0.08] bg-zinc-50 dark:bg-[#101013] space-y-2.5 transition-colors">
           <button
             onClick={handleStartSingleExport}
             disabled={!config.audioPath || config.audioDuration <= 0}
-            className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-b from-[#dfc596] to-[#cca96f] hover:from-[#e8d1a6] hover:to-[#d7b57d] active:scale-[0.99] text-zinc-950 font-semibold text-sm transition-all shadow-lg shadow-black/40 border border-white/20 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-3.5 px-4 rounded-xl bg-zinc-900 hover:bg-black text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 active:scale-[0.99] font-medium text-sm transition-all shadow-md border border-zinc-800 dark:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            <Download className="w-4 h-4 text-zinc-950" />
+            <DownloadSimple className="w-4 h-4" weight="bold" />
             {config.timelineTracks && config.timelineTracks.length > 1
               ? `Export Continuous 1080p Video (${config.timelineTracks.length} Tracks)`
               : 'Export 1080p MP4 Video'}

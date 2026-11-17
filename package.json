@@ -2,6 +2,7 @@
   "name": "wedding-audio-studio",
   "version": "1.0.0",
   "description": "Elegant desktop app for compiling wedding audio guest records into shareable visualizer videos",
+  "license": "MIT",
   "main": "dist-electron/main.js",
   "type": "module",
   "scripts": {
@@ -34,6 +35,7 @@
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@phosphor-icons/react": "^2.1.10",
     "fluent-ffmpeg": "^2.1.3",
     "lucide-react": "^1.16.0",
     "mp4-muxer": "^5.2.2",

@@ -59,7 +59,7 @@ export interface TypographyConfig {
   coupleNames: string;
   dateText: string;
   titleText: string;
-  fontFamily: 'Cormorant Garamond' | 'Playfair Display' | 'Inter';
+  fontFamily: 'Cinzel' | 'Italiana' | 'Cormorant Garamond' | 'Playfair Display' | 'Plus Jakarta Sans';
   showTimer: boolean;
   fontSize: number; // 1 = normal, 1.2 = large, etc.
 }
@@ -105,6 +105,7 @@ export interface StudioConfig {
   batchQueue: BatchItem[];
   timelineTracks: TimelineTrack[];
   gapBetweenTracks: number;
+  theme?: 'dark' | 'light';
 }
 
 export interface ExportProgress {

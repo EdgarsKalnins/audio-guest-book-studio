@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -33,24 +34,22 @@ export default {
         }
       },
       fontFamily: {
-        serif: ['Cormorant Garamond', 'Playfair Display', 'serif'],
+        serif: ['Italiana', 'Cinzel', 'Cormorant Garamond', 'Playfair Display', 'serif'],
         sans: [
+          '"Plus Jakarta Sans"',
           'Inter',
           '-apple-system',
           'BlinkMacSystemFont',
           '"Segoe UI"',
           'Roboto',
-          '"Helvetica Neue"',
-          'Arial',
           'sans-serif',
         ],
         mono: [
+          '"JetBrains Mono"',
           'ui-monospace',
           'SFMono-Regular',
           'Menlo',
           'Monaco',
-          'Consolas',
-          '"Liberation Mono"',
           'monospace',
         ],
       }

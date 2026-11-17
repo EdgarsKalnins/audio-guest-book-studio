@@ -1,5 +1,15 @@
 import React, { useRef, useState } from 'react';
-import { Music, Image as ImageIcon, Sparkles, FolderUp, RefreshCw, UploadCloud, Plus, Trash2, ListMusic } from 'lucide-react';
+import {
+  MusicNotes,
+  Image as ImageIcon,
+  Sparkle,
+  UploadSimple,
+  ArrowsClockwise,
+  CloudArrowUp,
+  Plus,
+  Trash,
+  Queue,
+} from '@phosphor-icons/react';
 import { StudioConfig } from '../types/studio';
 
 interface MediaDropzoneProps {
@@ -110,16 +120,16 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
       />
 
       {/* Pro Studio Demo Banner */}
-      <div className="flex items-center justify-between p-3 rounded-xl bg-[#18181c] border border-white/[0.08] shadow-sm">
+      <div className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-[#18181c] border border-zinc-200 dark:border-white/[0.08] shadow-sm">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-zinc-400" />
-          <span className="text-xs font-medium text-zinc-300">Quick Start Demo</span>
+          <Sparkle weight="light" className="w-4 h-4 text-zinc-500 dark:text-zinc-400" />
+          <span className="text-xs font-medium text-zinc-800 dark:text-zinc-300">Quick Start Demo</span>
         </div>
         <button
           onClick={onLoadDemo}
-          className="text-xs px-2.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-white/10 transition-all font-medium flex items-center gap-1.5 shadow-sm active:scale-95"
+          className="text-xs px-2.5 py-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-white/10 transition-all font-medium flex items-center gap-1.5 shadow-sm active:scale-95"
         >
-          <RefreshCw className="w-3 h-3" />
+          <ArrowsClockwise weight="light" className="w-3.5 h-3.5" />
           Load Sample Guestbook
         </button>
       </div>
@@ -127,12 +137,12 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
       {/* Audio Sequence Dropzone */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
-            <ListMusic className="w-3.5 h-3.5 text-zinc-400" />
+          <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+            <Queue weight="light" className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
             1. Audio Timeline Sequence
           </label>
           {tracks.length > 0 && (
-            <span className="text-[11px] text-zinc-400 font-mono">
+            <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-mono">
               {tracks.length} {tracks.length === 1 ? 'recording' : 'recordings'} • {formatSec(config.audioDuration)}
             </span>
           )}
@@ -153,50 +163,50 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
           onDrop={handleAudioDrop}
           className={`relative border-2 border-dashed rounded-xl p-3.5 cursor-pointer transition-all flex items-center gap-3.5 ${
             isAudioDragOver
-              ? 'border-white/50 bg-[#1f1f24] ring-2 ring-white/10 scale-[1.005]'
+              ? 'border-zinc-500 dark:border-white/50 bg-zinc-100 dark:bg-[#1f1f24] ring-2 ring-black/5 dark:ring-white/10 scale-[1.005]'
               : config.audioPath
-              ? 'border-white/20 bg-[#18181c] hover:border-white/30'
-              : 'border-white/[0.12] bg-[#141417] hover:border-white/20'
+              ? 'border-zinc-300 dark:border-white/20 bg-white dark:bg-[#18181c] hover:border-zinc-400 dark:hover:border-white/30 shadow-sm'
+              : 'border-zinc-200 dark:border-white/[0.12] bg-zinc-50 dark:bg-[#141417] hover:border-zinc-300 dark:hover:border-white/20'
           }`}
         >
-          <div className="w-10 h-10 rounded-xl bg-zinc-800 border border-white/10 flex items-center justify-center shrink-0 text-zinc-300 shadow-sm">
+          <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 flex items-center justify-center shrink-0 text-zinc-700 dark:text-zinc-300 shadow-sm">
             {isAudioDragOver ? (
-              <UploadCloud className="w-5 h-5 animate-bounce" />
+              <CloudArrowUp weight="light" className="w-5 h-5 animate-bounce" />
             ) : (
-              <Music className="w-5 h-5" />
+              <MusicNotes weight="light" className="w-5 h-5" />
             )}
           </div>
           <div className="flex-1 min-w-0">
             {config.audioName ? (
               <>
-                <p className="text-sm font-medium text-zinc-100 truncate">
+                <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
                   {tracks.length > 1
                     ? `${tracks.length} Recordings Sequenced on Timeline`
                     : config.audioName}
                 </p>
-                <p className="text-xs text-zinc-400 mt-0.5">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                   Click or drag files to append to sequence
                 </p>
               </>
             ) : (
               <>
-                <p className="text-sm font-medium text-zinc-200">Import audio recording(s)</p>
-                <p className="text-xs text-zinc-400 mt-0.5">
+                <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Import audio recording(s)</p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                   WAV, MP3, M4A, etc. (auto-concatenates into continuous video)
                 </p>
               </>
             )}
           </div>
-          <FolderUp className="w-4 h-4 text-zinc-400 shrink-0" />
+          <UploadSimple weight="light" className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
         </div>
 
         {/* Timeline Sequence Track List */}
         {tracks.length > 1 && (
-          <div className="mt-2.5 space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar p-2 rounded-xl bg-[#141417] border border-white/[0.06]">
+          <div className="mt-2.5 space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar p-2 rounded-xl bg-zinc-50 dark:bg-[#141417] border border-zinc-200 dark:border-white/[0.06]">
             {tracks.map((t, idx) => (
               <div
                 key={t.id}
-                className="flex items-center justify-between p-2 rounded-lg bg-[#18181c] border border-white/[0.06] text-xs hover:border-white/20 hover:bg-[#1e1e23] transition-all group"
+                className="flex items-center justify-between p-2 rounded-lg bg-white dark:bg-[#18181c] border border-zinc-200 dark:border-white/[0.06] text-xs hover:border-zinc-300 dark:hover:border-white/20 hover:bg-zinc-50 dark:hover:bg-[#1e1e23] transition-all group shadow-sm"
               >
                 <button
                   type="button"
@@ -204,16 +214,16 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
                   className="flex items-center gap-2 min-w-0 flex-1 text-left"
                   title="Click to jump to this recording"
                 >
-                  <span className="w-4 text-zinc-500 font-mono text-[11px] shrink-0">
+                  <span className="w-4 text-zinc-400 dark:text-zinc-500 font-mono text-[11px] shrink-0">
                     {idx + 1}.
                   </span>
-                  <span className="truncate text-zinc-200 font-medium group-hover:text-white">
+                  <span className="truncate text-zinc-800 dark:text-zinc-200 font-medium group-hover:text-zinc-950 dark:group-hover:text-white">
                     {t.name}
                   </span>
                 </button>
 
                 <div className="flex items-center gap-2 shrink-0 ml-2">
-                  <span className="text-[11px] text-zinc-400 font-mono">
+                  <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-mono">
                     {formatSec(t.duration)}
                   </span>
                   {onRemoveTrack && (
@@ -223,10 +233,10 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
                         e.stopPropagation();
                         onRemoveTrack(t.id);
                       }}
-                      className="p-1 rounded text-zinc-500 hover:text-rose-400 hover:bg-rose-950/20 transition-colors"
+                      className="p-1 rounded text-zinc-400 hover:text-rose-500 transition-colors"
                       title="Remove from sequence"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash weight="light" className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
@@ -238,9 +248,9 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
               <button
                 type="button"
                 onClick={triggerAudioPicker}
-                className="text-[11px] px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-white/10 flex items-center gap-1 transition-all shadow-sm"
+                className="text-[11px] px-2.5 py-1 rounded-lg bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-white/10 flex items-center gap-1 transition-all shadow-sm font-medium"
               >
-                <Plus className="w-3 h-3" />
+                <Plus weight="bold" className="w-3 h-3" />
                 Add more files to sequence
               </button>
             </div>
@@ -250,7 +260,7 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
 
       {/* Background Image Dropzone */}
       <div>
-        <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-2">
+        <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-2">
           2. Background Wedding Photo
         </label>
         <div
@@ -268,15 +278,15 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
           onDrop={handleImageDrop}
           className={`relative border-2 border-dashed rounded-xl p-3.5 cursor-pointer transition-all flex items-center gap-3.5 ${
             isImageDragOver
-              ? 'border-white/50 bg-[#1f1f24] ring-2 ring-white/10 scale-[1.005]'
+              ? 'border-zinc-500 dark:border-white/50 bg-zinc-100 dark:bg-[#1f1f24] ring-2 ring-black/5 dark:ring-white/10 scale-[1.005]'
               : config.imagePath
-              ? 'border-white/20 bg-[#18181c] hover:border-white/30'
-              : 'border-white/[0.12] bg-[#141417] hover:border-white/20'
+              ? 'border-zinc-300 dark:border-white/20 bg-white dark:bg-[#18181c] hover:border-zinc-400 dark:hover:border-white/30 shadow-sm'
+              : 'border-zinc-200 dark:border-white/[0.12] bg-zinc-50 dark:bg-[#141417] hover:border-zinc-300 dark:hover:border-white/20'
           }`}
         >
-          <div className="w-10 h-10 rounded-xl bg-zinc-800 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden text-zinc-300 shadow-sm">
+          <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 flex items-center justify-center shrink-0 overflow-hidden text-zinc-700 dark:text-zinc-300 shadow-sm">
             {isImageDragOver ? (
-              <UploadCloud className="w-5 h-5 animate-bounce" />
+              <CloudArrowUp weight="light" className="w-5 h-5 animate-bounce" />
             ) : config.imagePath ? (
               <img
                 src={getDisplayThumbnail()}
@@ -284,23 +294,23 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
                 className="w-full h-full object-cover"
               />
             ) : (
-              <ImageIcon className="w-5 h-5" />
+              <ImageIcon weight="light" className="w-5 h-5" />
             )}
           </div>
           <div className="flex-1 min-w-0">
             {config.imagePath ? (
               <>
-                <p className="text-sm font-medium text-zinc-100 truncate">Custom Background Photo</p>
-                <p className="text-xs text-zinc-400 mt-0.5">Click or drag image to change</p>
+                <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">Custom Background Photo</p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Click or drag image to change</p>
               </>
             ) : (
               <>
-                <p className="text-sm font-medium text-zinc-200">Import wedding photo</p>
-                <p className="text-xs text-zinc-400 mt-0.5">JPG, PNG, WEBP (auto-scales to frame)</p>
+                <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Import wedding photo</p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">JPG, PNG, WEBP (auto-scales to frame)</p>
               </>
             )}
           </div>
-          <FolderUp className="w-4 h-4 text-zinc-400 shrink-0" />
+          <UploadSimple weight="light" className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
         </div>
       </div>
     </div>

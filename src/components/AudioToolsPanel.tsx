@@ -1,5 +1,5 @@
 import React from 'react';
-import { Volume2, Scissors, RotateCcw } from 'lucide-react';
+import { SpeakerHigh, Scissors, ArrowCounterClockwise } from '@phosphor-icons/react';
 import { StudioConfig } from '../types/studio';
 
 interface AudioToolsPanelProps {
@@ -43,43 +43,43 @@ export const AudioToolsPanel: React.FC<AudioToolsPanelProps> = ({
   return (
     <div className="space-y-4">
       {/* Voice Boost Auto-Gain */}
-      <div className="p-3.5 rounded-xl bg-[#18181c] border border-white/[0.08] flex items-center justify-between shadow-sm">
+      <div className="p-3.5 rounded-xl bg-white dark:bg-[#18181c] border border-zinc-200 dark:border-white/[0.08] flex items-center justify-between shadow-sm">
         <div className="pr-3">
           <div className="flex items-center gap-1.5">
-            <Volume2 className="w-4 h-4 text-zinc-300" />
-            <span className="text-sm font-medium text-zinc-100">Voice Boost (Auto-Gain)</span>
+            <SpeakerHigh weight="light" className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
+            <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Voice Boost (Auto-Gain)</span>
           </div>
-          <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 leading-relaxed">
             Normalizes guest speech so whispers and quiet messages sound loud and clear.
           </p>
         </div>
         <button
           onClick={handleVoiceBoostToggle}
           className={`w-9 h-5 rounded-full transition-colors relative shrink-0 ${
-            voiceBoost ? 'bg-[#dfc596]' : 'bg-zinc-800 border border-white/10'
+            voiceBoost ? 'bg-[#dfc596]' : 'bg-zinc-300 dark:bg-zinc-800 border border-zinc-300 dark:border-white/10'
           }`}
         >
           <span
             className={`absolute top-0.5 w-4 h-4 rounded-full transition-transform ${
-              voiceBoost ? 'right-0.5 bg-zinc-950' : 'left-0.5 bg-zinc-400'
+              voiceBoost ? 'right-0.5 bg-zinc-950' : 'left-0.5 bg-white dark:bg-zinc-400'
             }`}
           />
         </button>
       </div>
 
       {/* Audio Trim Controls */}
-      <div className="p-3.5 rounded-xl bg-[#18181c] border border-white/[0.08] shadow-sm">
+      <div className="p-3.5 rounded-xl bg-white dark:bg-[#18181c] border border-zinc-200 dark:border-white/[0.08] shadow-sm">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-zinc-100 flex items-center gap-1.5">
-            <Scissors className="w-4 h-4 text-zinc-300" />
+          <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+            <Scissors weight="light" className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
             Voice Trimmer
           </span>
           {(trimStart > 0 || (trimEnd > 0 && trimEnd < dur)) && (
             <button
               onClick={resetTrim}
-              className="text-[11px] text-zinc-400 hover:text-zinc-200 flex items-center gap-1 transition-colors"
+              className="text-[11px] text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 flex items-center gap-1 transition-colors"
             >
-              <RotateCcw className="w-3 h-3" />
+              <ArrowCounterClockwise weight="light" className="w-3 h-3" />
               Reset
             </button>
           )}
@@ -89,9 +89,9 @@ export const AudioToolsPanel: React.FC<AudioToolsPanelProps> = ({
           <div className="space-y-3">
             {/* Start Trim Slider */}
             <div>
-              <div className="flex items-center justify-between text-xs text-zinc-300 mb-1">
+              <div className="flex items-center justify-between text-xs text-zinc-700 dark:text-zinc-300 mb-1">
                 <span>Trim Start (Cut Phone Pickup Click)</span>
-                <span className="font-mono text-zinc-400">{format(trimStart)}</span>
+                <span className="font-mono text-zinc-500 dark:text-zinc-400">{format(trimStart)}</span>
               </div>
               <input
                 type="range"
@@ -115,9 +115,9 @@ export const AudioToolsPanel: React.FC<AudioToolsPanelProps> = ({
 
             {/* End Trim Slider */}
             <div>
-              <div className="flex items-center justify-between text-xs text-zinc-300 mb-1">
+              <div className="flex items-center justify-between text-xs text-zinc-700 dark:text-zinc-300 mb-1">
                 <span>Trim End (Cut Hangup Noise)</span>
-                <span className="font-mono text-zinc-400">{format(trimEnd || dur)}</span>
+                <span className="font-mono text-zinc-500 dark:text-zinc-400">{format(trimEnd || dur)}</span>
               </div>
               <input
                 type="range"
@@ -148,10 +148,10 @@ export const AudioToolsPanel: React.FC<AudioToolsPanelProps> = ({
 
       {/* Gap Between Consecutive Recordings (Multi-Track) */}
       {config.timelineTracks && config.timelineTracks.length > 1 && (
-        <div className="p-3.5 rounded-xl bg-[#18181c] border border-white/[0.08] shadow-sm">
-          <div className="flex items-center justify-between text-xs text-zinc-300 mb-1">
+        <div className="p-3.5 rounded-xl bg-white dark:bg-[#18181c] border border-zinc-200 dark:border-white/[0.08] shadow-sm">
+          <div className="flex items-center justify-between text-xs text-zinc-700 dark:text-zinc-300 mb-1">
             <span>Silence Gap Between Guests</span>
-            <span className="font-mono text-zinc-400">{config.gapBetweenTracks ?? 0.5}s</span>
+            <span className="font-mono text-zinc-500 dark:text-zinc-400">{config.gapBetweenTracks ?? 0.5}s</span>
           </div>
           <input
             type="range"

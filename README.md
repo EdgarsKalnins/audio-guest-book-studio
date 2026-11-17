@@ -1,61 +1,212 @@
 # Wedding Audio Studio 💍🎙️
 
-An elegant desktop application designed for wedding couples, photographers, and audio guestbook rental services. It effortlessly transforms wedding guest voice recordings into stunning 1080p MP4 videos with centered real-time audio visualizers, background photos, and luxury wedding typography.
+> **An elegant, private, open-source desktop application that turns vintage audio guestbook voicemails and wedding recordings into cinematic 1080p MP4 videos with centered real-time audio visualizers, background photos, and haute-couture typography.**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Zero Telemetry](https://img.shields.io/badge/Privacy-100%25%20Local%20%7C%20Zero%20Telemetry-emerald.svg)](#-privacy--zero-telemetry-pledge)
+[![Cross Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey.svg)](#-platform-support)
+[![React 19](https://img.shields.io/badge/React-19.0-61dafb.svg)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178c6.svg)](https://www.typescriptlang.org)
+[![Vite](https://img.shields.io/badge/Vite-6.0-646cff.svg)](https://vitejs.dev)
 
 ---
 
-## ✨ Features
+## 📸 Screenshots
 
-- **Drag-and-Drop Workflow**: Drop any guest audio file (`.wav`, `.mp3`, `.m4a`, `.aac`, `.ogg`) and wedding photo (`.jpg`, `.png`, `.webp`) directly into the app.
-- **5 Centered Wedding Visualizers**:
-  1. *Voice Memo Bars*: Symmetrical rounded bars pulsing smoothly from the center.
-  2. *Sine Ribbon*: Fluid romantic dual-layer sound waves with ambient glow.
-  3. *Circular Halo*: Radiating circular pulse ring reacting to voice harmonics.
-  4. *Symmetrical Wave*: Mirrored frequency bars reflecting above and below the center line.
-  5. *Stardust Spark*: Ambient floating particles dancing to audio frequencies.
-- **Wedding Color Palette**: Champagne Gold, Ivory White, Rose Gold, Warm Cream, Pure Platinum, or custom hex color picker.
-- **Aspect Ratio Presets**:
-  - `9:16 Story / Reel` (1080x1920) for Instagram Stories, Reels, TikTok, and smartphones.
-  - `1:1 Square` (1080x1080) for Instagram posts.
-  - `16:9 Landscape` (1920x1080) for widescreen wedding films and TV playback.
-  - *Auto-Detection*: Automatically detects and matches the aspect ratio of dropped photos.
-- **Wedding Typography**:
-  - Customizable Couple Names, Wedding Date, and Header Title.
-  - Classic serif fonts: *Cormorant Garamond* and *Playfair Display*.
-  - Optional audio timestamp counter (`0:42 / 2:15`) with subtle progress bar.
-- **Voice Clean-Up & Trimmer**:
-  - *Voice Boost (Auto-Gain)*: Automatically boosts and normalizes quiet guest whispers and messages.
-  - *Waveform Trimmer*: Cut out telephone pickup clicks, dead silence, or hang-up sounds.
-- **Multi-File Batch Export Queue**:
-  - Drop a folder or multiple guest audio files (e.g. 50 voicemail files).
-  - Batch compile all recordings sequentially using the same template into an output folder.
-- **Zero-Setup Bundled FFmpeg**:
-  - Compiles crisp 1080p @ 30 FPS MP4 video using bundled hardware-accelerated FFmpeg. No terminal or command-line setup required.
-- **Instant Demo Mode**: Includes pre-loaded wedding voicemail and background image for immediate testing on first launch.
+| Dark Mode (Default) | Light Mode (Day Theme) |
+| :---: | :---: |
+| ![Dark Mode](preview-dark.png) | ![Light Mode](preview-light.png) |
 
 ---
 
-## 🚀 Quick Start
+## 🔒 Privacy & Zero-Telemetry Pledge
 
-### 1. Launch in Development Mode
+Wedding voicemails are deeply intimate family moments: heartfelt grandparent blessings, tearful parental toasts, and hilarious late-night voicemail messages from closest friends.
+
+**Wedding Audio Studio is built on an absolute local-first architecture:**
+- **Zero Cloud Uploads**: Audio, photos, and video compilation never leave your computer.
+- **Zero Telemetry & Analytics**: No Google Analytics, no Mixpanel, no Sentry, no phone-home pingbacks, and no user tracking.
+- **100% Offline Capability**: Runs entirely without an active internet connection. All font families, icons, and encoder binaries are packaged locally.
+- **Open Source Transparency**: Every line of code is open to inspection and audit.
+
+---
+
+## ✨ Key Capabilities
+
+1. **Continuous Multi-Recording Timeline**:
+   - Drag and drop 1 or 50 audio recordings (`.wav`, `.mp3`, `.m4a`, `.aac`, `.flac`, `.ogg`, `.aiff`).
+   - Automatically sequences all files into **one continuous, seamless video timeline** with configurable micro-gaps (0.5s), avoiding manual stitching in external video editors.
+2. **8 Bespoke Hairline & Organic Visualizers**:
+   - **Classic Hairline Wave**: Delicate single continuous audio wave with soft gold luminescence.
+   - **Mirrored Hairline Wave**: Elegant symmetrical twin waves reflecting romantic voice vibrations.
+   - **Horizon Pulse Line**: Crisp center-weighted audio line reacting to voice intimacy.
+   - **Voice Memo Bars**: Centered symmetrical rounded frequency bars.
+   - **Sine Ribbon**: Dual-phase flowing organic sound waves.
+   - **Orbital Ring**: Radial halo visualizer with circular frequency dispersion.
+   - **Dual Mirror Wave**: Symmetrical frequency bars radiating vertically.
+   - **Particulate Aura**: Ambient floating stardust dancing to guest speech frequencies.
+3. **Haute-Couture Wedding Typography**:
+   - Five curated editorial font families: *Italiana*, *Cinzel*, *Cormorant Garamond*, *Playfair Display*, and *Plus Jakarta Sans*.
+   - Customizable Couple Names, Wedding Date, and Subtitle (`Wedding Audio Guestbook`).
+   - Optional digital timestamp counter (`0:42 / 2:15`) with subtle progress hairline.
+4. **Day / Night Theme Switching**:
+   - Seamless one-click toggle between Deep Charcoal/Obsidian Dark Mode and Crisp Alabaster Light Mode, persisted locally.
+5. **Acoustic Voice Clean-Up & Trimmer**:
+   - **Voice Boost (Auto-Gain)**: Dynamic range compression and high-pass filtering to elevate quiet guest whispers.
+   - **Waveform Trimmer**: Non-destructive start/end trimming to remove telephone pickup clicks and receiver hangup noises.
+6. **Dual High-Speed Compilation Pipeline**:
+   - **Native Hardware FFmpeg**: Bundled local FFmpeg pipe (`libx264` @ 30 FPS, AAC 192 kbps) with automated directory creation and stream buffering.
+   - **Client-Side WebCodecs Fallback**: Modern in-browser `VideoEncoder` + `AudioEncoder` piped to `mp4-muxer` for browser previews.
+   - **Resource Offloading**: Preview rendering suspends during export to dedicate 100% CPU/GPU resources to video encoding.
+
+---
+
+## 🏛️ System Architecture
+
+```mermaid
+flowchart TD
+    subgraph Inputs["1. Local Assets (Zero Uploads)"]
+        A1["Guest Audio Recordings<br/>(.wav, .mp3, .m4a, .flac)"]
+        A2["Wedding Photo Background<br/>(.jpg, .png, .webp)"]
+    end
+
+    subgraph AudioEngine["2. Audio & Analysis Subsystem"]
+        B1["AudioConcatenator<br/>(Sequential Multi-Track Assembly)"]
+        B2["AudioDenoise & VoiceBoost<br/>(Dynamics Compression & High-Pass)"]
+        B3["Cooley-Tukey Radix-2 FFT<br/>(Hann Windowed Spectral Analysis)"]
+    end
+
+    subgraph Renderer["3. Haute-Couture Canvas Compositor"]
+        C1["Background Scaler & Vignette"]
+        C2["8 Visualizer Presets (styles.ts)"]
+        C3["Wedding Typography (Italiana, Cinzel)"]
+    end
+
+    subgraph Encoders["4. Dual Export Engine"]
+        D1["Native FFmpeg Pipe<br/>(Electron libx264 1080p @ 30 FPS)"]
+        D2["WebCodecs + mp4-muxer<br/>(In-Browser VideoEncoder)"]
+    end
+
+    subgraph Output["5. Final Deliverable"]
+        E1["1080p MP4 Video File<br/>(Story 9:16, Square 1:1, or Landscape 16:9)"]
+    end
+
+    A1 --> B1
+    B1 --> B2
+    B2 --> B3
+    A2 --> C1
+    B3 --> C2
+    C1 & C2 & C3 --> Renderer
+    Renderer --> D1
+    Renderer --> D2
+    D1 --> E1
+    D2 --> E1
+```
+
+---
+
+## 📂 Source Code & Component Directory
+
+Every module in this project is strictly decoupled, strongly typed, and thoroughly tested:
+
+### 🖥️ User Interface (`src/components/`)
+- [`src/App.tsx`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/src/App.tsx): Root layout orchestrator, multi-track sequence state, Day/Night theme synchronization, and titlebar window controls.
+- [`src/components/CanvasStage.tsx`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/src/components/CanvasStage.tsx): Real-time 60 FPS HTML5 canvas viewport, aspect ratio selector (`9:16`, `1:1`, `16:9`), drag-and-drop overlay, and interactive audio scrubber.
+- [`src/components/MediaDropzone.tsx`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/src/components/MediaDropzone.tsx): Drag-and-drop dropzone for audio files and photo backgrounds with quick-start sample loading.
+- [`src/components/VisualizerPanel.tsx`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/src/components/VisualizerPanel.tsx): Visualizer preset selector featuring custom hairline vector glyphs for all 8 visualizer modes, color swatches, glow, and scale sliders.
+- [`src/components/TypographyPanel.tsx`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/src/components/TypographyPanel.tsx): Wedding typography overlay configuration supporting couple names, wedding date, title, and 5 curated editorial font families.
+- [`src/components/AudioToolsPanel.tsx`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/src/components/AudioToolsPanel.tsx): Voice Boost auto-gain normalization switch and telephone pickup/hangup trim sliders.
+- [`src/components/ExportModal.tsx`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/src/components/ExportModal.tsx): 1080p MP4 compilation progress dialog with frame counter, background resource suspension notices, and "Show in Finder / Explorer" action.
+- [`src/components/ExitModal.tsx`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/src/components/ExitModal.tsx): Safe session termination modal preventing accidental data loss when timeline recordings or exports are in flight.
+
+### ⚙️ Audio & Rendering Engine (`src/engine/`)
+- [`src/engine/audioEngine.ts`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/src/engine/audioEngine.ts): Web Audio API wrapper managing playback state, AnalyserNode frequency extraction, and waveform peak generation.
+- [`src/engine/audioConcatenator.ts`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/src/engine/audioConcatenator.ts): Non-destructive multi-recording concatenation combining multiple audio buffers into one continuous stream with smooth inter-track micro-gaps.
+- [`src/engine/audioDenoise.ts`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/src/engine/audioDenoise.ts): Voice Boost auto-gain DSP filter normalizing whisper volumes and reducing low-frequency microphone rumble.
+- [`src/engine/fft.ts`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/src/engine/fft.ts): In-memory Cooley-Tukey Radix-2 Fast Fourier Transform with Hann windowing for offline frame-by-frame video generation.
+- [`src/engine/frameGenerator.ts`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/src/engine/frameGenerator.ts): Memory-optimized video pipeline orchestrating off-screen canvas rendering, memory garbage collection, and dual encoder selection.
+- [`src/engine/videoExporter.ts`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/src/engine/videoExporter.ts): Native Electron FFmpeg pipe with auto-directory creation and stream buffering.
+- [`src/engine/visualizers/renderer.ts`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/src/engine/visualizers/renderer.ts): Master canvas frame compositor combining background image cover-scaling, soft ambient vignette, audio visualizer, and typography text layers.
+- [`src/engine/visualizers/styles.ts`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/src/engine/visualizers/styles.ts): Mathematical drawing algorithms for all 8 visualizer modes.
+
+### 🔌 Desktop Shell (`electron/`)
+- [`electron/main.ts`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/electron/main.ts): Secure Electron main process providing native file dialogues, safe window close interception, asset resolution, and FFmpeg transcoding fallbacks.
+- [`electron/preload.ts`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/electron/preload.ts): Context-isolated IPC bridge exposing strictly typed `window.electronAPI` methods to the frontend.
+
+---
+
+## 💻 Platform Support
+
+Wedding Audio Studio is engineered to compile and run smoothly across all major desktop operating systems without platform lock-in:
+
+| Platform | Target Binaries | Architecture | Acceleration |
+| :--- | :--- | :--- | :--- |
+| **macOS** | `.dmg`, `.zip`, `.app` | Apple Silicon (`arm64`) & Intel (`x64`) | VideoToolbox / H.264 |
+| **Windows** | `.exe` (NSIS Installer), Portable | `x64` | NVENC / D3D11VA / H.264 |
+| **Linux** | `.AppImage`, `.deb`, `.tar.gz` | `x64`, `arm64` | VAAPI / H.264 |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- [Node.js](https://nodejs.org) (v18 or higher recommended)
+- `npm` (v9 or higher)
+
+### 1. Clone & Install
+```bash
+git clone https://github.com/your-username/wedding-audio-studio.git
+cd wedding-audio-studio
+npm install
+```
+
+### 2. Run in Development Mode
 ```bash
 npm run dev
 ```
-This automatically boots Vite, compiles the Electron main process and preload scripts, and opens the desktop studio window with hot module replacement.
+This boots Vite with hot-module replacement and launches the Electron studio window automatically.
 
-### 2. Build Packaged Executable
+### 3. Run Automated Tests
 ```bash
-# Build web & electron assets
+npm test
+```
+Runs the full Vitest suite covering audio concatenation, FFT spectrum generation, FFmpeg export pipelines, and modal interactions.
+
+### 4. Build Production Binaries
+```bash
+# Type check and build frontend + electron scripts
 npm run build
 
-# Package into macOS .dmg / .app
+# Package desktop installer for current OS
 npm run build:app
 ```
+Packaged installers will be saved in the `release/` directory.
 
 ---
 
-## 🛠️ Tech Stack
-- **Desktop Framework**: Electron v33+ (Secure Context Isolation)
-- **Frontend UI**: React 19, TypeScript, Tailwind CSS, Lucide Icons
-- **Audio Processing**: Web Audio API (`AudioContext`, `AnalyserNode`, Cooley-Tukey Radix-2 FFT)
-- **Video Encoding**: Frame-by-frame HTML5 Canvas rendering piped to `@ffmpeg-installer/ffmpeg` H.264/AAC muxer.
+## ⌨️ Keyboard Shortcuts
+
+| Shortcut | Action |
+| :--- | :--- |
+| `Space` | Play / Pause audio playback |
+| `Esc` | Dismiss modal / Close active dialog |
+| `Cmd + Q` / `Ctrl + Q` | Trigger safe Exit confirmation |
+
+---
+
+## 🤝 Contributing
+
+Contributions from the open-source community are warmly welcomed! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) guide before submitting pull requests.
+
+**Core Rules for Contributors**:
+- **Zero Telemetry Policy**: No PR adding external telemetry, tracking, or network telemetry will be accepted.
+- **Offline Reliability**: Every new feature must function completely offline.
+- **Test Coverage**: All new audio or export pipeline features must include corresponding Vitest tests in `tests/`.
+
+---
+
+## 📜 License
+
+Distributed under the permissive **MIT License**. See [LICENSE](LICENSE) for more details.
+
+Built with passion for couples celebrating their love and audio guestbook creators worldwide. 💍🎙️✨

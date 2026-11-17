@@ -210,11 +210,12 @@ function drawTypography(ctx: CanvasRenderingContext2D, width: number, height: nu
   ctx.fillStyle = '#ffffff';
 
   const baseScale = width / 1080;
-  const fontFam = typo.fontFamily;
+  const fontFam = typo.fontFamily || 'Cormorant Garamond';
+  const fallback = fontFam === 'Plus Jakarta Sans' ? 'sans-serif' : 'serif';
 
   // Title / Subtitle
   if (typo.titleText) {
-    ctx.font = `italic 300 ${Math.round(24 * baseScale * typo.fontSize)}px "${fontFam}", serif`;
+    ctx.font = `italic 300 ${Math.round(24 * baseScale * typo.fontSize)}px "${fontFam}", ${fallback}`;
     ctx.fillStyle = 'rgba(235, 225, 215, 0.75)';
     ctx.letterSpacing = `${Math.round(4 * baseScale)}px`;
     ctx.fillText(typo.titleText.toUpperCase(), width / 2, height * 0.16);
@@ -222,7 +223,7 @@ function drawTypography(ctx: CanvasRenderingContext2D, width: number, height: nu
 
   // Couple Names
   if (typo.coupleNames) {
-    ctx.font = `600 ${Math.round(54 * baseScale * typo.fontSize)}px "${fontFam}", serif`;
+    ctx.font = `600 ${Math.round(54 * baseScale * typo.fontSize)}px "${fontFam}", ${fallback}`;
     ctx.fillStyle = '#fbf7f2';
     ctx.shadowColor = 'rgba(0,0,0,0.4)';
     ctx.shadowBlur = 12;
@@ -231,7 +232,7 @@ function drawTypography(ctx: CanvasRenderingContext2D, width: number, height: nu
 
   // Date
   if (typo.dateText) {
-    ctx.font = `400 ${Math.round(22 * baseScale * typo.fontSize)}px "${fontFam}", serif`;
+    ctx.font = `400 ${Math.round(22 * baseScale * typo.fontSize)}px "${fontFam}", ${fallback}`;
     ctx.fillStyle = 'rgba(215, 186, 126, 0.9)'; // Champagne gold
     ctx.letterSpacing = `${Math.round(3 * baseScale)}px`;
     ctx.fillText(typo.dateText, width / 2, height * 0.26);
