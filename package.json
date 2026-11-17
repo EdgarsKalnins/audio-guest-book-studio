@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "build:app": "tsc && vite build && electron-builder",
+    "test": "vitest run",
     "preview": "vite preview",
     "start": "electron ."
   },
@@ -16,10 +17,15 @@
     "productName": "Wedding Audio Studio",
     "mac": {
       "category": "public.app-category.video",
-      "target": ["dmg", "zip"]
+      "target": [
+        "dmg",
+        "zip"
+      ]
     },
     "win": {
-      "target": ["nsis"]
+      "target": [
+        "nsis"
+      ]
     },
     "files": [
       "dist/**/*",
@@ -47,6 +53,7 @@
     "typescript": "^5.7.2",
     "vite": "^6.0.3",
     "vite-plugin-electron": "^0.29.0",
-    "vite-plugin-electron-renderer": "^0.14.6"
+    "vite-plugin-electron-renderer": "^0.14.6",
+    "vitest": "^5.1.0"
   }
 }
