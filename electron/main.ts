@@ -34,6 +34,7 @@ protocol.registerSchemesAsPrivileged([
 ]);
 
 let win: BrowserWindow | null = null;
+let isForceClosing = false;
 let currentExporter: VideoExporter | null = null;
 
 function createWindow() {
@@ -66,6 +67,20 @@ function createWindow() {
   } else {
     win.loadFile(path.join(RENDERER_DIST, 'index.html'));
   }
+
+  win.on('close', (e) => {
+    if (!isForceClosing) {
+      if (win && !win.isDestroyed() && !win.webContents.isDestroyed()) {
+        e.preventDefault();
+        try {
+          win.webContents.send('app:request-close');
+        } catch {
+          isForceClosing = true;
+          win.close();
+        }
+      }
+    }
+  });
 
   win.on('closed', () => {
     win = null;
@@ -211,6 +226,16 @@ function setupIPCHandlers() {
       audioUrl: `wedding-media://local-file${audioPath.startsWith('/') ? '' : '/'}${audioPath}`,
       photoUrl: `wedding-media://local-file${photoPath.startsWith('/') ? '' : '/'}${photoPath}`,
     };
+  });
+
+  // App exit and close lifecycle
+  ipcMain.handle('app:exit', () => {
+    isForceClosing = true;
+    if (currentExporter) {
+      currentExporter.cancel();
+      currentExporter = null;
+    }
+    app.quit();
   });
 
   // Read file as buffer

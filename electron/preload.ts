@@ -111,6 +111,14 @@ const api = {
     ipcRenderer.on('export:error', handler);
     return () => ipcRenderer.removeListener('export:error', handler);
   },
+
+  // App exit and close lifecycle
+  exitApp: (): Promise<void> => ipcRenderer.invoke('app:exit'),
+  onRequestClose: (callback: () => void) => {
+    const handler = () => callback();
+    ipcRenderer.on('app:request-close', handler);
+    return () => ipcRenderer.removeListener('app:request-close', handler);
+  },
 };
 
 contextBridge.exposeInMainWorld('electronAPI', api);

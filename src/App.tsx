@@ -6,6 +6,7 @@ import {
   Type,
   Activity,
   ListMusic,
+  LogOut,
 } from 'lucide-react';
 import {
   StudioConfig,
@@ -23,6 +24,7 @@ import { VisualizerPanel } from './components/VisualizerPanel';
 import { TypographyPanel } from './components/TypographyPanel';
 import { AudioToolsPanel } from './components/AudioToolsPanel';
 import { ExportModal } from './components/ExportModal';
+import { ExitModal } from './components/ExitModal';
 
 import demoAudioUrl from './assets/demo-audio.mp3';
 import demoPhotoUrl from './assets/demo-photo.jpg';
@@ -61,6 +63,7 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'visualizer' | 'typography' | 'audio'>('visualizer');
   const [bgImage, setBgImage] = useState<HTMLImageElement | null>(null);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isExitModalOpen, setIsExitModalOpen] = useState(false);
   const [isBatchMode, setIsBatchMode] = useState(false);
   const [batchOutputDir, setBatchOutputDir] = useState<string | null>(null);
   const [exportProgress, setExportProgress] = useState<ExportProgress>({
@@ -72,6 +75,28 @@ export const App: React.FC = () => {
   const isCancelledRef = useRef<boolean>(false);
   // Store all decoded track sources for seamless sequence re-concatenation
   const loadedTrackSourcesRef = useRef<Array<{ id: string; name: string; path: string; buffer: AudioBuffer }>>([]);
+
+  // Electron window close interceptor
+  useEffect(() => {
+    if (window.electronAPI && typeof window.electronAPI.onRequestClose === 'function') {
+      const cleanup = window.electronAPI.onRequestClose(() => {
+        setIsExitModalOpen(true);
+      });
+      return () => cleanup();
+    }
+  }, []);
+
+  // Web browser beforeunload warning when exporting
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (exportProgress.status === 'rendering' || exportProgress.status === 'preparing') {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [exportProgress.status]);
 
   // 1. Initial Load: Auto-load bundled demo wedding assets for immediate testing
   useEffect(() => {
@@ -548,6 +573,18 @@ export const App: React.FC = () => {
     }
   };
 
+  const handleConfirmExit = () => {
+    if (isExporting) {
+      handleCancelExport();
+    }
+    if (window.electronAPI && typeof window.electronAPI.exitApp === 'function') {
+      window.electronAPI.exitApp();
+    } else {
+      setIsExitModalOpen(false);
+      window.close();
+    }
+  };
+
   const isExporting = exportProgress.status === 'preparing' || exportProgress.status === 'rendering';
 
   return (
@@ -576,12 +613,22 @@ export const App: React.FC = () => {
             </div>
           </div>
 
-          {config.timelineTracks && config.timelineTracks.length > 1 && (
-            <span className="px-2.5 py-1 rounded-lg bg-gold-500/15 border border-gold-500/30 text-gold-300 text-xs font-medium flex items-center gap-1.5">
-              <ListMusic className="w-3.5 h-3.5" />
-              {config.timelineTracks.length} in Sequence
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {config.timelineTracks && config.timelineTracks.length > 1 && (
+              <span className="px-2.5 py-1 rounded-lg bg-gold-500/15 border border-gold-500/30 text-gold-300 text-xs font-medium flex items-center gap-1.5">
+                <ListMusic className="w-3.5 h-3.5" />
+                {config.timelineTracks.length} in Sequence
+              </span>
+            )}
+            <button
+              onClick={() => setIsExitModalOpen(true)}
+              className="p-1.5 px-2.5 rounded-lg text-[#8c8276] hover:text-[#fdfaf5] hover:bg-[#25201c] border border-[#2e2722] hover:border-[#423830] transition-all flex items-center gap-1.5 text-xs font-medium"
+              title="Exit Wedding Audio Studio"
+            >
+              <LogOut className="w-3.5 h-3.5 text-gold-400/80" />
+              <span>Exit</span>
+            </button>
+          </div>
         </div>
 
         {/* Tab Navigation */}
@@ -700,6 +747,17 @@ export const App: React.FC = () => {
           }
         }}
         batchOutputDir={batchOutputDir}
+      />
+
+      {/* Exit Confirmation Modal */}
+      <ExitModal
+        isOpen={isExitModalOpen}
+        onClose={() => setIsExitModalOpen(false)}
+        onConfirmExit={handleConfirmExit}
+        isExporting={isExporting}
+        exportPercentage={exportProgress.percentage}
+        tracksCount={config.timelineTracks?.length || (config.audioPath ? 1 : 0)}
+        audioName={config.audioName || undefined}
       />
     </div>
   );
