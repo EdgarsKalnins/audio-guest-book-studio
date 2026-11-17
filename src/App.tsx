@@ -1044,85 +1044,112 @@ export const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Tab Navigation: Horizontally Scrollable Segmented Studio Control */}
-        <div className="mx-3 sm:mx-4 my-2 p-1 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-white/[0.06] transition-colors shrink-0">
-          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth">
+        {/* Tab Navigation: Redesigned 2-Row Segmented Deck (100% visible, zero truncation) */}
+        <div className="mx-3 sm:mx-4 my-2.5 p-1.5 rounded-xl bg-zinc-100/90 dark:bg-[#141418] border border-zinc-200/80 dark:border-white/[0.08] transition-colors shrink-0 shadow-xs space-y-1">
+          {/* Row 1: Visual & Scene Effects (3 columns: Visualizer, Frames, Motion) */}
+          <div className="grid grid-cols-3 gap-1">
             <button
               onClick={() => setActiveTab('visualizer')}
-              className={`shrink-0 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              className={`h-8 px-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 select-none ${
                 activeTab === 'visualizer'
-                  ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-white/[0.08] font-semibold'
-                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-xs border border-zinc-200 dark:border-white/[0.12] font-semibold ring-1 ring-black/[0.04] dark:ring-white/[0.04]'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/60 dark:hover:bg-white/[0.04]'
               }`}
+              title="Audio Visualizer Style & Waveform"
             >
-              <Waveform className="w-3.5 h-3.5" weight="regular" />
-              <span>Visualizer</span>
+              <Waveform className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'visualizer' ? 'text-amber-500' : ''}`} weight={activeTab === 'visualizer' ? 'bold' : 'regular'} />
+              <span className="truncate">Visualizer</span>
             </button>
             <button
               onClick={() => setActiveTab('frames')}
-              className={`shrink-0 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              className={`h-8 px-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 select-none ${
                 activeTab === 'frames'
-                  ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-white/[0.08] font-semibold'
-                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-xs border border-zinc-200 dark:border-white/[0.12] font-semibold ring-1 ring-black/[0.04] dark:ring-white/[0.04]'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/60 dark:hover:bg-white/[0.04]'
               }`}
+              title="Polaroid, Photostrip & Retro Templates"
             >
-              <Camera className="w-3.5 h-3.5 text-amber-500" weight="regular" />
-              <span>Frames</span>
+              <Camera className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'frames' ? 'text-amber-500' : 'text-amber-500/80 dark:text-amber-400/80'}`} weight={activeTab === 'frames' ? 'bold' : 'regular'} />
+              <span className="truncate">Frames</span>
+              {config.frame?.template !== 'haute-couture' && (
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+              )}
             </button>
             <button
               onClick={() => setActiveTab('motion')}
-              className={`shrink-0 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              className={`h-8 px-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 select-none ${
                 activeTab === 'motion'
-                  ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-white/[0.08] font-semibold'
-                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-xs border border-zinc-200 dark:border-white/[0.12] font-semibold ring-1 ring-black/[0.04] dark:ring-white/[0.04]'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/60 dark:hover:bg-white/[0.04]'
               }`}
+              title="Procedural Motion Backgrounds & Shaders"
             >
-              <FilmReel className="w-3.5 h-3.5 text-amber-500" weight="regular" />
-              <span>Motion</span>
+              <FilmReel className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'motion' ? 'text-amber-500' : 'text-amber-500/80 dark:text-amber-400/80'}`} weight={activeTab === 'motion' ? 'bold' : 'regular'} />
+              <span className="truncate">Motion</span>
+              {(config.motion?.preset !== 'none' || Boolean(config.motion?.videoUrl)) && (
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+              )}
+            </button>
+          </div>
+
+          {/* Row 2: Editorial & Sound Processing (4 columns: Titles, Captions, QR Code, Audio) */}
+          <div className="grid grid-cols-4 gap-1">
+            <button
+              onClick={() => setActiveTab('typography')}
+              className={`h-8 px-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1 select-none ${
+                activeTab === 'typography'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-xs border border-zinc-200 dark:border-white/[0.12] font-semibold ring-1 ring-black/[0.04] dark:ring-white/[0.04]'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/60 dark:hover:bg-white/[0.04]'
+              }`}
+              title="Couple Names, Wedding Date & Fonts"
+            >
+              <TextT className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'typography' ? 'text-amber-500' : ''}`} weight={activeTab === 'typography' ? 'bold' : 'regular'} />
+              <span className="truncate">Titles</span>
             </button>
             <button
               onClick={() => setActiveTab('subtitles')}
-              className={`shrink-0 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              className={`h-8 px-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1 select-none ${
                 activeTab === 'subtitles'
-                  ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-white/[0.08] font-semibold'
-                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-xs border border-zinc-200 dark:border-white/[0.12] font-semibold ring-1 ring-black/[0.04] dark:ring-white/[0.04]'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/60 dark:hover:bg-white/[0.04]'
               }`}
+              title="AI Speech-to-Text & Karaoke Subtitles"
             >
-              <ChatCenteredText className="w-3.5 h-3.5 text-amber-500" weight="regular" />
-              <span>Captions</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('typography')}
-              className={`shrink-0 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap ${
-                activeTab === 'typography'
-                  ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-white/[0.08] font-semibold'
-                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40'
-              }`}
-            >
-              <TextT className="w-3.5 h-3.5" weight="regular" />
-              <span>Titles</span>
+              <ChatCenteredText className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'subtitles' ? 'text-amber-500' : 'text-amber-500/80 dark:text-amber-400/80'}`} weight={activeTab === 'subtitles' ? 'bold' : 'regular'} />
+              <span className="truncate">Captions</span>
+              {config.subtitles?.enabled && (
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+              )}
             </button>
             <button
               onClick={() => setActiveTab('qr')}
-              className={`shrink-0 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              className={`h-8 px-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1 select-none ${
                 activeTab === 'qr'
-                  ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-white/[0.08] font-semibold'
-                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-xs border border-zinc-200 dark:border-white/[0.12] font-semibold ring-1 ring-black/[0.04] dark:ring-white/[0.04]'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/60 dark:hover:bg-white/[0.04]'
               }`}
+              title="Dynamic Scannable Audio QR Code Watermark"
             >
-              <QrCode className="w-3.5 h-3.5 text-amber-500" weight="regular" />
-              <span>QR Badge</span>
+              <QrCode className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'qr' ? 'text-amber-500' : 'text-amber-500/80 dark:text-amber-400/80'}`} weight={activeTab === 'qr' ? 'bold' : 'regular'} />
+              <span className="truncate">QR Code</span>
+              {config.qrWatermark?.enabled && (
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+              )}
             </button>
             <button
               onClick={() => setActiveTab('audio')}
-              className={`shrink-0 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              className={`h-8 px-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1 select-none ${
                 activeTab === 'audio'
-                  ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-white/[0.08] font-semibold'
-                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-xs border border-zinc-200 dark:border-white/[0.12] font-semibold ring-1 ring-black/[0.04] dark:ring-white/[0.04]'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/60 dark:hover:bg-white/[0.04]'
               }`}
+              title="Voice Boost, Noise Gate & Speech Clarifier"
             >
-              <SpeakerHigh className="w-3.5 h-3.5" weight="regular" />
-              <span>Voice Clean-up</span>
+              <SpeakerHigh className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'audio' ? 'text-amber-500' : ''}`} weight={activeTab === 'audio' ? 'bold' : 'regular'} />
+              <span className="truncate">Audio</span>
+              {(config.audioSettings?.voiceBoost || config.audioSettings?.speechClarifier) && (
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+              )}
             </button>
           </div>
         </div>
