@@ -3,6 +3,26 @@
   "version": "1.0.0",
   "description": "Elegant desktop app for compiling wedding audio guest records into shareable visualizer videos",
   "license": "MIT",
+  "author": {
+    "name": "Edgars Kalniņš",
+    "url": "https://momentbox.lv"
+  },
+  "homepage": "https://momentbox.lv",
+  "keywords": [
+    "audio guest book",
+    "wedding audio guestbook",
+    "audio visualizer",
+    "sound wave video generator",
+    "wedding video maker",
+    "momentbox",
+    "riga",
+    "latvia",
+    "fotokaste",
+    "audio viesu gramata",
+    "ffmpeg",
+    "electron",
+    "react"
+  ],
   "main": "dist-electron/main.js",
   "type": "module",
   "scripts": {

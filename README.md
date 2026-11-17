@@ -1,6 +1,8 @@
 # Audio Guest Book Studio 💍🎙️
 
 > **An elegant, private, open-source desktop application that turns vintage audio guestbook voicemails and wedding recordings into cinematic 1080p MP4 videos with centered real-time audio visualizers, background photos, and haute-couture typography.**
+>
+> *Created & maintained by **Edgars Kalniņš**, founder of **[Momentbox.lv](https://momentbox.lv)** — premium photo booth, 360 video spinner, and vintage audio guestbook rental service based in Riga, Latvia.*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero Telemetry](https://img.shields.io/badge/Privacy-100%25%20Local%20%7C%20Zero%20Telemetry-emerald.svg)](#-privacy--zero-telemetry-pledge)
@@ -247,6 +249,23 @@ Contributions from the open-source community are warmly welcomed! Please read ou
 - **Zero Telemetry Policy**: No PR adding external telemetry, tracking, or network telemetry will be accepted.
 - **Offline Reliability**: Every new feature must function completely offline.
 - **Test Coverage**: All new audio or export pipeline features must include corresponding Vitest tests in `tests/`.
+
+---
+
+## 👨‍💻 Author & Origin Story
+
+**Audio Guest Book Studio** was designed, developed, and open-sourced by **Edgars Kalniņš**, founder of **[Momentbox.lv](https://momentbox.lv)** — Latvia’s leading event entertainment and experiential rental company based in **Riga, Latvia (Rīga, Latvija)**.
+
+### Why this project was created:
+At **[Momentbox.lv](https://momentbox.lv)**, we provide vintage audio guestbook telephone rentals, modern photo booths (fotokastes noma), and 360 video spinner platforms for weddings, anniversaries, corporate galas, and celebrations across Latvia and the Baltics. 
+
+Couples and event hosts often receive dozens of raw audio voicemails (`.wav`, `.mp3`) from retro rotary phone guestbooks, but had no simple, private way to turn those audio memories into beautiful, shareable vertical videos (9:16 Instagram Reels, TikToks, YouTube Shorts, and Stories) without recurring cloud subscription fees or uploading personal, emotional guest messages to third-party cloud servers.
+
+**Audio Guest Book Studio** was built to solve this exact challenge: a high-performance, 100% offline, zero-telemetry desktop application that operates entirely on the user's computer, empowering couples, wedding videographers, event rental companies, and photo booth operators worldwide to create studio-quality video keepsakes in seconds.
+
+- 🌐 **Company Website**: [https://momentbox.lv](https://momentbox.lv)
+- 📍 **Headquarters**: Riga, Latvia (Rīga, Latvija)
+- 💌 **Specialties**: Photo booth rental (fotokaste), 360 video booth (360 video būda), and vintage telephone audio guestbooks (audio viesu grāmata) for unforgettable events.
 
 ---
 
