@@ -80,12 +80,26 @@ export function concatenateAudioBuffers(
 }
 
 /**
- * Encodes an AudioBuffer into a standard 16-bit PCM WAV binary format.
+ * Encodes an AudioBuffer into a standard 16-bit PCM WAV binary format,
+ * with optional start/end trimming and a smooth gentle fade-out at the tail.
  */
-export function encodeAudioBufferToWav(buffer: AudioBuffer): Uint8Array {
+export function encodeAudioBufferToWav(
+  buffer: AudioBuffer,
+  trimStart = 0,
+  trimEnd = 0,
+  applyFadeOut = true
+): Uint8Array {
   const numChannels = buffer.numberOfChannels;
   const sampleRate = buffer.sampleRate;
-  const length = buffer.length;
+
+  const startSample = Math.max(0, Math.floor(trimStart * sampleRate));
+  const maxEndSample = buffer.length;
+  const endSample =
+    trimEnd > 0 && Math.floor(trimEnd * sampleRate) <= maxEndSample
+      ? Math.floor(trimEnd * sampleRate)
+      : maxEndSample;
+
+  const length = Math.max(1, endSample - startSample);
   const bytesPerSample = 2; // 16-bit PCM
   const blockAlign = numChannels * bytesPerSample;
   const byteRate = sampleRate * blockAlign;
@@ -128,9 +142,23 @@ export function encodeAudioBufferToWav(buffer: AudioBuffer): Uint8Array {
     channels.push(buffer.getChannelData(ch));
   }
 
+  // 0.3s smooth gentle sinusoidal fade-out window at the end
+  const fadeOutDuration = 0.3;
+  const fadeOutSamples = Math.min(Math.floor(length / 2), Math.floor(fadeOutDuration * sampleRate));
+  const fadeOutStartIndex = length - fadeOutSamples;
+
   for (let i = 0; i < length; i++) {
+    const srcIndex = startSample + i;
+    let fadeMultiplier = 1.0;
+    if (applyFadeOut && fadeOutSamples > 0 && i >= fadeOutStartIndex) {
+      const progress = (length - 1 - i) / fadeOutSamples; // 1.0 down to 0.0
+      fadeMultiplier = Math.sin((progress * Math.PI) / 2); // Smooth cosine/sine curve
+    }
+
     for (let ch = 0; ch < numChannels; ch++) {
-      const sample = Math.max(-1, Math.min(1, channels[ch][i]));
+      let rawSample = channels[ch][srcIndex] || 0;
+      rawSample *= fadeMultiplier;
+      const sample = Math.max(-1, Math.min(1, rawSample));
       const int16 = sample < 0 ? sample * 0x8000 : sample * 0x7fff;
       view.setInt16(offset, int16, true);
       offset += 2;

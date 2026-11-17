@@ -448,9 +448,12 @@ export const App: React.FC = () => {
     // Immediately stop live preview audio to free audio device & system resources
     audioEngineRef.current.pause();
 
-    // Generate the concatenated master WAV file for the entire continuous sequence
+    // Generate the concatenated master WAV file matching the exact video frame trim range
     let audioExportPath = config.audioPath;
-    const masterWavBytes = audioEngineRef.current.getMasterWavBytes();
+    const masterWavBytes = audioEngineRef.current.getMasterWavBytes(
+      config.audioSettings.trimStart,
+      config.audioSettings.trimEnd
+    );
     if (masterWavBytes && window.electronAPI && typeof window.electronAPI.writeWavFile === 'function') {
       audioExportPath = await window.electronAPI.writeWavFile(
         masterWavBytes,

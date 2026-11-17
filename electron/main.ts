@@ -358,10 +358,15 @@ function setupIPCHandlers() {
           '-y',
           '-i', videoPath,
           '-i', audioPath,
-          '-c:v', 'copy', // Zero re-encoding of video! Runs at 10,000+ FPS!
+          '-map', '0:v:0', // Explicitly take video from input 0
+          '-map', '1:a:0', // Explicitly take audio from input 1
+          '-c:v', 'copy',  // Zero re-encoding of video! Runs at 10,000+ FPS
           ...audioFilterArgs,
-          '-c:a', 'aac',
-          '-b:a', '192k',
+          '-c:a', 'aac',   // Universal high-fidelity AAC-LC audio
+          '-b:a', '192k',  // 192 kbps
+          '-ar', '44100',  // 44.1 kHz stereo
+          '-ac', '2',
+          '-movflags', '+faststart', // Instant start for Apple QuickTime / iPhone / Web
           '-shortest',
           outputPath,
         ];

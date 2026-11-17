@@ -65,7 +65,7 @@ export async function runWebCodecsHardwareExport(
   const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
   if (!ctx) throw new Error('Could not get 2D canvas context');
 
-  // 3. Initialize MP4 Muxer with streaming disk target (zero memory buildup)
+  // 3. Initialize MP4 Muxer
   let tempFileHandle: { id: string; tempPath: string } | null = null;
   let target: StreamTarget | ArrayBufferTarget;
 
@@ -82,15 +82,38 @@ export async function runWebCodecsHardwareExport(
     target = new ArrayBufferTarget();
   }
 
-  const muxer = new Muxer({
+  const inBrowserMode = !window.electronAPI;
+  const rawAudioBuffer = audioEngine.getRawBuffer();
+  const canEncodeBrowserAudio =
+    inBrowserMode &&
+    Boolean(rawAudioBuffer) &&
+    typeof AudioEncoder !== 'undefined' &&
+    typeof AudioData !== 'undefined';
+
+  const muxerOptions: {
+    target: StreamTarget | ArrayBufferTarget;
+    video: { codec: 'avc'; width: number; height: number };
+    audio?: { codec: 'aac'; sampleRate: number; numberOfChannels: number };
+    fastStart: false | 'in-memory';
+  } = {
     target,
     video: {
       codec: 'avc',
       width,
       height,
     },
-    fastStart: false, // Streamed chunk writing: zero in-memory buffer duplication!
-  });
+    fastStart: inBrowserMode ? 'in-memory' : false,
+  };
+
+  if (canEncodeBrowserAudio && rawAudioBuffer) {
+    muxerOptions.audio = {
+      codec: 'aac',
+      sampleRate: rawAudioBuffer.sampleRate,
+      numberOfChannels: Math.min(2, rawAudioBuffer.numberOfChannels),
+    };
+  }
+
+  const muxer = new Muxer(muxerOptions);
 
   // 4. Initialize Chromium WebCodecs VideoEncoder with strict backpressure
   let encoderError: Error | null = null;
@@ -189,10 +212,23 @@ export async function runWebCodecsHardwareExport(
       }
     }
 
-    onStatus('Flushing hardware encoder...');
+    onStatus('Flushing hardware video encoder...');
     await encoder.flush();
-    muxer.finalize();
     encoder.close();
+
+    // If running in browser mode without FFmpeg, encode audio stream directly via WebCodecs AudioEncoder
+    if (canEncodeBrowserAudio && rawAudioBuffer) {
+      onStatus('Encoding high-fidelity AAC audio...');
+      await encodeAudioWithWebCodecs(
+        rawAudioBuffer,
+        muxer,
+        trimStart,
+        trimEnd,
+        isCancelledRef
+      );
+    }
+
+    muxer.finalize();
 
     onStatus('Finalizing 1-second lossless audio multiplexing...');
 
@@ -237,4 +273,92 @@ export async function runWebCodecsHardwareExport(
     }
     throw err;
   }
+}
+
+/**
+ * Encodes audio PCM data into AAC-LC using WebCodecs AudioEncoder for browser environment.
+ */
+async function encodeAudioWithWebCodecs(
+  buffer: AudioBuffer,
+  muxer: Muxer<ArrayBufferTarget | StreamTarget>,
+  trimStart: number,
+  trimEnd: number,
+  isCancelledRef: { current: boolean }
+): Promise<void> {
+  let audioEncoderError: Error | null = null;
+  const audioEncoder = new AudioEncoder({
+    output: (chunk, meta) => {
+      muxer.addAudioChunk(chunk, meta);
+    },
+    error: (err) => {
+      console.error('[WebCodecs] AudioEncoder error:', err);
+      audioEncoderError = err;
+    },
+  });
+
+  const sampleRate = buffer.sampleRate;
+  const numChannels = Math.min(2, buffer.numberOfChannels);
+
+  await audioEncoder.configure({
+    codec: 'mp4a.40.2', // Universal AAC-LC
+    sampleRate,
+    numberOfChannels: numChannels,
+    bitrate: 192_000, // 192 kbps high fidelity
+  });
+
+  const startSample = Math.max(0, Math.floor(trimStart * sampleRate));
+  const maxEndSample = buffer.length;
+  const endSample =
+    trimEnd > 0 && Math.floor(trimEnd * sampleRate) <= maxEndSample
+      ? Math.floor(trimEnd * sampleRate)
+      : maxEndSample;
+  const totalSamples = Math.max(1, endSample - startSample);
+
+  const ch0 = buffer.getChannelData(0);
+  const ch1 = buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : ch0;
+
+  // 0.3s smooth gentle sinusoidal fade-out window at the end
+  const fadeOutDuration = 0.3;
+  const fadeOutSamples = Math.min(Math.floor(totalSamples / 2), Math.floor(fadeOutDuration * sampleRate));
+  const fadeOutStartIndex = totalSamples - fadeOutSamples;
+
+  const chunkSize = 2048; // Standard AAC frame window
+
+  for (let s = 0; s < totalSamples; s += chunkSize) {
+    if (isCancelledRef.current || audioEncoderError) break;
+    const currentChunkSize = Math.min(chunkSize, totalSamples - s);
+
+    // Planar Float32 buffer: [ch0_samples..., ch1_samples...]
+    const planarBuffer = new Float32Array(currentChunkSize * numChannels);
+
+    for (let i = 0; i < currentChunkSize; i++) {
+      const overallIndex = s + i;
+      let fadeMultiplier = 1.0;
+      if (fadeOutSamples > 0 && overallIndex >= fadeOutStartIndex) {
+        const progress = (totalSamples - 1 - overallIndex) / fadeOutSamples;
+        fadeMultiplier = Math.sin((progress * Math.PI) / 2);
+      }
+
+      planarBuffer[i] = (ch0[startSample + overallIndex] || 0) * fadeMultiplier;
+      if (numChannels > 1) {
+        planarBuffer[currentChunkSize + i] = (ch1[startSample + overallIndex] || 0) * fadeMultiplier;
+      }
+    }
+
+    const timestampMicros = Math.round((s / sampleRate) * 1_000_000);
+    const audioData = new AudioData({
+      format: 'f32-planar',
+      sampleRate,
+      numberOfFrames: currentChunkSize,
+      numberOfChannels: numChannels,
+      timestamp: timestampMicros,
+      data: planarBuffer,
+    });
+
+    audioEncoder.encode(audioData);
+    audioData.close();
+  }
+
+  await audioEncoder.flush();
+  audioEncoder.close();
 }

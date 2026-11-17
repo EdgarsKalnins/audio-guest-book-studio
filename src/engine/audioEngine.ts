@@ -89,11 +89,12 @@ export class AudioEngine {
   }
 
   /**
-   * Generates a 16-bit PCM WAV binary for the current timeline buffer.
+   * Generates a 16-bit PCM WAV binary for the current timeline buffer,
+   * trimmed to the exact frame boundaries with gentle 0.3s fade-out.
    */
-  public getMasterWavBytes(): Uint8Array | null {
+  public getMasterWavBytes(trimStart = 0, trimEnd = 0): Uint8Array | null {
     if (!this.audioBuffer) return null;
-    return encodeAudioBufferToWav(this.audioBuffer);
+    return encodeAudioBufferToWav(this.audioBuffer, trimStart, trimEnd, true);
   }
 
   public setVoiceBoost(enabled: boolean) {
