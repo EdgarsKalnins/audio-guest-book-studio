@@ -2,6 +2,7 @@
  * Utility to concatenate multiple AudioBuffers into a single continuous timeline
  * and export an AudioBuffer as a standard 16-bit PCM WAV.
  */
+import { applySpeechClarifier } from './audioDenoise';
 
 export interface SequencedTrack {
   id: string;
@@ -87,7 +88,8 @@ export function encodeAudioBufferToWav(
   buffer: AudioBuffer,
   trimStart = 0,
   trimEnd = 0,
-  applyFadeOut = true
+  applyFadeOut = true,
+  clarifierOptions?: { enabled: boolean; sensitivity?: number; noiseGateThresholdDb?: number }
 ): Uint8Array {
   const numChannels = buffer.numberOfChannels;
   const sampleRate = buffer.sampleRate;
@@ -139,7 +141,15 @@ export function encodeAudioBufferToWav(
   let offset = 44;
   const channels: Float32Array[] = [];
   for (let ch = 0; ch < numChannels; ch++) {
-    channels.push(buffer.getChannelData(ch));
+    let chData = buffer.getChannelData(ch);
+    if (clarifierOptions && clarifierOptions.enabled) {
+      chData = applySpeechClarifier(chData, sampleRate, {
+        enabled: true,
+        presenceGainDb: 1.5 + (clarifierOptions.sensitivity ?? 0.6) * 4.5,
+        noiseGateThresholdDb: clarifierOptions.noiseGateThresholdDb ?? -42,
+      });
+    }
+    channels.push(chData);
   }
 
   // 0.3s smooth gentle sinusoidal fade-out window at the end

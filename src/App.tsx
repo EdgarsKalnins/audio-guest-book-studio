@@ -489,6 +489,10 @@ export const App: React.FC = () => {
     audioEngineRef.current.setVoiceBoost(enabled);
   };
 
+  const handleSpeechClarifierChange = (enabled: boolean, sensitivity?: number) => {
+    audioEngineRef.current.setSpeechClarifier(enabled, sensitivity);
+  };
+
   // Video Export for the complete continuous timeline sequence
   const handleStartSingleExport = async () => {
     if (!config.audioPath || config.audioDuration <= 0) {
@@ -836,6 +840,7 @@ export const App: React.FC = () => {
               config={config}
               updateConfig={setConfig}
               onVoiceBoostChange={handleVoiceBoostChange}
+              onSpeechClarifierChange={handleSpeechClarifierChange}
             />
           )}
         </div>

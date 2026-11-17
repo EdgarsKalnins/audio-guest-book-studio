@@ -147,6 +147,9 @@ export interface AudioSettings {
   trimStart: number;
   trimEnd: number;
   voiceBoost: boolean;
+  speechClarifier?: boolean;
+  clarifierSensitivity?: number;
+  noiseGateThresholdDb?: number;
 }
 
 export interface BatchItem {

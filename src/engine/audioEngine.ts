@@ -1,5 +1,6 @@
 import { computeFFT } from './fft';
 import { concatenateAudioBuffers, encodeAudioBufferToWav } from './audioConcatenator';
+import { createSpeechClarifierNodes } from './audioDenoise';
 import { TimelineTrack } from '../types/studio';
 
 export class AudioEngine {
@@ -8,11 +9,14 @@ export class AudioEngine {
   private sourceNode: AudioBufferSourceNode | null = null;
   private analyserNode: AnalyserNode | null = null;
   private gainNode: GainNode | null = null;
+  private clarifierGraph: ReturnType<typeof createSpeechClarifierNodes> | null = null;
 
   private isPlaying = false;
   private startTime = 0;
   private pauseOffset = 0;
   private voiceBoostEnabled = false;
+  private speechClarifierEnabled = false;
+  private clarifierSensitivity = 0.6;
 
   public duration = 0;
   public onTimeUpdate: ((time: number) => void) | null = null;
@@ -35,7 +39,13 @@ export class AudioEngine {
       this.gainNode = this.ctx.createGain();
       this.updateGain();
 
-      this.gainNode.connect(this.analyserNode);
+      this.clarifierGraph = createSpeechClarifierNodes(this.ctx, {
+        enabled: this.speechClarifierEnabled,
+        presenceGainDb: 1.5 + this.clarifierSensitivity * 4.5,
+      });
+
+      this.gainNode.connect(this.clarifierGraph.inputNode);
+      this.clarifierGraph.outputNode.connect(this.analyserNode);
       this.analyserNode.connect(this.ctx.destination);
     }
     if (this.ctx.state === 'suspended') {
@@ -94,14 +104,28 @@ export class AudioEngine {
    * Generates a 16-bit PCM WAV binary for the current timeline buffer,
    * trimmed to the exact frame boundaries with gentle 0.3s fade-out.
    */
-  public getMasterWavBytes(trimStart = 0, trimEnd = 0): Uint8Array | null {
+  public getMasterWavBytes(
+    trimStart = 0,
+    trimEnd = 0,
+    clarifierOptions?: { enabled: boolean; sensitivity?: number; noiseGateThresholdDb?: number }
+  ): Uint8Array | null {
     if (!this.audioBuffer) return null;
-    return encodeAudioBufferToWav(this.audioBuffer, trimStart, trimEnd, true);
+    const opts = clarifierOptions || (this.speechClarifierEnabled ? { enabled: true, sensitivity: this.clarifierSensitivity } : undefined);
+    return encodeAudioBufferToWav(this.audioBuffer, trimStart, trimEnd, true, opts);
   }
 
   public setVoiceBoost(enabled: boolean) {
     this.voiceBoostEnabled = enabled;
     this.updateGain();
+  }
+
+  public setSpeechClarifier(enabled: boolean, sensitivity = 0.6) {
+    this.speechClarifierEnabled = enabled;
+    this.clarifierSensitivity = sensitivity;
+    if (this.clarifierGraph) {
+      this.clarifierGraph.setEnabled(enabled);
+      this.clarifierGraph.setSensitivity(sensitivity);
+    }
   }
 
   private updateGain() {
