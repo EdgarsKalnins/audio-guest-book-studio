@@ -13,19 +13,144 @@ export interface SequencedTrack {
   endTime: number;
 }
 
+export interface ConcatenateOptions {
+  greetingBuffer?: AudioBuffer | null;
+  greetingName?: string;
+  includeBeep?: boolean;
+}
+
+/**
+ * Scans an AudioBuffer evaluating RMS energy blocks to detect exact speech boundaries.
+ * Automatically avoids clipping initial consonants or trailing voice breaths.
+ */
+export function detectSpeechBoundaries(
+  buffer: AudioBuffer,
+  thresholdDb = -45,
+  paddingSec = 0.08
+): { speechStart: number; speechEnd: number } {
+  const sampleRate = buffer.sampleRate;
+  const numChannels = buffer.numberOfChannels;
+  const totalSamples = buffer.length;
+  const duration = buffer.duration;
+
+  if (totalSamples === 0 || duration <= 0) {
+    return { speechStart: 0, speechEnd: 0 };
+  }
+
+  const thresholdLinear = Math.pow(10, thresholdDb / 20);
+  const blockSize = Math.max(1, Math.floor(sampleRate * 0.02)); // 20ms blocks
+  const numBlocks = Math.floor(totalSamples / blockSize);
+
+  let firstSpeechBlock = -1;
+  let lastSpeechBlock = -1;
+
+  const channels: Float32Array[] = [];
+  for (let ch = 0; ch < numChannels; ch++) {
+    channels.push(buffer.getChannelData(ch));
+  }
+
+  for (let b = 0; b < numBlocks; b++) {
+    const startIdx = b * blockSize;
+    const endIdx = Math.min(totalSamples, startIdx + blockSize);
+    let sumSquares = 0;
+    const count = endIdx - startIdx;
+
+    for (let i = startIdx; i < endIdx; i++) {
+      let maxSample = 0;
+      for (let ch = 0; ch < numChannels; ch++) {
+        const val = Math.abs(channels[ch][i]);
+        if (val > maxSample) maxSample = val;
+      }
+      sumSquares += maxSample * maxSample;
+    }
+
+    const rms = Math.sqrt(sumSquares / count);
+
+    if (rms >= thresholdLinear) {
+      if (firstSpeechBlock === -1) {
+        firstSpeechBlock = b;
+      }
+      lastSpeechBlock = b;
+    }
+  }
+
+  if (firstSpeechBlock === -1 || lastSpeechBlock === -1) {
+    return { speechStart: 0, speechEnd: duration };
+  }
+
+  const rawStart = (firstSpeechBlock * blockSize) / sampleRate;
+  const rawEnd = Math.min(duration, ((lastSpeechBlock + 1) * blockSize) / sampleRate);
+
+  const speechStart = Math.max(0, rawStart - paddingSec);
+  const speechEnd = Math.min(duration, rawEnd + paddingSec);
+
+  return { speechStart, speechEnd };
+}
+
+/**
+ * Synthesizes an authentic 800Hz vintage telephone prompt BEEP tone.
+ */
+export function generateTelephoneBeep(
+  ctx: AudioContext,
+  frequency = 800,
+  durationSec = 0.3
+): AudioBuffer {
+  const sampleRate = ctx.sampleRate;
+  const numSamples = Math.floor(sampleRate * durationSec);
+  const buffer = ctx.createBuffer(1, numSamples, sampleRate);
+  const channel = buffer.getChannelData(0);
+
+  const rampSamples = Math.floor(sampleRate * 0.01); // 10ms smooth ramp
+
+  for (let i = 0; i < numSamples; i++) {
+    let env = 1.0;
+    if (i < rampSamples) {
+      env = i / rampSamples;
+    } else if (i > numSamples - rampSamples) {
+      env = (numSamples - i) / rampSamples;
+    }
+    channel[i] = 0.45 * env * Math.sin((2 * Math.PI * frequency * i) / sampleRate);
+  }
+
+  return buffer;
+}
+
 export function concatenateAudioBuffers(
   ctx: AudioContext,
   buffers: AudioBuffer[],
-  gapSeconds = 0.5
+  gapSeconds = 0.5,
+  options?: ConcatenateOptions
 ): { masterBuffer: AudioBuffer; tracks: SequencedTrack[] } {
-  if (buffers.length === 0) {
+  if (buffers.length === 0 && !options?.greetingBuffer) {
     throw new Error('No audio buffers provided for sequence');
   }
 
+  const allBuffers: AudioBuffer[] = [];
+  const trackLabels: string[] = [];
+
+  // 1. Prepend couple's greeting audio if provided
+  if (options?.greetingBuffer) {
+    allBuffers.push(options.greetingBuffer);
+    trackLabels.push(options.greetingName || 'Outgoing Greeting');
+
+    // Add vintage 800Hz telephone beep
+    if (options.includeBeep !== false) {
+      const beepBuffer = generateTelephoneBeep(ctx, 800, 0.3);
+      allBuffers.push(beepBuffer);
+      trackLabels.push('Telephone Prompt Beep');
+    }
+  }
+
+  // 2. Append guest recordings
+  for (let i = 0; i < buffers.length; i++) {
+    allBuffers.push(buffers[i]);
+    trackLabels.push(`Guest Recording #${i + 1}`);
+  }
+
   // Find sample rate and max channel count
-  const sampleRate = buffers[0].sampleRate;
+  const sampleRate = allBuffers[0].sampleRate;
   let numChannels = 1;
-  for (const b of buffers) {
+  for (const b of allBuffers) {
     if (b.numberOfChannels > numChannels) {
       numChannels = b.numberOfChannels;
     }
@@ -35,22 +160,27 @@ export function concatenateAudioBuffers(
   let currentTime = 0;
   const tracks: SequencedTrack[] = [];
 
-  for (let i = 0; i < buffers.length; i++) {
-    const b = buffers[i];
+  for (let i = 0; i < allBuffers.length; i++) {
+    const b = allBuffers[i];
     const dur = b.duration;
     const start = currentTime;
     const end = start + dur;
 
     tracks.push({
       id: `track-${i}-${Date.now()}`,
-      name: `Track ${i + 1}`,
+      name: trackLabels[i] || `Track ${i + 1}`,
       path: '',
       duration: dur,
       startTime: start,
       endTime: end,
     });
 
-    currentTime = end + (i < buffers.length - 1 ? gapSeconds : 0);
+    // Spacing: standard gap between tracks, 0.25s after beep
+    const isBeep = trackLabels[i] === 'Telephone Prompt Beep';
+    const isGreeting = trackLabels[i].includes('Greeting');
+    const interTrackGap = isBeep ? 0.3 : isGreeting ? 0.2 : gapSeconds;
+
+    currentTime = end + (i < allBuffers.length - 1 ? interTrackGap : 0);
   }
 
   const totalDuration = currentTime;
@@ -59,13 +189,12 @@ export function concatenateAudioBuffers(
   const masterBuffer = ctx.createBuffer(numChannels, totalSamples, sampleRate);
 
   // Copy each buffer's samples into the master buffer
-  for (let i = 0; i < buffers.length; i++) {
-    const b = buffers[i];
+  for (let i = 0; i < allBuffers.length; i++) {
+    const b = allBuffers[i];
     const trackInfo = tracks[i];
     const startSample = Math.floor(trackInfo.startTime * sampleRate);
 
     for (let ch = 0; ch < numChannels; ch++) {
-      // Use ch if source has it, or channel 0 if source is mono
       const srcCh = Math.min(ch, b.numberOfChannels - 1);
       const srcData = b.getChannelData(srcCh);
       const destData = masterBuffer.getChannelData(ch);

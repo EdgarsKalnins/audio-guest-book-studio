@@ -21,6 +21,7 @@ import {
 } from './types/studio';
 import { AudioEngine } from './engine/audioEngine';
 import { runExportPipeline } from './engine/frameGenerator';
+import { detectSpeechBoundaries } from './engine/audioConcatenator';
 import { CanvasStage } from './components/CanvasStage';
 import { MediaDropzone } from './components/MediaDropzone';
 import { VisualizerPanel } from './components/VisualizerPanel';
@@ -493,6 +494,23 @@ export const App: React.FC = () => {
     audioEngineRef.current.setSpeechClarifier(enabled, sensitivity);
   };
 
+  const handleAutoTrimSilence = () => {
+    const rawBuf = audioEngineRef.current.getRawBuffer();
+    if (!rawBuf) return;
+    const { speechStart, speechEnd } = detectSpeechBoundaries(
+      rawBuf,
+      config.audioSettings.noiseGateThresholdDb ?? -45
+    );
+    setConfig((prev) => ({
+      ...prev,
+      audioSettings: {
+        ...prev.audioSettings,
+        trimStart: Math.round(speechStart * 10) / 10,
+        trimEnd: Math.round(speechEnd * 10) / 10,
+      },
+    }));
+  };
+
   // Video Export for the complete continuous timeline sequence
   const handleStartSingleExport = async () => {
     if (!config.audioPath || config.audioDuration <= 0) {
@@ -845,6 +863,7 @@ export const App: React.FC = () => {
               updateConfig={setConfig}
               onVoiceBoostChange={handleVoiceBoostChange}
               onSpeechClarifierChange={handleSpeechClarifierChange}
+              onAutoTrimSilence={handleAutoTrimSilence}
             />
           )}
         </div>

@@ -7,6 +7,7 @@ interface AudioToolsPanelProps {
   updateConfig: (updater: (prev: StudioConfig) => StudioConfig) => void;
   onVoiceBoostChange: (enabled: boolean) => void;
   onSpeechClarifierChange?: (enabled: boolean, sensitivity?: number) => void;
+  onAutoTrimSilence?: () => void;
 }
 
 export const AudioToolsPanel: React.FC<AudioToolsPanelProps> = ({
@@ -14,6 +15,7 @@ export const AudioToolsPanel: React.FC<AudioToolsPanelProps> = ({
   updateConfig,
   onVoiceBoostChange,
   onSpeechClarifierChange,
+  onAutoTrimSilence,
 }) => {
   const dur = config.audioDuration || 0;
   const {
@@ -192,15 +194,28 @@ export const AudioToolsPanel: React.FC<AudioToolsPanelProps> = ({
             <Scissors weight="light" className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
             Voice Trimmer
           </span>
-          {(trimStart > 0 || (trimEnd > 0 && trimEnd < dur)) && (
-            <button
-              onClick={resetTrim}
-              className="text-[11px] text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 flex items-center gap-1 transition-colors"
-            >
-              <ArrowCounterClockwise weight="light" className="w-3 h-3" />
-              Reset
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {dur > 0 && onAutoTrimSilence && (
+              <button
+                type="button"
+                onClick={onAutoTrimSilence}
+                className="text-[11px] px-2 py-1 rounded-md bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-white/10 flex items-center gap-1 transition-all shadow-sm font-medium active:scale-95"
+                title="Automatically scan and cut leading/trailing silence"
+              >
+                <Sparkle weight="bold" className="w-3 h-3 text-amber-500" />
+                Auto-Detect Silence
+              </button>
+            )}
+            {(trimStart > 0 || (trimEnd > 0 && trimEnd < dur)) && (
+              <button
+                onClick={resetTrim}
+                className="text-[11px] text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 flex items-center gap-1 transition-colors"
+              >
+                <ArrowCounterClockwise weight="light" className="w-3 h-3" />
+                Reset
+              </button>
+            )}
+          </div>
         </div>
 
         {dur > 0 ? (

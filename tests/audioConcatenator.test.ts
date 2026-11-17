@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { encodeAudioBufferToWav } from '../src/engine/audioConcatenator';
+import {
+  encodeAudioBufferToWav,
+  detectSpeechBoundaries,
+  generateTelephoneBeep,
+  concatenateAudioBuffers,
+} from '../src/engine/audioConcatenator';
 
 describe('AudioConcatenator', () => {
   it('encodes an AudioBuffer into a valid 16-bit PCM WAV binary format', () => {
@@ -65,5 +70,108 @@ describe('AudioConcatenator', () => {
     const midSampleOffset = 44 + Math.floor(44100 * 0.2) * 2;
     const midSampleInt16 = view.getInt16(midSampleOffset, true);
     expect(midSampleInt16).toBeGreaterThan(25000);
+  });
+
+  it('accurately detects speech boundaries and skips leading/trailing silence', () => {
+    const sampleRate = 44100;
+    // 3.5 seconds total: 1.0s silence, 1.5s speech (tone), 1.0s silence
+    const totalSamples = Math.floor(sampleRate * 3.5);
+    const data = new Float32Array(totalSamples);
+
+    const speechStartSample = sampleRate * 1.0;
+    const speechEndSample = sampleRate * 2.5;
+    for (let i = speechStartSample; i < speechEndSample; i++) {
+      data[i] = 0.5 * Math.sin((2 * Math.PI * 440 * i) / sampleRate);
+    }
+
+    const mockBuffer = {
+      numberOfChannels: 1,
+      sampleRate,
+      length: totalSamples,
+      duration: 3.5,
+      getChannelData: () => data,
+    } as unknown as AudioBuffer;
+
+    const { speechStart, speechEnd } = detectSpeechBoundaries(mockBuffer, -40, 0.05);
+
+    // speechStart should be ~0.95 - 1.0s (due to 0.05s safety padding)
+    expect(speechStart).toBeGreaterThanOrEqual(0.9);
+    expect(speechStart).toBeLessThanOrEqual(1.05);
+
+    // speechEnd should be ~2.5 - 2.6s
+    expect(speechEnd).toBeGreaterThanOrEqual(2.45);
+    expect(speechEnd).toBeLessThanOrEqual(2.65);
+  });
+
+  it('synthesizes an authentic 800Hz telephone beep tone without artifacts', () => {
+    const mockCtx = {
+      sampleRate: 44100,
+      createBuffer: (channels: number, length: number, sampleRate: number) => {
+        const data = new Float32Array(length);
+        return {
+          numberOfChannels: channels,
+          length,
+          sampleRate,
+          duration: length / sampleRate,
+          getChannelData: () => data,
+        };
+      },
+    } as unknown as AudioContext;
+
+    const beep = generateTelephoneBeep(mockCtx, 800, 0.3);
+    expect(beep.duration).toBeCloseTo(0.3, 2);
+
+    const data = beep.getChannelData(0);
+    expect(data.length).toBe(Math.floor(44100 * 0.3));
+
+    // Verify first and last samples are 0 (smooth ramp)
+    expect(data[0]).toBe(0);
+    expect(Math.abs(data[data.length - 1])).toBeLessThan(0.01);
+  });
+
+  it('prepends greeting prompt and telephone beep seamlessly in sequence', () => {
+    const sampleRate = 44100;
+    const makeBuf = (dur: number) => {
+      const len = Math.floor(sampleRate * dur);
+      const d = new Float32Array(len).fill(0.3);
+      return {
+        numberOfChannels: 1,
+        sampleRate,
+        length: len,
+        duration: dur,
+        getChannelData: () => d,
+      } as unknown as AudioBuffer;
+    };
+
+    const mockCtx = {
+      sampleRate: 44100,
+      createBuffer: (channels: number, length: number, sampleRate: number) => {
+        const data = new Float32Array(length);
+        return {
+          numberOfChannels: channels,
+          length,
+          sampleRate,
+          duration: length / sampleRate,
+          getChannelData: () => data,
+        };
+      },
+    } as unknown as AudioContext;
+
+    const greeting = makeBuf(1.5);
+    const guest1 = makeBuf(2.0);
+
+    const { masterBuffer, tracks } = concatenateAudioBuffers(mockCtx, [guest1], 0.5, {
+      greetingBuffer: greeting,
+      includeBeep: true,
+      greetingName: 'Our Voicemail Prompt',
+    });
+
+    // 3 tracks: Greeting, Telephone Prompt Beep, Guest Recording #1
+    expect(tracks.length).toBe(3);
+    expect(tracks[0].name).toBe('Our Voicemail Prompt');
+    expect(tracks[1].name).toBe('Telephone Prompt Beep');
+    expect(tracks[2].name).toBe('Guest Recording #1');
+
+    expect(masterBuffer.duration).toBeGreaterThan(3.5);
   });
 });
