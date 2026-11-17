@@ -91,7 +91,7 @@ export const QrWatermarkPanel: React.FC<QrWatermarkPanelProps> = ({
           {/* 2. Target URL */}
           <div>
             <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <Link weight="light" className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
+              <Link weight="regular" className="w-3.5 h-3.5 text-amber-500" />
               Target Website / Gallery URL
             </label>
             <div className="space-y-1.5">
@@ -117,7 +117,7 @@ export const QrWatermarkPanel: React.FC<QrWatermarkPanelProps> = ({
           {/* 3. Corner Positioning */}
           <div>
             <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <BoundingBox weight="light" className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
+              <BoundingBox weight="regular" className="w-3.5 h-3.5 text-amber-500" />
               Corner Placement
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -152,7 +152,7 @@ export const QrWatermarkPanel: React.FC<QrWatermarkPanelProps> = ({
           {/* 4. Opacity & Badge Size Sliders */}
           <div>
             <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <SlidersHorizontal weight="light" className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
+              <SlidersHorizontal weight="regular" className="w-3.5 h-3.5 text-amber-500" />
               Opacity & Badge Scaling
             </label>
             <div className="space-y-3 bg-white dark:bg-[#18181c] p-3.5 rounded-xl border border-zinc-200 dark:border-white/[0.08] shadow-sm">
@@ -197,7 +197,7 @@ export const QrWatermarkPanel: React.FC<QrWatermarkPanelProps> = ({
           {/* 5. Optional Micro-Label */}
           <div>
             <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <TextT weight="light" className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
+              <TextT weight="regular" className="w-3.5 h-3.5 text-amber-500" />
               Badge Subtitle / Call-to-Action
             </label>
             <input

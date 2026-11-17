@@ -1057,7 +1057,7 @@ export const App: React.FC = () => {
               }`}
               title="Audio Visualizer Style & Waveform"
             >
-              <Waveform className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'visualizer' ? 'text-amber-500' : ''}`} weight={activeTab === 'visualizer' ? 'bold' : 'regular'} />
+              <Waveform className="w-3.5 h-3.5 shrink-0 text-amber-500" weight={activeTab === 'visualizer' ? 'bold' : 'regular'} />
               <span className="truncate">Visualizer</span>
             </button>
             <button
@@ -1069,7 +1069,7 @@ export const App: React.FC = () => {
               }`}
               title="Polaroid, Photostrip & Retro Templates"
             >
-              <Camera className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'frames' ? 'text-amber-500' : 'text-amber-500/80 dark:text-amber-400/80'}`} weight={activeTab === 'frames' ? 'bold' : 'regular'} />
+              <Camera className="w-3.5 h-3.5 shrink-0 text-amber-500" weight={activeTab === 'frames' ? 'bold' : 'regular'} />
               <span className="truncate">Frames</span>
               {config.frame?.template !== 'haute-couture' && (
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
@@ -1084,7 +1084,7 @@ export const App: React.FC = () => {
               }`}
               title="Procedural Motion Backgrounds & Shaders"
             >
-              <FilmReel className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'motion' ? 'text-amber-500' : 'text-amber-500/80 dark:text-amber-400/80'}`} weight={activeTab === 'motion' ? 'bold' : 'regular'} />
+              <FilmReel className="w-3.5 h-3.5 shrink-0 text-amber-500" weight={activeTab === 'motion' ? 'bold' : 'regular'} />
               <span className="truncate">Motion</span>
               {(config.motion?.preset !== 'none' || Boolean(config.motion?.videoUrl)) && (
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
@@ -1103,7 +1103,7 @@ export const App: React.FC = () => {
               }`}
               title="Couple Names, Wedding Date & Fonts"
             >
-              <TextT className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'typography' ? 'text-amber-500' : ''}`} weight={activeTab === 'typography' ? 'bold' : 'regular'} />
+              <TextT className="w-3.5 h-3.5 shrink-0 text-amber-500" weight={activeTab === 'typography' ? 'bold' : 'regular'} />
               <span className="truncate">Titles</span>
             </button>
             <button
@@ -1115,7 +1115,7 @@ export const App: React.FC = () => {
               }`}
               title="AI Speech-to-Text & Karaoke Subtitles"
             >
-              <ChatCenteredText className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'subtitles' ? 'text-amber-500' : 'text-amber-500/80 dark:text-amber-400/80'}`} weight={activeTab === 'subtitles' ? 'bold' : 'regular'} />
+              <ChatCenteredText className="w-3.5 h-3.5 shrink-0 text-amber-500" weight={activeTab === 'subtitles' ? 'bold' : 'regular'} />
               <span className="truncate">Captions</span>
               {config.subtitles?.enabled && (
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
@@ -1130,7 +1130,7 @@ export const App: React.FC = () => {
               }`}
               title="Dynamic Scannable Audio QR Code Watermark"
             >
-              <QrCode className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'qr' ? 'text-amber-500' : 'text-amber-500/80 dark:text-amber-400/80'}`} weight={activeTab === 'qr' ? 'bold' : 'regular'} />
+              <QrCode className="w-3.5 h-3.5 shrink-0 text-amber-500" weight={activeTab === 'qr' ? 'bold' : 'regular'} />
               <span className="truncate">QR Code</span>
               {config.qrWatermark?.enabled && (
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
@@ -1145,7 +1145,7 @@ export const App: React.FC = () => {
               }`}
               title="Voice Boost, Noise Gate & Speech Clarifier"
             >
-              <SpeakerHigh className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'audio' ? 'text-amber-500' : ''}`} weight={activeTab === 'audio' ? 'bold' : 'regular'} />
+              <SpeakerHigh className="w-3.5 h-3.5 shrink-0 text-amber-500" weight={activeTab === 'audio' ? 'bold' : 'regular'} />
               <span className="truncate">Audio</span>
               {(config.audioSettings?.voiceBoost || config.audioSettings?.speechClarifier) && (
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />

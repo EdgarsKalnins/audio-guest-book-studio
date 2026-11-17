@@ -205,9 +205,9 @@ export const SubtitlePanel: React.FC<SubtitlePanelProps> = ({ config, updateConf
           <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${
             isEnabled
               ? 'bg-amber-100 dark:bg-amber-950/70 text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-500/30'
-              : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 border border-zinc-200 dark:border-white/10'
+              : 'bg-zinc-100 dark:bg-zinc-800 text-amber-500 border border-zinc-200 dark:border-white/10'
           }`}>
-            <ChatCenteredText weight="bold" className="w-4 h-4" />
+            <ChatCenteredText weight="bold" className="w-4 h-4 text-amber-500" />
           </div>
           <div>
             <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">

@@ -73,7 +73,7 @@ export const MotionBackgroundPanel: React.FC<MotionBackgroundPanelProps> = ({ co
       <div>
         <div className="flex items-center justify-between mb-1">
           <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
-            <FilmReel weight="light" className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
+            <FilmReel weight="regular" className="w-3.5 h-3.5 text-amber-500" />
             Animated Motion & B-Roll Shaders
           </label>
         </div>

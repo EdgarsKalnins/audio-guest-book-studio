@@ -23,7 +23,7 @@ export const TypographyPanel: React.FC<TypographyPanelProps> = ({ config, update
       <div className="flex items-center justify-between p-3.5 rounded-xl bg-white dark:bg-[#18181c] border border-zinc-200 dark:border-white/[0.08] shadow-sm">
         <div>
           <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
-            <TextT weight="light" className="w-4 h-4 text-zinc-500 dark:text-zinc-300" />
+            <TextT weight="regular" className="w-4 h-4 text-amber-500" />
             Wedding Typography Overlay
           </span>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Display couple names, wedding date & subtitle</p>
@@ -162,7 +162,7 @@ export const TypographyPanel: React.FC<TypographyPanelProps> = ({ config, update
           {/* Show Playback Timer Checkbox */}
           <div className="pt-2 border-t border-zinc-100 dark:border-white/[0.06] flex items-center justify-between">
             <label className="text-xs text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5 cursor-pointer">
-              <Clock weight="light" className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
+              <Clock weight="regular" className="w-3.5 h-3.5 text-amber-500" />
               Display Playback Timestamp
             </label>
             <input
