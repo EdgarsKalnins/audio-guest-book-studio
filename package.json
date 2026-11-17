@@ -1,5 +1,5 @@
 {
-  "name": "wedding-audio-studio",
+  "name": "audio-guest-book-studio",
   "version": "1.0.0",
   "description": "Elegant desktop app for compiling wedding audio guest records into shareable visualizer videos",
   "license": "MIT",
@@ -14,8 +14,8 @@
     "start": "electron ."
   },
   "build": {
-    "appId": "com.weddingaudiostudio.app",
-    "productName": "Wedding Audio Studio",
+    "appId": "com.audioguestbookstudio.app",
+    "productName": "Audio Guest Book Studio",
     "mac": {
       "category": "public.app-category.video",
       "target": [

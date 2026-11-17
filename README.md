@@ -1,4 +1,4 @@
-# Wedding Audio Studio 💍🎙️
+# Audio Guest Book Studio 💍🎙️
 
 > **An elegant, private, open-source desktop application that turns vintage audio guestbook voicemails and wedding recordings into cinematic 1080p MP4 videos with centered real-time audio visualizers, background photos, and haute-couture typography.**
 
@@ -8,6 +8,51 @@
 [![React 19](https://img.shields.io/badge/React-19.0-61dafb.svg)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178c6.svg)](https://www.typescriptlang.org)
 [![Vite](https://img.shields.io/badge/Vite-6.0-646cff.svg)](https://vitejs.dev)
+
+---
+
+## 🤖 Ask an AI Agent to Run This Project
+
+Working with an AI coding agent (**Claude Code**, **Cursor**, **Codex**, **Windsurf**, **Antigravity**, **OpenCode**, or **Gemini CLI**)? You can hand this repository directly to your agent to run, test, and develop.
+
+### Copy & Paste Prompt for Your Agent:
+
+```markdown
+Clone https://github.com/your-username/audio-guest-book-studio.git, install dependencies using `npm install`, verify the test suite with `npm test`, compile the TypeScript bundle via `npm run build`, and launch the development studio with `npm run dev`.
+```
+
+### Agent Quick-Start Instructions:
+
+```bash
+# 1. Clone repository from GitHub
+git clone https://github.com/your-username/audio-guest-book-studio.git
+cd audio-guest-book-studio
+
+# 2. Install dependencies
+npm install
+
+# 3. Run automated test suite (18 unit & integration tests)
+npm test
+
+# 4. Compile production bundles
+npm run build
+
+# 5. Launch development server & Electron studio
+npm run dev
+```
+
+### Key Technical Context for Agents:
+- **Stack**: React 19, TypeScript 5.6, Vite 6, Tailwind CSS v3 (`darkMode: 'class'`), `@phosphor-icons/react`.
+- **Desktop Runtime**: Electron 33 with secure Context Isolation (`electron/main.ts`, `electron/preload.ts`).
+- **Core Engine Modules**:
+  - Web Audio player & dynamic range compressor: [`src/engine/audioEngine.ts`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/src/engine/audioEngine.ts)
+  - Multi-track timeline sequencing: [`src/engine/audioConcatenator.ts`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/src/engine/audioConcatenator.ts)
+  - In-memory Cooley-Tukey Radix-2 FFT: [`src/engine/fft.ts`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/src/engine/fft.ts)
+  - Frame rendering orchestrator: [`src/engine/frameGenerator.ts`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/src/engine/frameGenerator.ts)
+  - Bundled FFmpeg pipe: [`src/engine/videoExporter.ts`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/src/engine/videoExporter.ts)
+  - 8 Visualizer algorithms: [`src/engine/visualizers/styles.ts`](file:///Users/edgarskalnins/Desktop/Wedding%20Audio%20Studio/src/engine/visualizers/styles.ts)
+- **Local Dev Server**: Vite runs on `http://localhost:5173/`. Can be tested in any browser or headless automation tool (`ego-browser`, Playwright, Puppeteer).
+- **Strict Privacy Requirement**: Zero telemetry, zero analytics, zero external network pings. All processing runs 100% locally.
 
 ---
 
@@ -21,9 +66,9 @@
 
 ## 🔒 Privacy & Zero-Telemetry Pledge
 
-Wedding voicemails are deeply intimate family moments: heartfelt grandparent blessings, tearful parental toasts, and hilarious late-night voicemail messages from closest friends.
+Wedding and event voicemails are deeply intimate family moments: heartfelt grandparent blessings, tearful parental toasts, and hilarious late-night messages from closest friends.
 
-**Wedding Audio Studio is built on an absolute local-first architecture:**
+**Audio Guest Book Studio is built on an absolute local-first architecture:**
 - **Zero Cloud Uploads**: Audio, photos, and video compilation never leave your computer.
 - **Zero Telemetry & Analytics**: No Google Analytics, no Mixpanel, no Sentry, no phone-home pingbacks, and no user tracking.
 - **100% Offline Capability**: Runs entirely without an active internet connection. All font families, icons, and encoder binaries are packaged locally.
@@ -137,7 +182,7 @@ Every module in this project is strictly decoupled, strongly typed, and thorough
 
 ## 💻 Platform Support
 
-Wedding Audio Studio is engineered to compile and run smoothly across all major desktop operating systems without platform lock-in:
+Audio Guest Book Studio is engineered to compile and run smoothly across all major desktop operating systems without platform lock-in:
 
 | Platform | Target Binaries | Architecture | Acceleration |
 | :--- | :--- | :--- | :--- |
@@ -155,8 +200,8 @@ Wedding Audio Studio is engineered to compile and run smoothly across all major 
 
 ### 1. Clone & Install
 ```bash
-git clone https://github.com/your-username/wedding-audio-studio.git
-cd wedding-audio-studio
+git clone https://github.com/your-username/audio-guest-book-studio.git
+cd audio-guest-book-studio
 npm install
 ```
 

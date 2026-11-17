@@ -633,7 +633,7 @@ export const App: React.FC = () => {
               <Sparkle className="w-3.5 h-3.5" weight="fill" />
             </div>
             <div>
-              <h1 className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">Wedding Audio Studio</h1>
+              <h1 className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">Audio Guest Book Studio</h1>
               <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Guest Record Video Generator</p>
             </div>
           </div>

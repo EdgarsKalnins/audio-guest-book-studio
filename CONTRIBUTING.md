@@ -1,6 +1,6 @@
-# Contributing to Wedding Audio Studio 💍🎙️
+# Contributing to Audio Guest Book Studio 💍🎙️
 
-Thank you for your interest in contributing to Wedding Audio Studio! We welcome community contributions to make this open-source tool the most reliable, private, and beautiful audio guestbook video generator available.
+Thank you for your interest in contributing to Audio Guest Book Studio! We welcome community contributions to make this open-source tool the most reliable, private, and beautiful audio guestbook video generator available.
 
 ---
 
@@ -24,8 +24,8 @@ Wedding voicemails are deeply personal and sentimental recordings. Any pull requ
 
 1. **Fork and Clone**
    ```bash
-   git clone https://github.com/<your-username>/wedding-audio-studio.git
-   cd wedding-audio-studio
+   git clone https://github.com/<your-username>/audio-guest-book-studio.git
+   cd audio-guest-book-studio
    ```
 
 2. **Install Dependencies**

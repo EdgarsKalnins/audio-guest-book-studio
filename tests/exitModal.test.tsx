@@ -29,7 +29,7 @@ describe('ExitModal Confirmation Component', () => {
       />
     );
 
-    expect(html).toContain('Exit Wedding Audio Studio?');
+    expect(html).toContain('Exit Audio Guest Book Studio?');
     expect(html).toContain('3');
     expect(html).toContain('guest recording');
     expect(html).toContain('Sarah &amp; Michael - Voicemail.mp3');

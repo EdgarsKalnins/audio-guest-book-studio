@@ -49,7 +49,7 @@ function createWindow() {
   const isMac = process.platform === 'darwin';
 
   win = new BrowserWindow({
-    title: 'Wedding Audio Studio',
+    title: 'Audio Guest Book Studio',
     width: 1280,
     height: 840,
     minWidth: 1060,

@@ -67,7 +67,7 @@ export const ExitModal: React.FC<ExitModalProps> = ({
             </div>
             <div>
               <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight">
-                {isExporting ? 'Cancel Export & Exit Studio?' : 'Exit Wedding Audio Studio?'}
+                {isExporting ? 'Cancel Export & Exit Studio?' : 'Exit Audio Guest Book Studio?'}
               </h3>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                 {isExporting
@@ -137,7 +137,7 @@ export const ExitModal: React.FC<ExitModalProps> = ({
             </div>
           ) : (
             <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-              Are you sure you want to close Wedding Audio Studio? Any temporary changes will be
+              Are you sure you want to close Audio Guest Book Studio? Any temporary changes will be
               closed.
             </p>
           )}
