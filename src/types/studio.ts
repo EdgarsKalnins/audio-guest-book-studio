@@ -122,6 +122,17 @@ export const GRADIENT_PRESETS: GradientPreset[] = [
   },
 ];
 
+export type QrPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+
+export interface QrWatermarkConfig {
+  enabled: boolean;
+  url: string;
+  position: QrPosition;
+  opacity: number; // 0.1 to 1.0
+  label: string; // e.g. 'Scan to Listen'
+  size: number; // base size (e.g. 100 to 200, default 130)
+}
+
 export interface TypographyConfig {
   enabled: boolean;
   coupleNames: string;
@@ -168,6 +179,7 @@ export interface StudioConfig {
   strokeWidth?: number;
   lineCap?: 'round' | 'butt' | 'square';
   particleDensity?: number;
+  qrWatermark: QrWatermarkConfig;
   typography: TypographyConfig;
   audioSettings: AudioSettings;
   audioPath: string | null;

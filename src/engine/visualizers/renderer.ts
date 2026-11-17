@@ -1,4 +1,5 @@
 import { StudioConfig, VisualizerStyle, GRADIENT_PRESETS } from '../../types/studio';
+import { drawQrBadge } from '../qrGenerator';
 
 export function getVisualizerPattern(
   ctx: CanvasRenderingContext2D,
@@ -89,6 +90,11 @@ export function createStaticBackgroundCache(
   // 2. Draw Wedding Typography Overlay
   if (config.typography.enabled) {
     drawTypography(ctx, width, height, config.typography);
+  }
+
+  // 3. Draw Dynamic QR Code Watermark (if enabled)
+  if (config.qrWatermark && config.qrWatermark.enabled) {
+    drawQrBadge(ctx, width, height, config.qrWatermark);
   }
 
   return cacheCanvas;
@@ -228,6 +234,11 @@ export function drawStudioFrame(
   // 4. Draw Audio Playback Timer & Progress below visualizer (if enabled)
   if (config.typography.enabled && config.typography.showTimer) {
     drawTimer(ctx, centerX, centerY + (height * 0.18 * config.visualizerScale), currentTime, duration, config, pattern);
+  }
+
+  // 5. Draw Dynamic QR Code Watermark (when static background cache is not used)
+  if (!staticBackgroundCache && config.qrWatermark && config.qrWatermark.enabled) {
+    drawQrBadge(ctx, width, height, config.qrWatermark);
   }
 }
 

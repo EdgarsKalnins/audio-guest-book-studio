@@ -9,6 +9,7 @@ import {
   SignOut,
   Sun,
   Moon,
+  QrCode,
 } from '@phosphor-icons/react';
 import {
   StudioConfig,
@@ -24,6 +25,7 @@ import { CanvasStage } from './components/CanvasStage';
 import { MediaDropzone } from './components/MediaDropzone';
 import { VisualizerPanel } from './components/VisualizerPanel';
 import { TypographyPanel } from './components/TypographyPanel';
+import { QrWatermarkPanel } from './components/QrWatermarkPanel';
 import { AudioToolsPanel } from './components/AudioToolsPanel';
 import { ExportModal } from './components/ExportModal';
 import { ExitModal } from './components/ExitModal';
@@ -52,6 +54,14 @@ export const App: React.FC = () => {
       showTimer: true,
       fontSize: 1.0,
     },
+    qrWatermark: {
+      enabled: false,
+      url: 'https://momentbox.lv',
+      position: 'bottom-right',
+      opacity: 0.9,
+      label: 'Scan to listen',
+      size: 130,
+    },
     audioSettings: {
       trimStart: 0,
       trimEnd: 0,
@@ -66,7 +76,7 @@ export const App: React.FC = () => {
     gapBetweenTracks: 0.5,
   });
 
-  const [activeTab, setActiveTab] = useState<'visualizer' | 'typography' | 'audio'>('visualizer');
+  const [activeTab, setActiveTab] = useState<'visualizer' | 'typography' | 'qr' | 'audio'>('visualizer');
   const [bgImage, setBgImage] = useState<HTMLImageElement | null>(null);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isExitModalOpen, setIsExitModalOpen] = useState(false);
@@ -741,34 +751,47 @@ export const App: React.FC = () => {
             onClick={() => setActiveTab('visualizer')}
             className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
               activeTab === 'visualizer'
-                ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-white/[0.08]'
+                ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-white/[0.08] font-semibold'
                 : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40'
             }`}
           >
             <Waveform className="w-3.5 h-3.5" weight="regular" />
-            Style & Media
+            <span className="hidden sm:inline">Style & Media</span>
+            <span className="sm:hidden">Style</span>
           </button>
           <button
             onClick={() => setActiveTab('typography')}
             className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
               activeTab === 'typography'
-                ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-white/[0.08]'
+                ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-white/[0.08] font-semibold'
                 : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40'
             }`}
           >
             <TextT className="w-3.5 h-3.5" weight="regular" />
-            Typography
+            <span>Titles</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('qr')}
+            className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
+              activeTab === 'qr'
+                ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-white/[0.08] font-semibold'
+                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40'
+            }`}
+          >
+            <QrCode className="w-3.5 h-3.5 text-amber-500" weight="regular" />
+            <span>QR Badge</span>
           </button>
           <button
             onClick={() => setActiveTab('audio')}
             className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
               activeTab === 'audio'
-                ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-white/[0.08]'
+                ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-white/[0.08] font-semibold'
                 : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40'
             }`}
           >
             <SpeakerHigh className="w-3.5 h-3.5" weight="regular" />
-            Voice Clean-up
+            <span className="hidden sm:inline">Voice Clean-up</span>
+            <span className="sm:hidden">Voice</span>
           </button>
         </div>
 
@@ -802,6 +825,10 @@ export const App: React.FC = () => {
 
           {activeTab === 'typography' && (
             <TypographyPanel config={config} updateConfig={setConfig} />
+          )}
+
+          {activeTab === 'qr' && (
+            <QrWatermarkPanel config={config} updateConfig={setConfig} />
           )}
 
           {activeTab === 'audio' && (
