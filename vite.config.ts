@@ -1,3 +1,6 @@
+// Prevent Electron from running in headless Node mode when spawned from IDE terminals
+delete process.env.ELECTRON_RUN_AS_NODE;
+
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import electron from 'vite-plugin-electron';
