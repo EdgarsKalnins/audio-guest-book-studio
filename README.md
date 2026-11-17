@@ -245,15 +245,15 @@ The open-source evolution of **Audio Guest Book Studio** is driven by real-world
 | # | Feature | Target User | Highlights | Status |
 | :-: | :--- | :--- | :--- | :---: |
 | **01** | **Batch Export Mode (SD Card Processor)** | Rental Booths & Photographers | Drop a folder of 50–100 guest `.wav` files and export individual MP4 clips in 1 click | 📋 Planned |
-| **02** | **Social Safe-Zone Overlays & Aspect Ratios** | Couples & Social Creators | Instagram Reels & TikTok UI overlay guides; native `9:16`, `16:9`, `1:1`, and `4:5` | 📋 Planned |
+| **02** | **Social Safe-Zone Overlays & Aspect Ratios** | Couples & Social Creators | Instagram Reels & TikTok UI overlay guides; native `9:16`, `16:9`, `1:1`, and `4:5` | ✅ Completed |
 | **03** | **Audio Noise Cleanup & Speech Clarifier** | Vintage Telephones | Multi-stage local DSP (80Hz high-pass, line-hum notch, dynamic noise gate, presence boost) | 📋 Planned |
 | **04** | **Transparent Alpha Video Export** | Wedding Videographers & Editors | Apple ProRes 4444 & WebM with alpha channel to overlay directly on 4K cinematic films | 📋 Planned |
 | **05** | **Silence Trimmer & Outgoing Greeting Prepend** | Rental Operators & Couples | Auto-trim dead air before/after messages; prepend couple's voicemail prompt + vintage beep | 📋 Planned |
 | **06** | **Polaroid & Retro Photo Collage Templates** | Vintage Weddings & Events | Tilted Polaroid frame with handwritten script font, photo booth strip, and vinyl record sleeve | 📋 Planned |
 | **07** | **Looping Video & Animated B-Roll Backgrounds** | Creators & Reels Marketers | MP4/WebM video background loops (flickering candlelight, bokeh flares, 8mm film grain) | 📋 Planned |
 | **08** | **Local AI Speech-to-Text Subtitles (Whisper)** | Couples & Mobile Viewers | 100% offline Whisper transcription; dynamic karaoke-style synchronized subtitles | 📋 Planned |
-| **09** | **Fine-Grained Waveform Styling & Gradients** | Designers & Event Stylists | Linear/radial multi-stop color gradients (Rose Gold, Champagne, Emerald), particle physics | 📋 Planned |
-| **10** | **Dynamic QR Code Gallery Watermark** | Rental Businesses & Event Hosts | Offline scannable QR code overlay linking guests directly to the couple's online audio gallery | 📋 Planned |
+| **09** | **Fine-Grained Waveform Styling & Gradients** | Designers & Event Stylists | Linear/radial multi-stop color gradients (Rose Gold, Champagne, Emerald), particle physics | ✅ Completed |
+| **10** | **Dynamic QR Code Gallery Watermark** | Rental Businesses & Event Hosts | Offline scannable QR code overlay linking guests directly to the couple's online audio gallery | ✅ Completed |
 
 > 💡 **For AI coding agents and human contributors**: To contribute or implement any feature from this list, see the step-by-step playbooks in [AGENTS.md](AGENTS.md) and full specs in [ROADMAP.md](ROADMAP.md).
 

@@ -11,15 +11,15 @@ This document outlines the **10 approved roadmap features** scheduled for implem
 | # | Feature | Target User | Complexity | Core Technology | Status |
 | :-: | :--- | :--- | :---: | :--- | :---: |
 | **01** | **Batch Export Mode (SD Card Processor)** | Rental Booths & Photographers | Medium | Electron IPC / FFmpeg Queue | 📋 Planned |
-| **02** | **Social Safe-Zone Overlays & Aspect Ratios** | Couples & Social Creators | Low | HTML5 Canvas / CSS Safe Margins | 📋 Planned |
+| **02** | **Social Safe-Zone Overlays & Aspect Ratios** | Couples & Social Creators | Low | HTML5 Canvas / CSS Safe Margins | ✅ Completed |
 | **03** | **Audio Noise Cleanup & Speech Clarifier** | All Users (Vintage Telephones) | Medium | Web Audio DSP / Biquad Filters | 📋 Planned |
 | **04** | **Transparent Alpha Video Export (WebM/ProRes)** | Wedding Videographers & Editors | Medium | FFmpeg `yuva420p` & ProRes 4444 | 📋 Planned |
 | **05** | **Silence Trimmer & Outgoing Greeting Prepend** | Rental Operators & Couples | Medium | Audio Buffer Scanning & Sequencing | 📋 Planned |
 | **06** | **Polaroid & Retro Photo Collage Templates** | Vintage Weddings & Events | Medium | Canvas Compositor / Frame Presets | 📋 Planned |
 | **07** | **Looping Video & Animated B-Roll Backgrounds** | Creators & Reels Marketers | High | HTML5 Video Canvas / FFmpeg Multi-Input | 📋 Planned |
 | **08** | **Local AI Speech-to-Text Subtitles (Whisper)** | Couples & Social Media Viewers | High | Whisper.cpp WASM / WebGPU (Local) | 📋 Planned |
-| **09** | **Fine-Grained Waveform Styling & Gradients** | Designers & Event Stylists | Low | Canvas Gradients / Particle Physics | 📋 Planned |
-| **10** | **Dynamic QR Code Gallery Watermark** | Rental Businesses & Event Hosts | Low | Offline SVG/Canvas QR Generator | 📋 Planned |
+| **09** | **Fine-Grained Waveform Styling & Gradients** | Designers & Event Stylists | Low | Canvas Gradients / Particle Physics | ✅ Completed |
+| **10** | **Dynamic QR Code Gallery Watermark** | Rental Businesses & Event Hosts | Low | Offline SVG/Canvas QR Generator | ✅ Completed |
 
 ---
 
