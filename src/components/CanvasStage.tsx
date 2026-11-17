@@ -59,9 +59,48 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
     setWaveformPeaks(audioEngine.getWaveformPeaks(140));
   }, [config.audioPath, config.audioDuration]);
 
-  // Main Render Loop for Canvas Preview
+  // Static single-frame draw function (for idle state, scrubbing, and config changes)
+  const drawFrame = React.useCallback(
+    (timeOverride?: number) => {
+      if (isExporting) return;
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const time = timeOverride !== undefined ? timeOverride : currentTime;
+      const freqData = new Uint8Array(256);
+      const timeData = new Float32Array(512);
+
+      if (audioEngine.getIsPlaying()) {
+        audioEngine.getLiveAudioData(freqData, timeData);
+      }
+
+      drawStudioFrame(
+        ctx,
+        aspect.width,
+        aspect.height,
+        bgImage,
+        freqData,
+        timeData,
+        config,
+        time,
+        config.audioDuration || audioEngine.duration
+      );
+    },
+    [aspect, bgImage, config, currentTime, isExporting, audioEngine]
+  );
+
+  // When config or time changes while IDLE, render exactly one frame without an infinite loop
   useEffect(() => {
-    if (isExporting) {
+    if (!isPlaying && !isExporting) {
+      drawFrame();
+    }
+  }, [drawFrame, isPlaying, isExporting]);
+
+  // Active 60 FPS playback loop ONLY when audio is actively playing
+  useEffect(() => {
+    if (!isPlaying || isExporting) {
       return;
     }
 
@@ -75,6 +114,12 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
     const timeData = new Float32Array(512);
 
     const render = () => {
+      if (document.hidden) {
+        // Window or display is hidden/sleeping: pause rendering to conserve GPU
+        animId = requestAnimationFrame(render);
+        return;
+      }
+
       if (audioEngine.getIsPlaying()) {
         audioEngine.getLiveAudioData(freqData, timeData);
       } else {
@@ -90,19 +135,30 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
         freqData,
         timeData,
         config,
-        currentTime,
+        audioEngine.getCurrentTime(),
         config.audioDuration || audioEngine.duration
       );
 
       animId = requestAnimationFrame(render);
     };
 
-    render();
+    animId = requestAnimationFrame(render);
 
     return () => {
       cancelAnimationFrame(animId);
     };
-  }, [aspect, bgImage, config, currentTime, isExporting, audioEngine]);
+  }, [isPlaying, isExporting, aspect, bgImage, config, audioEngine]);
+
+  // Handle display sleep / tab visibility resume
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (!document.hidden && !isPlaying && !isExporting) {
+        drawFrame();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [drawFrame, isPlaying, isExporting]);
 
   const togglePlay = () => {
     if (dur === 0 || isExporting) return;

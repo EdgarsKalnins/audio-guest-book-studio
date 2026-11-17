@@ -850,7 +850,12 @@ export const App: React.FC = () => {
       {/* Exit Confirmation Modal */}
       <ExitModal
         isOpen={isExitModalOpen}
-        onClose={() => setIsExitModalOpen(false)}
+        onClose={() => {
+          setIsExitModalOpen(false);
+          if (window.electronAPI && typeof window.electronAPI.dismissClose === 'function') {
+            window.electronAPI.dismissClose();
+          }
+        }}
         onConfirmExit={handleConfirmExit}
         isExporting={isExporting}
         exportPercentage={exportProgress.percentage}

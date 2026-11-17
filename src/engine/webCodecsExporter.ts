@@ -272,6 +272,16 @@ export async function runWebCodecsHardwareExport(
       }
     }
     throw err;
+  } finally {
+    // Explicitly release GPU texture buffers from VRAM
+    try {
+      canvas.width = 0;
+      canvas.height = 0;
+      staticCache.width = 0;
+      staticCache.height = 0;
+    } catch {
+      // Ignored
+    }
   }
 }
 

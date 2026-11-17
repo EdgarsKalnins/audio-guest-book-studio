@@ -2,9 +2,12 @@ import { app, BrowserWindow, ipcMain, dialog, shell, protocol, net } from 'elect
 import path from 'node:path';
 import fs from 'node:fs';
 import os from 'node:os';
-import { execFileSync } from 'node:child_process';
+import { execFile, spawn, ChildProcess } from 'node:child_process';
+import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { VideoExporter, ExportStartOptions } from './exporter';
+
+const execFileAsync = promisify(execFile);
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -36,6 +39,48 @@ protocol.registerSchemesAsPrivileged([
 let win: BrowserWindow | null = null;
 let isForceClosing = false;
 let currentExporter: VideoExporter | null = null;
+let closeWatchdogTimer: NodeJS.Timeout | null = null;
+
+// Central Child Process Tracker & Reaper
+const activeProcesses = new Set<ChildProcess>();
+
+export function registerProcess(proc: ChildProcess): ChildProcess {
+  activeProcesses.add(proc);
+  const cleanup = () => activeProcesses.delete(proc);
+  proc.on('close', cleanup);
+  proc.on('error', cleanup);
+  return proc;
+}
+
+export function killAllProcesses() {
+  for (const proc of activeProcesses) {
+    try {
+      proc.kill('SIGTERM');
+      setTimeout(() => {
+        try {
+          if (!proc.killed) proc.kill('SIGKILL');
+        } catch {}
+      }, 400);
+    } catch {}
+  }
+  activeProcesses.clear();
+}
+
+export function cleanTempDirectories() {
+  const dirs = [
+    path.join(os.tmpdir(), 'wedding_studio_timeline'),
+    path.join(os.tmpdir(), 'wedding_studio_export'),
+  ];
+  for (const d of dirs) {
+    try {
+      if (fs.existsSync(d)) {
+        fs.rmSync(d, { recursive: true, force: true });
+      }
+    } catch {
+      // Ignored
+    }
+  }
+}
 
 function createWindow() {
   const possiblePreloads = [
@@ -70,31 +115,89 @@ function createWindow() {
     win.loadFile(path.join(RENDERER_DIST, 'index.html'));
   }
 
+  let lastCloseAttempt = 0;
+
   win.on('close', (e) => {
-    if (!isForceClosing) {
-      if (win && !win.isDestroyed() && !win.webContents.isDestroyed()) {
-        e.preventDefault();
-        try {
-          win.webContents.send('app:request-close');
-        } catch {
-          isForceClosing = true;
+    if (isForceClosing) {
+      return;
+    }
+
+    const now = Date.now();
+    // Fail-Safe 1: If user clicks close twice within 1500ms, force close immediately!
+    if (now - lastCloseAttempt < 1500) {
+      console.log('[Main] Double close click detected -> Force closing immediately');
+      isForceClosing = true;
+      if (closeWatchdogTimer) {
+        clearTimeout(closeWatchdogTimer);
+        closeWatchdogTimer = null;
+      }
+      win?.close();
+      return;
+    }
+    lastCloseAttempt = now;
+
+    if (win && !win.isDestroyed() && !win.webContents.isDestroyed()) {
+      e.preventDefault();
+
+      // Fail-Safe 2: 1500ms watchdog timer. If renderer is frozen or does not respond, force close!
+      if (closeWatchdogTimer) clearTimeout(closeWatchdogTimer);
+      closeWatchdogTimer = setTimeout(() => {
+        console.warn('[Main] Close watchdog timeout (renderer unresponsive) -> Force closing window');
+        isForceClosing = true;
+        if (win && !win.isDestroyed()) {
           win.close();
         }
+      }, 1500);
+
+      try {
+        win.webContents.send('app:request-close');
+      } catch {
+        isForceClosing = true;
+        if (closeWatchdogTimer) {
+          clearTimeout(closeWatchdogTimer);
+          closeWatchdogTimer = null;
+        }
+        win.close();
       }
     }
   });
 
+  // Renderer unresponsiveness detection
+  win.on('unresponsive', () => {
+    console.warn('[Main] BrowserWindow became unresponsive');
+    if (closeWatchdogTimer) {
+      clearTimeout(closeWatchdogTimer);
+      closeWatchdogTimer = null;
+      isForceClosing = true;
+      win?.destroy();
+    }
+  });
+
   win.on('closed', () => {
+    if (closeWatchdogTimer) {
+      clearTimeout(closeWatchdogTimer);
+      closeWatchdogTimer = null;
+    }
     win = null;
     if (currentExporter) {
       currentExporter.cancel();
       currentExporter = null;
     }
+    killAllProcesses();
   });
 }
 
 // App lifecycle
+app.on('before-quit', () => {
+  console.log('[Main] App before-quit fired');
+  isForceClosing = true;
+  killAllProcesses();
+  cleanTempDirectories();
+});
+
 app.on('window-all-closed', () => {
+  killAllProcesses();
+  cleanTempDirectories();
   if (process.platform !== 'darwin') {
     app.quit();
   }
@@ -123,6 +226,7 @@ app.whenReady().then(() => {
     }
   });
 
+  cleanTempDirectories();
   setupIPCHandlers();
   createWindow();
 });
@@ -233,11 +337,26 @@ function setupIPCHandlers() {
   // App exit and close lifecycle
   ipcMain.handle('app:exit', () => {
     isForceClosing = true;
+    if (closeWatchdogTimer) {
+      clearTimeout(closeWatchdogTimer);
+      closeWatchdogTimer = null;
+    }
     if (currentExporter) {
       currentExporter.cancel();
       currentExporter = null;
     }
+    killAllProcesses();
+    cleanTempDirectories();
     app.quit();
+  });
+
+  // Handle dismissal of close modal ("Stay in Studio")
+  ipcMain.handle('app:close-dismissed', () => {
+    if (closeWatchdogTimer) {
+      clearTimeout(closeWatchdogTimer);
+      closeWatchdogTimer = null;
+    }
+    return true;
   });
 
   // Read file as buffer
@@ -269,7 +388,7 @@ function setupIPCHandlers() {
     }
   });
 
-  // Transcode any exotic audio format into PCM WAV using bundled FFmpeg
+  // Transcode any exotic audio format into PCM WAV using bundled FFmpeg (Asynchronous & Non-blocking)
   ipcMain.handle('audio:transcodeToWav', async (_, filePath: string) => {
     try {
       const cleanPath = filePath.replace(/^file:\/\//, '');
@@ -277,14 +396,18 @@ function setupIPCHandlers() {
       const ffmpegBin = dummyExporter.resolveFfmpegPath();
       const tempOut = path.join(os.tmpdir(), `transcode_${Date.now()}.wav`);
 
-      execFileSync(ffmpegBin, [
-        '-y',
-        '-i', cleanPath,
-        '-ar', '44100',
-        '-ac', '2',
-        '-c:a', 'pcm_s16le',
-        tempOut,
-      ]);
+      await execFileAsync(
+        ffmpegBin,
+        [
+          '-y',
+          '-i', cleanPath,
+          '-ar', '44100',
+          '-ac', '2',
+          '-c:a', 'pcm_s16le',
+          tempOut,
+        ],
+        { timeout: 60000 }
+      );
 
       const buf = await fs.promises.readFile(tempOut);
       try {
@@ -400,6 +523,14 @@ function setupIPCHandlers() {
 
         console.log('[Muxer] Spawning lossless audio-video mux:', args.join(' '));
         const proc = spawn(ffmpegBin, args);
+        registerProcess(proc);
+
+        const muxTimeout = setTimeout(() => {
+          try {
+            proc.kill('SIGKILL');
+          } catch {}
+          reject(new Error('Lossless audio mux timed out after 120 seconds'));
+        }, 120000);
 
         let stderr = '';
         proc.stderr.on('data', (d) => {
@@ -407,6 +538,7 @@ function setupIPCHandlers() {
         });
 
         proc.on('close', (code) => {
+          clearTimeout(muxTimeout);
           // Clean up temp video file
           try {
             if (fs.existsSync(videoPath)) fs.unlinkSync(videoPath);
@@ -424,6 +556,7 @@ function setupIPCHandlers() {
         });
 
         proc.on('error', (err) => {
+          clearTimeout(muxTimeout);
           reject(new Error(`Failed to spawn FFmpeg muxer: ${err.message}`));
         });
       });
@@ -459,6 +592,9 @@ function setupIPCHandlers() {
     }
 
     currentExporter = new VideoExporter();
+    currentExporter.onSpawnCallback = (proc) => {
+      registerProcess(proc);
+    };
 
     // Hook drain callback to notify renderer
     currentExporter.setDrainCallback(() => {

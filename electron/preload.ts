@@ -117,6 +117,7 @@ const api = {
 
   // App exit and close lifecycle
   exitApp: (): Promise<void> => ipcRenderer.invoke('app:exit'),
+  dismissClose: (): Promise<void> => ipcRenderer.invoke('app:close-dismissed'),
   onRequestClose: (callback: () => void) => {
     const handler = () => callback();
     ipcRenderer.on('app:request-close', handler);

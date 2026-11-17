@@ -22,6 +22,7 @@ export class VideoExporter {
   private frameCount = 0;
   private isCanceled = false;
   private onDrainCallback: (() => void) | null = null;
+  public onSpawnCallback: ((proc: ChildProcessWithoutNullStreams) => void) | null = null;
 
   public resolveFfmpegPath(): string {
     // 1. Try bundled installer path
@@ -116,6 +117,9 @@ export class VideoExporter {
 
     try {
       this.ffmpegProcess = spawn(ffmpegPath, args);
+      if (this.onSpawnCallback) {
+        this.onSpawnCallback(this.ffmpegProcess);
+      }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       onError(`Failed to spawn FFmpeg: ${msg}`);

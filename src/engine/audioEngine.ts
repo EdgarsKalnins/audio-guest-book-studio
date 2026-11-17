@@ -39,7 +39,9 @@ export class AudioEngine {
       this.analyserNode.connect(this.ctx.destination);
     }
     if (this.ctx.state === 'suspended') {
-      this.ctx.resume();
+      this.ctx.resume().catch((err) => {
+        console.warn('[AudioEngine] Suspended context resume failed:', err);
+      });
     }
   }
 

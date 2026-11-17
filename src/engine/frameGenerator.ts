@@ -80,100 +80,112 @@ async function runFfmpegPipeExport(options: RenderPipelineOptions): Promise<stri
   const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
   if (!ctx) throw new Error('Could not get 2D canvas context');
 
-  const freqData = new Uint8Array(256);
-  const timeData = new Float32Array(512);
+  try {
+    const freqData = new Uint8Array(256);
+    const timeData = new Float32Array(512);
 
-  // Wire backpressure drain listener
-  let drainPromise: Promise<void> | null = null;
-  let drainResolver: (() => void) | null = null;
+    // Wire backpressure drain listener
+    let drainPromise: Promise<void> | null = null;
+    let drainResolver: (() => void) | null = null;
 
-  const cleanupDrain = window.electronAPI?.onExportDrain(() => {
-    if (drainResolver) {
-      drainResolver();
-      drainResolver = null;
-      drainPromise = null;
-    }
-  });
-
-  onStatus('Rendering frames...');
-
-  // 3. Render frame by frame
-  for (let frame = 0; frame < totalFrames; frame++) {
-    if (isCancelledRef.current) {
-      if (cleanupDrain) cleanupDrain();
-      if (window.electronAPI) {
-        await window.electronAPI.cancelExport();
+    const cleanupDrain = window.electronAPI?.onExportDrain(() => {
+      if (drainResolver) {
+        drainResolver();
+        drainResolver = null;
+        drainPromise = null;
       }
-      throw new Error('Export cancelled');
-    }
-
-    if (drainPromise) {
-      await drainPromise;
-    }
-
-    const currentOffset = frame / fps;
-    const currentAudioTime = trimStart + currentOffset;
-
-    audioEngine.getOfflineFrameData(currentAudioTime, freqData, timeData);
-
-    drawStudioFrame(
-      ctx,
-      width,
-      height,
-      bgImage,
-      freqData,
-      timeData,
-      config,
-      currentOffset,
-      exportDuration,
-      staticCache
-    );
-
-    const blob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob((b) => resolve(b), 'image/jpeg', 0.86);
     });
 
-    if (!blob) throw new Error('Failed to capture frame blob');
+    onStatus('Rendering frames...');
 
-    const buf = await blob.arrayBuffer();
-    const uint8 = new Uint8Array(buf);
+    // 3. Render frame by frame
+    for (let frame = 0; frame < totalFrames; frame++) {
+      if (isCancelledRef.current) {
+        if (cleanupDrain) cleanupDrain();
+        if (window.electronAPI) {
+          await window.electronAPI.cancelExport();
+        }
+        throw new Error('Export cancelled');
+      }
+
+      if (drainPromise) {
+        await drainPromise;
+      }
+
+      const currentOffset = frame / fps;
+      const currentAudioTime = trimStart + currentOffset;
+
+      audioEngine.getOfflineFrameData(currentAudioTime, freqData, timeData);
+
+      drawStudioFrame(
+        ctx,
+        width,
+        height,
+        bgImage,
+        freqData,
+        timeData,
+        config,
+        currentOffset,
+        exportDuration,
+        staticCache
+      );
+
+      const blob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob((b) => resolve(b), 'image/jpeg', 0.86);
+      });
+
+      if (!blob) throw new Error('Failed to capture frame blob');
+
+      const buf = await blob.arrayBuffer();
+      const uint8 = new Uint8Array(buf);
+
+      if (window.electronAPI) {
+        window.electronAPI.sendFrame(uint8);
+      }
+
+      const pct = Math.round(((frame + 1) / totalFrames) * 95);
+      onProgress(pct, frame + 1, totalFrames);
+
+      if (frame % 8 === 0) {
+        await new Promise((r) => setTimeout(r, 0));
+      }
+    }
+
+    if (cleanupDrain) cleanupDrain();
+
+    onStatus('Finalizing MP4 video...');
 
     if (window.electronAPI) {
-      window.electronAPI.sendFrame(uint8);
+      await window.electronAPI.finishExport();
     }
 
-    const pct = Math.round(((frame + 1) / totalFrames) * 95);
-    onProgress(pct, frame + 1, totalFrames);
+    return await new Promise((resolve, reject) => {
+      if (!window.electronAPI) {
+        resolve(outputPath);
+        return;
+      }
 
-    if (frame % 8 === 0) {
-      await new Promise((r) => setTimeout(r, 0));
+      const cleanupComplete = window.electronAPI.onExportComplete((data) => {
+        cleanupComplete();
+        cleanupError();
+        resolve(data.outputPath);
+      });
+
+      const cleanupError = window.electronAPI.onExportError((data) => {
+        cleanupComplete();
+        cleanupError();
+        reject(new Error(data.error));
+      });
+    });
+  } finally {
+    // Explicitly release GPU texture buffers from VRAM
+    try {
+      canvas.width = 0;
+      canvas.height = 0;
+      staticCache.width = 0;
+      staticCache.height = 0;
+    } catch {
+      // Ignored
     }
   }
-
-  if (cleanupDrain) cleanupDrain();
-
-  onStatus('Finalizing MP4 video...');
-
-  if (window.electronAPI) {
-    await window.electronAPI.finishExport();
-  }
-
-  return new Promise((resolve, reject) => {
-    if (!window.electronAPI) {
-      resolve(outputPath);
-      return;
-    }
-
-    const cleanupComplete = window.electronAPI.onExportComplete((data) => {
-      cleanupComplete();
-      cleanupError();
-      resolve(data.outputPath);
-    });
-
-    const cleanupError = window.electronAPI.onExportError((data) => {
-      cleanupComplete();
-      cleanupError();
-      reject(new Error(data.error));
-    });
-  });
 }
