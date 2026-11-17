@@ -1,4 +1,6 @@
-import { contextBridge, ipcRenderer, webUtils } from 'electron';
+// Preload script running in Electron renderer context
+const electron = require('electron');
+const { contextBridge, ipcRenderer, webUtils } = electron;
 
 export interface ExportStartPayload {
   outputPath: string;

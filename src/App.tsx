@@ -72,8 +72,15 @@ export const App: React.FC = () => {
 
   // 1. Initial Load: Auto-load bundled demo wedding assets for immediate testing
   useEffect(() => {
+    // Prevent default browser navigation when dropping files anywhere on the window
+    const preventDrag = (e: DragEvent) => e.preventDefault();
+    window.addEventListener('dragover', preventDrag);
+    window.addEventListener('drop', preventDrag);
+
     loadDemoAssets();
     return () => {
+      window.removeEventListener('dragover', preventDrag);
+      window.removeEventListener('drop', preventDrag);
       audioEngineRef.current.destroy();
     };
   }, []);
@@ -126,14 +133,19 @@ export const App: React.FC = () => {
     }
   };
 
-  // Helper to load audio from a local file path or File object
-  const loadAudioSource = async (filePath: string, fileName: string) => {
+  // Helper to load audio from a local file path, URL, or File object
+  const loadAudioSource = async (fileOrPath: string, fileName: string, fileBlob?: File) => {
     try {
       let arrayBuffer: ArrayBuffer;
-      if (window.electronAPI) {
-        arrayBuffer = await window.electronAPI.readFile(filePath);
+      if (fileBlob) {
+        arrayBuffer = await fileBlob.arrayBuffer();
+      } else if (fileOrPath.startsWith('blob:') || fileOrPath.startsWith('http')) {
+        const res = await fetch(fileOrPath);
+        arrayBuffer = await res.arrayBuffer();
+      } else if (window.electronAPI) {
+        arrayBuffer = await window.electronAPI.readFile(fileOrPath);
       } else {
-        const res = await fetch(filePath);
+        const res = await fetch(fileOrPath);
         arrayBuffer = await res.arrayBuffer();
       }
 
@@ -141,7 +153,7 @@ export const App: React.FC = () => {
 
       setConfig((prev) => ({
         ...prev,
-        audioPath: filePath,
+        audioPath: fileOrPath,
         audioName: fileName,
         audioDuration: decoded.duration,
         audioSettings: {
@@ -157,10 +169,13 @@ export const App: React.FC = () => {
   };
 
   // Helper to load background photo
-  const loadImageSource = (imageDiskOrUrl: string) => {
-    const streamUrl = window.electronAPI
-      ? window.electronAPI.getMediaUrl(imageDiskOrUrl)
-      : imageDiskOrUrl;
+  const loadImageSource = (imageDiskOrUrl: string, fileBlob?: File) => {
+    let streamUrl = imageDiskOrUrl;
+    if (fileBlob) {
+      streamUrl = URL.createObjectURL(fileBlob);
+    } else if (window.electronAPI) {
+      streamUrl = window.electronAPI.getMediaUrl(imageDiskOrUrl);
+    }
 
     const img = new Image();
     img.src = streamUrl;
@@ -192,10 +207,17 @@ export const App: React.FC = () => {
 
     for (let i = 0; i < files.length; i++) {
       const f = files[i];
-      const ext = f.name.toLowerCase().split('.').pop();
-      if (['wav', 'mp3', 'm4a', 'aac', 'ogg', 'flac'].includes(ext || '')) {
+      const ext = (f.name.toLowerCase().split('.').pop() || '').toLowerCase();
+      const isAudio =
+        f.type.startsWith('audio/') ||
+        ['wav', 'mp3', 'm4a', 'aac', 'ogg', 'flac', 'aiff'].includes(ext);
+      const isImage =
+        f.type.startsWith('image/') ||
+        ['jpg', 'jpeg', 'png', 'webp', 'bmp'].includes(ext);
+
+      if (isAudio) {
         audioFiles.push(f);
-      } else if (['jpg', 'jpeg', 'png', 'webp'].includes(ext || '')) {
+      } else if (isImage) {
         imageFile = f;
       }
     }
@@ -203,43 +225,43 @@ export const App: React.FC = () => {
     // If an image was dropped
     if (imageFile) {
       let imgPath = '';
-      if (window.electronAPI) {
+      if (window.electronAPI && typeof window.electronAPI.getPathForFile === 'function') {
         imgPath = window.electronAPI.getPathForFile(imageFile);
       }
       if (!imgPath) {
         const anyFile = imageFile as unknown as { path?: string };
-        imgPath = anyFile.path || URL.createObjectURL(imageFile);
+        imgPath = anyFile.path || '';
       }
-      loadImageSource(imgPath);
+      loadImageSource(imgPath || URL.createObjectURL(imageFile), imageFile);
     }
 
     // If audio file(s) were dropped
     if (audioFiles.length === 1) {
       const single = audioFiles[0];
       let p = '';
-      if (window.electronAPI) {
+      if (window.electronAPI && typeof window.electronAPI.getPathForFile === 'function') {
         p = window.electronAPI.getPathForFile(single);
       }
       if (!p) {
         const anyFile = single as unknown as { path?: string };
-        p = anyFile.path || URL.createObjectURL(single);
+        p = anyFile.path || '';
       }
-      loadAudioSource(p, single.name);
+      loadAudioSource(p || URL.createObjectURL(single), single.name, single);
     } else if (audioFiles.length > 1) {
       // Multiple audio files -> Add to batch queue
       const newItems: BatchItem[] = audioFiles.map((f, idx) => {
         let p = '';
-        if (window.electronAPI) {
+        if (window.electronAPI && typeof window.electronAPI.getPathForFile === 'function') {
           p = window.electronAPI.getPathForFile(f);
         }
         if (!p) {
           const anyF = f as unknown as { path?: string };
-          p = anyF.path || URL.createObjectURL(f);
+          p = anyF.path || '';
         }
         return {
           id: `${Date.now()}-${idx}`,
           name: f.name,
-          path: p,
+          path: p || URL.createObjectURL(f),
           status: 'idle',
         };
       });
@@ -250,11 +272,27 @@ export const App: React.FC = () => {
       }));
 
       // Also load the first one into the live preview
-      loadAudioSource(newItems[0].path, newItems[0].name);
+      loadAudioSource(newItems[0].path, newItems[0].name, audioFiles[0]);
 
       setIsBatchMode(true);
       setIsExportModalOpen(true);
     }
+  };
+
+  const handleAudioFilesSelected = (files: FileList) => {
+    handleFileDrop(files);
+  };
+
+  const handleImageFileSelected = (file: File) => {
+    let imgPath = '';
+    if (window.electronAPI && typeof window.electronAPI.getPathForFile === 'function') {
+      imgPath = window.electronAPI.getPathForFile(file);
+    }
+    if (!imgPath) {
+      const anyFile = file as unknown as { path?: string };
+      imgPath = anyFile.path || '';
+    }
+    loadImageSource(imgPath || URL.createObjectURL(file), file);
   };
 
   // Pick audio file dialog
@@ -564,6 +602,8 @@ export const App: React.FC = () => {
                 onPickAudio={handlePickAudio}
                 onPickImage={handlePickImage}
                 onLoadDemo={loadDemoAssets}
+                onAudioFileSelected={handleAudioFilesSelected}
+                onImageFileSelected={handleImageFileSelected}
               />
               <VisualizerPanel config={config} updateConfig={setConfig} />
             </>

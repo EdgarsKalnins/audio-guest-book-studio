@@ -35,9 +35,13 @@ let win: BrowserWindow | null = null;
 let currentExporter: VideoExporter | null = null;
 
 function createWindow() {
-  const preloadPath = fs.existsSync(path.join(__dirname, 'preload.mjs'))
-    ? path.join(__dirname, 'preload.mjs')
-    : path.join(__dirname, 'preload.js');
+  const possiblePreloads = [
+    path.join(__dirname, 'preload.cjs'),
+    path.join(__dirname, 'preload.js'),
+    path.join(__dirname, 'preload.mjs'),
+  ];
+  const preloadPath = possiblePreloads.find((p) => fs.existsSync(p)) || possiblePreloads[0];
+  console.log('[Main] Loading preload from:', preloadPath);
 
   win = new BrowserWindow({
     title: 'Wedding Audio Studio',
