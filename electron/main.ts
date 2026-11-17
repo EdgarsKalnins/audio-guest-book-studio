@@ -52,11 +52,11 @@ function createWindow() {
     title: 'Audio Guest Book Studio',
     width: 1280,
     height: 840,
-    minWidth: 1060,
-    minHeight: 700,
+    minWidth: 480,
+    minHeight: 520,
     backgroundColor: '#0d0d0f',
-    titleBarStyle: isMac ? 'hiddenInset' : 'default', // Sleek traffic lights on macOS, native titlebar on Windows & Linux
-    trafficLightPosition: isMac ? { x: 16, y: 16 } : undefined,
+    titleBarStyle: isMac ? 'hidden' : 'default', // Sleek traffic lights on macOS without ugly inset box
+    trafficLightPosition: isMac ? { x: 20, y: 18 } : undefined,
     webPreferences: {
       preload: preloadPath,
       contextIsolation: true,

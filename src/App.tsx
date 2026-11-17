@@ -78,6 +78,8 @@ export const App: React.FC = () => {
     return saved === 'light' ? 'light' : 'dark';
   });
 
+  const [mobileTab, setMobileTab] = useState<'stage' | 'controls'>('stage');
+
   useEffect(() => {
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -609,24 +611,84 @@ export const App: React.FC = () => {
   const isMac = window.electronAPI?.platform === 'darwin';
 
   return (
-    <div className="flex h-screen w-screen bg-[#f4f4f6] dark:bg-[#0d0d0f] text-zinc-900 dark:text-[#f4f4f5] font-sans overflow-hidden select-none transition-colors duration-200">
+    <div className="flex flex-col lg:flex-row h-screen w-screen bg-[#f4f4f6] dark:bg-[#0d0d0f] text-zinc-900 dark:text-[#f4f4f5] font-sans overflow-hidden select-none transition-colors duration-200">
+      {/* Mobile & Tablet Header Bar (< 1024px: lg:hidden) */}
+      <div className="lg:hidden flex items-center justify-between px-3.5 sm:px-4 py-2.5 bg-white dark:bg-[#131316] border-b border-zinc-200 dark:border-white/[0.08] shrink-0 z-30 transition-colors">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 flex items-center justify-center text-zinc-700 dark:text-zinc-200 shrink-0">
+            <Sparkle className="w-3.5 h-3.5" weight="fill" />
+          </div>
+          <span className="text-xs font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 truncate">
+            Audio Guest Book Studio
+          </span>
+        </div>
+
+        {/* Mobile View Switcher Pill & Theme Toggle */}
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 text-xs">
+            <button
+              onClick={() => setMobileTab('stage')}
+              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                mobileTab === 'stage'
+                  ? 'bg-white dark:bg-zinc-700 text-zinc-950 dark:text-white shadow-sm font-semibold'
+                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+              }`}
+            >
+              Stage
+            </button>
+            <button
+              onClick={() => setMobileTab('controls')}
+              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                mobileTab === 'controls'
+                  ? 'bg-white dark:bg-zinc-700 text-zinc-950 dark:text-white shadow-sm font-semibold'
+                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+              }`}
+            >
+              Controls
+            </button>
+          </div>
+
+          <button
+            onClick={toggleTheme}
+            className="p-1.5 rounded-lg text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-white/[0.06] transition-all shadow-sm"
+            title={theme === 'dark' ? 'Switch to Day Mode' : 'Switch to Night Mode'}
+            aria-label="Toggle theme"
+          >
+            {theme === 'dark' ? (
+              <Sun className="w-3.5 h-3.5 text-amber-400" weight="regular" />
+            ) : (
+              <Moon className="w-3.5 h-3.5 text-indigo-500" weight="regular" />
+            )}
+          </button>
+        </div>
+      </div>
+
       {/* LEFT AREA: Canvas Stage & Live Audio Scrubber */}
-      <CanvasStage
-        config={config}
-        updateConfig={setConfig}
-        audioEngine={audioEngineRef.current}
-        bgImage={bgImage}
-        onFileDrop={handleFileDrop}
-        isExporting={isExporting}
-      />
+      <div
+        className={`flex-1 min-w-0 h-full flex flex-col ${
+          mobileTab === 'stage' ? 'flex' : 'hidden lg:flex'
+        }`}
+      >
+        <CanvasStage
+          config={config}
+          updateConfig={setConfig}
+          audioEngine={audioEngineRef.current}
+          bgImage={bgImage}
+          onFileDrop={handleFileDrop}
+          isExporting={isExporting}
+          onSwitchToControls={() => setMobileTab('controls')}
+        />
+      </div>
 
       {/* RIGHT AREA: Studio Controls Side Panel */}
-      <div className="w-[430px] shrink-0 h-full flex flex-col bg-white dark:bg-[#131316] border-l border-zinc-200 dark:border-white/[0.08] overflow-hidden transition-colors duration-200">
-        {/* Title Bar Header (cross-platform padding & window drag) */}
+      <div
+        className={`w-full lg:w-[380px] xl:w-[430px] shrink-0 h-full flex flex-col bg-white dark:bg-[#131316] border-t lg:border-t-0 lg:border-l border-zinc-200 dark:border-white/[0.08] overflow-hidden transition-colors duration-200 ${
+          mobileTab === 'controls' ? 'flex' : 'hidden lg:flex'
+        }`}
+      >
+        {/* Desktop Title Bar Header (hidden on mobile, visible on lg screens) */}
         <div
-          className={`${
-            isMac ? 'pt-7' : 'pt-4'
-          } px-6 pb-3.5 border-b border-zinc-200 dark:border-white/[0.08] flex items-center justify-between app-drag-region bg-white dark:bg-[#131316] transition-colors`}
+          className="hidden lg:flex pt-4 px-6 pb-3.5 border-b border-zinc-200 dark:border-white/[0.08] items-center justify-between app-drag-region bg-white dark:bg-[#131316] transition-colors"
         >
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 flex items-center justify-center shadow-sm text-zinc-700 dark:text-zinc-200">
@@ -664,19 +726,11 @@ export const App: React.FC = () => {
                 </>
               )}
             </button>
-            <button
-              onClick={() => setIsExitModalOpen(true)}
-              className="p-1.5 px-2.5 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-rose-600 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/25 border border-zinc-200 dark:border-white/[0.06] hover:border-rose-300 dark:hover:border-rose-500/30 transition-all flex items-center gap-1.5 text-xs font-medium shadow-sm"
-              title="Exit Studio"
-            >
-              <SignOut className="w-3.5 h-3.5" />
-              <span>Exit</span>
-            </button>
           </div>
         </div>
 
         {/* Tab Navigation: Segmented Studio Control */}
-        <div className="flex items-center mx-6 my-3 p-1 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-white/[0.06] gap-1 transition-colors">
+        <div className="flex items-center mx-4 sm:mx-6 my-2.5 sm:my-3 p-1 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-white/[0.06] gap-1 transition-colors">
           <button
             onClick={() => setActiveTab('visualizer')}
             className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
@@ -713,7 +767,7 @@ export const App: React.FC = () => {
         </div>
 
         {/* Scrollable Tab Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-2 space-y-5 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-2 space-y-4 sm:space-y-5 custom-scrollbar">
           {activeTab === 'visualizer' && (
             <>
               <MediaDropzone
@@ -754,7 +808,7 @@ export const App: React.FC = () => {
         </div>
 
         {/* Sticky Bottom Export Action Bar */}
-        <div className="p-5 border-t border-zinc-200 dark:border-white/[0.08] bg-zinc-50 dark:bg-[#101013] space-y-2.5 transition-colors">
+        <div className="p-3.5 sm:p-5 border-t border-zinc-200 dark:border-white/[0.08] bg-zinc-50 dark:bg-[#101013] space-y-2 sm:space-y-2.5 transition-colors">
           <button
             onClick={handleStartSingleExport}
             disabled={!config.audioPath || config.audioDuration <= 0}

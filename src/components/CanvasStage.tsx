@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Play, Pause, ArrowCounterClockwise, Sparkle } from '@phosphor-icons/react';
+import { Play, Pause, ArrowCounterClockwise, Sparkle, SlidersHorizontal } from '@phosphor-icons/react';
 import { StudioConfig, AspectRatioPreset, ASPECT_RATIOS } from '../types/studio';
 import { AudioEngine } from '../engine/audioEngine';
 import { drawStudioFrame } from '../engine/visualizers/renderer';
@@ -11,6 +11,7 @@ interface CanvasStageProps {
   bgImage: HTMLImageElement | null;
   onFileDrop: (files: FileList) => void;
   isExporting?: boolean;
+  onSwitchToControls?: () => void;
 }
 
 export const CanvasStage: React.FC<CanvasStageProps> = ({
@@ -20,6 +21,7 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
   bgImage,
   onFileDrop,
   isExporting = false,
+  onSwitchToControls,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -161,19 +163,25 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
     }
   };
 
+  const isMacElectron = Boolean(window.electronAPI && window.electronAPI.platform === 'darwin');
+
   return (
     <div
       ref={containerRef}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`relative flex-1 flex flex-col items-center justify-between p-6 bg-zinc-200/70 dark:bg-[#0a0a0c] border-r border-zinc-200 dark:border-white/[0.08] overflow-hidden transition-colors ${
+      className={`relative flex-1 flex flex-col items-center justify-between p-3 sm:p-4 lg:p-6 bg-zinc-200/70 dark:bg-[#0a0a0c] border-r border-zinc-200 dark:border-white/[0.08] overflow-hidden transition-colors ${
         isDraggingOver ? 'bg-zinc-300 dark:bg-[#141418] ring-2 ring-black/10 dark:ring-white/20' : ''
       }`}
     >
-      {/* Top Bar: Aspect Ratio Switcher */}
-      <div className="w-full flex items-center justify-between z-10 px-2 mb-2">
-        <div className="flex items-center gap-1 bg-white dark:bg-zinc-900/90 p-1 rounded-xl border border-zinc-200 dark:border-white/[0.08] shadow-sm">
+      {/* Top Bar: Aspect Ratio Switcher + Window Drag Area + Controls Switch */}
+      <div
+        className={`w-full flex items-center justify-between flex-wrap gap-2 z-10 px-1 sm:px-2 mb-2 app-drag-region ${
+          isMacElectron ? 'pl-20 sm:pl-24 pt-1' : ''
+        }`}
+      >
+        <div className="flex items-center gap-1 bg-white dark:bg-zinc-900/90 p-1 rounded-xl border border-zinc-200 dark:border-white/[0.08] shadow-sm app-no-drag">
           {(['9:16', '1:1', '16:9'] as AspectRatioPreset[]).map((r) => {
             const isSelected = config.aspectRatio === r;
             const rData = ASPECT_RATIOS[r];
@@ -181,7 +189,7 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
               <button
                 key={r}
                 onClick={() => setRatio(r)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium tracking-wide transition-all ${
+                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-medium tracking-wide transition-all ${
                   isSelected
                     ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 shadow-sm border border-zinc-300 dark:border-white/10 font-semibold'
                     : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800/40'
@@ -193,30 +201,41 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
           })}
         </div>
 
-        <div className="flex items-center gap-2 text-xs">
+        <div className="flex items-center gap-2 text-xs app-no-drag">
           {isExporting ? (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-100 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-500/30 text-amber-800 dark:text-amber-300 shadow-sm animate-pulse text-[11px] font-mono">
               <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
               Exporting (Preview Suspended)
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-zinc-900/90 border border-zinc-200 dark:border-white/[0.08] text-zinc-700 dark:text-zinc-300 text-[11px] font-mono shadow-sm">
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-zinc-900/90 border border-zinc-200 dark:border-white/[0.08] text-zinc-700 dark:text-zinc-300 text-[11px] font-mono shadow-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
               Live Stage ({aspect.width}x{aspect.height})
             </span>
+          )}
+
+          {/* Tablet & Mobile Switch to Controls Pill */}
+          {onSwitchToControls && (
+            <button
+              onClick={onSwitchToControls}
+              className="lg:hidden px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-black text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 text-xs font-medium shadow-md transition-all flex items-center gap-1.5"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>Controls & Export →</span>
+            </button>
           )}
         </div>
       </div>
 
       {/* Center Stage: Viewport Container with Canvas */}
-      <div className="relative flex-1 w-full flex items-center justify-center min-h-0 my-2">
+      <div className="relative flex-1 w-full flex items-center justify-center min-h-0 my-1 sm:my-2">
         <div
           className="relative max-h-full max-w-full rounded-2xl overflow-hidden shadow-2xl border border-zinc-300 dark:border-white/10 flex items-center justify-center bg-black transition-all"
           style={{
             aspectRatio: `${aspect.width} / ${aspect.height}`,
             height: config.aspectRatio === '9:16' ? '100%' : 'auto',
             width: config.aspectRatio === '16:9' ? '100%' : 'auto',
-            maxHeight: 'calc(100vh - 240px)',
+            maxHeight: 'calc(100vh - 200px)',
           }}
         >
           <canvas
@@ -251,20 +270,20 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
       </div>
 
       {/* Bottom Audio Scrubber & Controls Bar */}
-      <div className="w-full max-w-3xl bg-white dark:bg-[#131316] border border-zinc-200 dark:border-white/[0.08] rounded-2xl p-4 shadow-xl z-10">
-        <div className="flex items-center justify-between mb-3 px-1">
-          <div className="flex items-center gap-3">
+      <div className="w-full max-w-3xl bg-white dark:bg-[#131316] border border-zinc-200 dark:border-white/[0.08] rounded-xl sm:rounded-2xl p-2.5 sm:p-4 shadow-xl z-10 transition-colors">
+        <div className="flex items-center justify-between mb-2.5 sm:mb-3 px-1">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <button
               onClick={togglePlay}
               disabled={dur === 0 || isExporting}
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+              className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0 transition-all ${
                 dur === 0 || isExporting
                   ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed'
                   : 'bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 shadow-md shadow-black/20 active:scale-95'
               }`}
               title={isExporting ? 'Playback paused during export' : isPlaying ? 'Pause' : 'Play'}
             >
-              {isPlaying ? <Pause weight="fill" className="w-5 h-5" /> : <Play weight="fill" className="w-5 h-5 ml-0.5" />}
+              {isPlaying ? <Pause weight="fill" className="w-4 h-4 sm:w-5 sm:h-5" /> : <Play weight="fill" className="w-4 h-4 sm:w-5 sm:h-5 ml-0.5" />}
             </button>
 
             <button
@@ -272,18 +291,18 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
                 audioEngine.seek(trimStart);
                 setCurrentTime(trimStart);
               }}
-              className="p-2 rounded-lg text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+              className="p-1.5 sm:p-2 rounded-lg text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shrink-0"
               title="Restart from beginning"
             >
-              <ArrowCounterClockwise weight="light" className="w-4 h-4" />
+              <ArrowCounterClockwise weight="light" className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
-            <div className="flex flex-col">
-              <span className="text-xs font-medium text-zinc-900 dark:text-zinc-100 truncate max-w-[320px]">
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs font-medium text-zinc-900 dark:text-zinc-100 truncate max-w-[150px] sm:max-w-[260px] md:max-w-[380px]">
                 {config.timelineTracks && config.timelineTracks.length > 1 ? (
                   <>
                     <span className="text-zinc-500 dark:text-zinc-400 font-medium mr-1.5">
-                      Sequence ({config.timelineTracks.length} tracks):
+                      Sequence ({config.timelineTracks.length}):
                     </span>
                     {config.timelineTracks.find(
                       (t) => currentTime >= t.startTime && currentTime <= t.endTime + 0.1
@@ -293,7 +312,7 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
                   config.audioName || 'No audio loaded'
                 )}
               </span>
-              <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-mono">
+              <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-mono truncate">
                 {formatTime(currentTime)} / {formatTime(dur)}
                 {config.timelineTracks && config.timelineTracks.length > 1 && (
                   <span className="ml-2 text-zinc-400 dark:text-zinc-500">
@@ -306,7 +325,7 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
 
           {/* Voice Boost Badge */}
           {config.audioSettings.voiceBoost && (
-            <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-300 border border-zinc-200 dark:border-white/10 shadow-sm">
+            <span className="text-[10px] sm:text-[11px] font-medium px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-300 border border-zinc-200 dark:border-white/10 shadow-sm shrink-0">
               Voice Boost ON
             </span>
           )}
@@ -315,7 +334,7 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
         {/* Interactive Waveform Scrubber with Trim region */}
         <div
           onClick={handleSeek}
-          className="relative h-14 bg-zinc-100 dark:bg-[#0c0c0e] border border-zinc-200 dark:border-white/[0.06] rounded-xl overflow-hidden cursor-pointer flex items-center px-2 select-none group"
+          className="relative h-10 sm:h-12 md:h-14 bg-zinc-100 dark:bg-[#0c0c0e] border border-zinc-200 dark:border-white/[0.06] rounded-lg sm:rounded-xl overflow-hidden cursor-pointer flex items-center px-2 select-none group"
         >
           {/* Waveform Bars */}
           <div className="absolute inset-0 flex items-center justify-between px-3 pointer-events-none">
