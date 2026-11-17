@@ -91,7 +91,7 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
   const tracks = config.timelineTracks || [];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Hidden fallback file inputs */}
       <input
         ref={audioInputRef}
@@ -119,16 +119,16 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
         }}
       />
 
-      {/* Audio Sequence Dropzone */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
-            <Queue weight="light" className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
-            1. Audio Timeline Sequence
+      {/* Group 1: Audio Timeline Sequence */}
+      <div className="p-3 rounded-xl bg-white dark:bg-[#18181c] border border-zinc-200 dark:border-white/[0.08] shadow-xs space-y-2">
+        <div className="flex items-center justify-between">
+          <label className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+            <Queue weight="regular" className="w-3.5 h-3.5 text-amber-500" />
+            1. Audio Timeline
           </label>
           {tracks.length > 0 && (
-            <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-mono">
-              {tracks.length} {tracks.length === 1 ? 'recording' : 'recordings'} • {formatSec(config.audioDuration)}
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-mono border border-zinc-200/60 dark:border-white/[0.06]">
+              {tracks.length} {tracks.length === 1 ? 'file' : 'files'} • {formatSec(config.audioDuration)}
             </span>
           )}
         </div>
@@ -146,69 +146,69 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
             setIsAudioDragOver(false);
           }}
           onDrop={handleAudioDrop}
-          className={`relative border-2 border-dashed rounded-xl p-3.5 cursor-pointer transition-all flex items-center gap-3.5 ${
+          className={`relative border border-dashed rounded-lg p-2.5 cursor-pointer transition-all flex items-center gap-2.5 ${
             isAudioDragOver
-              ? 'border-zinc-500 dark:border-white/50 bg-zinc-100 dark:bg-[#1f1f24] ring-2 ring-black/5 dark:ring-white/10 scale-[1.005]'
+              ? 'border-amber-500 bg-amber-500/10 ring-1 ring-amber-500/30'
               : config.audioPath
-              ? 'border-zinc-300 dark:border-white/20 bg-white dark:bg-[#18181c] hover:border-zinc-400 dark:hover:border-white/30 shadow-sm'
-              : 'border-zinc-200 dark:border-white/[0.12] bg-zinc-50 dark:bg-[#141417] hover:border-zinc-300 dark:hover:border-white/20'
+              ? 'border-zinc-300 dark:border-white/20 bg-zinc-50/50 dark:bg-zinc-900/40 hover:border-zinc-400 dark:hover:border-white/30'
+              : 'border-zinc-200 dark:border-white/10 bg-zinc-50/30 dark:bg-zinc-900/20 hover:border-zinc-300 dark:hover:border-white/20'
           }`}
         >
-          <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 flex items-center justify-center shrink-0 text-zinc-700 dark:text-zinc-300 shadow-sm">
+          <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 flex items-center justify-center shrink-0 text-zinc-700 dark:text-zinc-300 shadow-xs">
             {isAudioDragOver ? (
-              <CloudArrowUp weight="light" className="w-5 h-5 animate-bounce" />
+              <CloudArrowUp weight="regular" className="w-4 h-4 text-amber-500 animate-bounce" />
             ) : (
-              <MusicNotes weight="light" className="w-5 h-5" />
+              <MusicNotes weight="regular" className="w-4 h-4 text-amber-500" />
             )}
           </div>
           <div className="flex-1 min-w-0">
             {config.audioName ? (
               <>
-                <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
+                <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate">
                   {tracks.length > 1
-                    ? `${tracks.length} Recordings Sequenced on Timeline`
+                    ? `${tracks.length} Voicemails on Timeline`
                     : config.audioName}
                 </p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                  Click or drag files to append to sequence
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
+                  Click or drop files to append to sequence
                 </p>
               </>
             ) : (
               <>
-                <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Import audio recording(s)</p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                  WAV, MP3, M4A, etc. (auto-concatenates into continuous video)
+                <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200">Import audio recording(s)</p>
+                <p className="text-[10px] text-zinc-400 dark:text-zinc-500 truncate">
+                  WAV, MP3, M4A, AAC, FLAC (auto-sequenced)
                 </p>
               </>
             )}
           </div>
-          <UploadSimple weight="light" className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
+          <UploadSimple weight="regular" className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 shrink-0" />
         </div>
 
         {/* Timeline Sequence Track List */}
         {tracks.length > 1 && (
-          <div className="mt-2.5 space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar p-2 rounded-xl bg-zinc-50 dark:bg-[#141417] border border-zinc-200 dark:border-white/[0.06]">
+          <div className="mt-2 space-y-1 max-h-40 overflow-y-auto custom-scrollbar p-1.5 rounded-lg bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-white/[0.06]">
             {tracks.map((t, idx) => (
               <div
                 key={t.id}
-                className="flex items-center justify-between p-2 rounded-lg bg-white dark:bg-[#18181c] border border-zinc-200 dark:border-white/[0.06] text-xs hover:border-zinc-300 dark:hover:border-white/20 hover:bg-zinc-50 dark:hover:bg-[#1e1e23] transition-all group shadow-sm"
+                className="flex items-center justify-between px-2 py-1.5 rounded-md bg-white dark:bg-[#18181c] border border-zinc-200/60 dark:border-white/[0.06] text-xs hover:border-zinc-300 dark:hover:border-white/20 transition-all group shadow-2xs"
               >
                 <button
                   type="button"
                   onClick={() => onSeekTrack && onSeekTrack(t.startTime)}
-                  className="flex items-center gap-2 min-w-0 flex-1 text-left"
+                  className="flex items-center gap-1.5 min-w-0 flex-1 text-left"
                   title="Click to jump to this recording"
                 >
-                  <span className="w-4 text-zinc-400 dark:text-zinc-500 font-mono text-[11px] shrink-0">
+                  <span className="w-3.5 text-zinc-400 dark:text-zinc-500 font-mono text-[10px] shrink-0">
                     {idx + 1}.
                   </span>
-                  <span className="truncate text-zinc-800 dark:text-zinc-200 font-medium group-hover:text-zinc-950 dark:group-hover:text-white">
+                  <span className="truncate text-zinc-800 dark:text-zinc-200 text-xs font-medium group-hover:text-amber-500 transition-colors">
                     {t.name}
                   </span>
                 </button>
 
-                <div className="flex items-center gap-2 shrink-0 ml-2">
-                  <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-mono">
+                <div className="flex items-center gap-1.5 shrink-0 ml-1.5">
+                  <span className="text-[10px] text-zinc-500 dark:text-zinc-400 font-mono">
                     {formatSec(t.duration)}
                   </span>
                   {onRemoveTrack && (
@@ -221,7 +221,7 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
                       className="p-1 rounded text-zinc-400 hover:text-rose-500 transition-colors"
                       title="Remove from sequence"
                     >
-                      <Trash weight="light" className="w-3.5 h-3.5" />
+                      <Trash weight="regular" className="w-3 h-3" />
                     </button>
                   )}
                 </div>
@@ -233,32 +233,33 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
               <button
                 type="button"
                 onClick={triggerAudioPicker}
-                className="text-[11px] px-2.5 py-1 rounded-lg bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-white/10 flex items-center gap-1 transition-all shadow-sm font-medium"
+                className="text-[10px] px-2 py-0.5 rounded-md bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-white/10 flex items-center gap-1 transition-all shadow-xs font-medium"
               >
-                <Plus weight="bold" className="w-3 h-3" />
-                Add more files to sequence
+                <Plus weight="bold" className="w-2.5 h-2.5" />
+                Add more files
               </button>
             </div>
           </div>
         )}
       </div>
 
-      {/* Background Image / Canvas Mode Dropzone */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
-            2. Background Canvas & Photo
+      {/* Group 2: Background Canvas & Photo */}
+      <div className="p-3 rounded-xl bg-white dark:bg-[#18181c] border border-zinc-200 dark:border-white/[0.08] shadow-xs space-y-2">
+        <div className="flex items-center justify-between">
+          <label className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+            <ImageIcon weight="regular" className="w-3.5 h-3.5 text-amber-500" />
+            2. Canvas Background
           </label>
         </div>
 
         {/* Background Style Mode Chips (Photo, Solid, Transparent) */}
-        <div className="grid grid-cols-3 gap-1.5 mb-2.5">
+        <div className="grid grid-cols-3 gap-1">
           <button
             type="button"
             onClick={() => updateConfig?.((prev) => ({ ...prev, backgroundMode: 'photo' }))}
-            className={`py-1.5 px-2 rounded-lg text-xs font-medium border text-center transition-all ${
+            className={`py-1 px-2 rounded-lg text-xs font-medium border text-center transition-all ${
               (config.backgroundMode ?? 'photo') === 'photo'
-                ? 'border-zinc-400 dark:border-white/30 bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-sm font-semibold'
+                ? 'border-zinc-400 dark:border-white/30 bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-xs font-semibold'
                 : 'border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#18181c] text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-[#1f1f24]'
             }`}
           >
@@ -267,9 +268,9 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
           <button
             type="button"
             onClick={() => updateConfig?.((prev) => ({ ...prev, backgroundMode: 'solid' }))}
-            className={`py-1.5 px-2 rounded-lg text-xs font-medium border text-center transition-all ${
+            className={`py-1 px-2 rounded-lg text-xs font-medium border text-center transition-all ${
               config.backgroundMode === 'solid'
-                ? 'border-zinc-400 dark:border-white/30 bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-sm font-semibold'
+                ? 'border-zinc-400 dark:border-white/30 bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-xs font-semibold'
                 : 'border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#18181c] text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-[#1f1f24]'
             }`}
           >
@@ -278,23 +279,23 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
           <button
             type="button"
             onClick={() => updateConfig?.((prev) => ({ ...prev, backgroundMode: 'transparent' }))}
-            className={`py-1.5 px-2 rounded-lg text-xs font-medium border text-center transition-all flex items-center justify-center gap-1.5 ${
+            className={`py-1 px-2 rounded-lg text-xs font-medium border text-center transition-all flex items-center justify-center gap-1.5 ${
               config.backgroundMode === 'transparent'
-                ? 'border-amber-400/80 dark:border-amber-400/60 bg-amber-500/10 text-zinc-950 dark:text-white shadow-sm font-semibold ring-1 ring-amber-400/30'
+                ? 'border-amber-400/80 dark:border-amber-400/60 bg-amber-500/10 text-zinc-950 dark:text-white shadow-xs font-semibold ring-1 ring-amber-400/30'
                 : 'border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#18181c] text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-[#1f1f24]'
             }`}
           >
-            <span className="w-2.5 h-2.5 rounded-full border border-black/20 dark:border-white/20 bg-[linear-gradient(45deg,#888_25%,transparent_25%),linear-gradient(-45deg,#888_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#888_75%),linear-gradient(-45deg,transparent_75%,#888_75%)] bg-[size:4px_4px]" />
-            Transparent
+            <span className="w-2 h-2 rounded-full border border-black/20 dark:border-white/20 bg-[linear-gradient(45deg,#888_25%,transparent_25%),linear-gradient(-45deg,#888_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#888_75%),linear-gradient(-45deg,transparent_75%,#888_75%)] bg-[size:4px_4px]" />
+            Alpha
           </button>
         </div>
 
         {config.backgroundMode === 'transparent' ? (
-          <div className="p-3.5 rounded-xl border border-amber-400/30 dark:border-amber-400/20 bg-amber-500/5 dark:bg-amber-400/5 text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed shadow-sm">
+          <div className="p-2.5 rounded-lg border border-amber-400/30 dark:border-amber-400/20 bg-amber-500/5 dark:bg-amber-400/5 text-[11px] text-zinc-700 dark:text-zinc-300 leading-relaxed">
             <span className="font-semibold text-amber-700 dark:text-amber-400 block mb-0.5">
-              Genuine Alpha Channel Active
+              Transparent Alpha Active
             </span>
-            Canvas renders with complete transparency. Perfect for dragging directly onto wedding videos in Premiere Pro, DaVinci Resolve, and Final Cut Pro.
+            Renders with transparent background. Overlay directly onto 4K wedding films in Premiere Pro or DaVinci Resolve.
           </div>
         ) : (
           <div
@@ -310,17 +311,17 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
               setIsImageDragOver(false);
             }}
             onDrop={handleImageDrop}
-            className={`relative border-2 border-dashed rounded-xl p-3.5 cursor-pointer transition-all flex items-center gap-3.5 ${
+            className={`relative border border-dashed rounded-lg p-2.5 cursor-pointer transition-all flex items-center gap-2.5 ${
               isImageDragOver
-                ? 'border-zinc-500 dark:border-white/50 bg-zinc-100 dark:bg-[#1f1f24] ring-2 ring-black/5 dark:ring-white/10 scale-[1.005]'
+                ? 'border-amber-500 bg-amber-500/10 ring-1 ring-amber-500/30'
                 : config.imagePath
-                ? 'border-zinc-300 dark:border-white/20 bg-white dark:bg-[#18181c] hover:border-zinc-400 dark:hover:border-white/30 shadow-sm'
-                : 'border-zinc-200 dark:border-white/[0.12] bg-zinc-50 dark:bg-[#141417] hover:border-zinc-300 dark:hover:border-white/20'
+                ? 'border-zinc-300 dark:border-white/20 bg-zinc-50/50 dark:bg-zinc-900/40 hover:border-zinc-400 dark:hover:border-white/30'
+                : 'border-zinc-200 dark:border-white/10 bg-zinc-50/30 dark:bg-zinc-900/20 hover:border-zinc-300 dark:hover:border-white/20'
             }`}
           >
-            <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 flex items-center justify-center shrink-0 overflow-hidden text-zinc-700 dark:text-zinc-300 shadow-sm">
+            <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 flex items-center justify-center shrink-0 overflow-hidden text-zinc-700 dark:text-zinc-300 shadow-xs">
               {isImageDragOver ? (
-                <CloudArrowUp weight="light" className="w-5 h-5 animate-bounce" />
+                <CloudArrowUp weight="regular" className="w-4 h-4 text-amber-500 animate-bounce" />
               ) : config.imagePath ? (
                 <img
                   src={getDisplayThumbnail()}
@@ -328,23 +329,23 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <ImageIcon weight="light" className="w-5 h-5" />
+                <ImageIcon weight="regular" className="w-4 h-4 text-amber-500" />
               )}
             </div>
             <div className="flex-1 min-w-0">
               {config.imagePath ? (
                 <>
-                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">Custom Background Photo</p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Click or drag image to change</p>
+                  <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate">Custom Photo Loaded</p>
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">Click or drag image to replace</p>
                 </>
               ) : (
                 <>
-                  <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Import wedding photo</p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">JPG, PNG, WEBP (auto-scales to frame)</p>
+                  <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200">Import wedding photo</p>
+                  <p className="text-[10px] text-zinc-400 dark:text-zinc-500 truncate">JPG, PNG, WEBP (auto-scales)</p>
                 </>
               )}
             </div>
-            <UploadSimple weight="light" className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
+            <UploadSimple weight="regular" className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 shrink-0" />
           </div>
         )}
       </div>

@@ -146,299 +146,199 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({ config, update
   const currentPreset = VISUALIZER_PRESETS.find((p) => p.id === config.visualizerStyle) || VISUALIZER_PRESETS[0];
 
   return (
-    <div className="space-y-4">
-      {/* Studio Dropdown Selector */}
-      <div className="relative" ref={dropdownRef}>
-        <div className="flex items-center justify-between mb-2">
-          <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
-            <VisualizerGlyph styleId={config.visualizerStyle} className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
-            Visualizer Effect Style
+    <div className="space-y-3">
+      {/* Group 1: Studio Visualizer Effect Style */}
+      <div className="p-3 rounded-xl bg-white dark:bg-[#18181c] border border-zinc-200 dark:border-white/[0.08] shadow-xs space-y-2">
+        <div className="flex items-center justify-between">
+          <label className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+            <VisualizerGlyph styleId={config.visualizerStyle} className="w-3.5 h-3.5 text-amber-500" />
+            3. Visualizer Effect
           </label>
-          <span className="text-[10px] text-zinc-500 font-mono">
+          <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-mono">
             {VISUALIZER_PRESETS.length} Styles
           </span>
         </div>
 
         {/* Dropdown Trigger Button */}
-        <button
-          type="button"
-          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className={`w-full p-3 rounded-xl border text-left transition-all flex items-center justify-between ${
-            isDropdownOpen
-              ? 'border-zinc-400 dark:border-white/30 bg-zinc-100 dark:bg-[#1f1f24] text-zinc-950 dark:text-white ring-1 ring-black/5 dark:ring-white/10 shadow-lg'
-              : 'border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#18181c] text-zinc-800 dark:text-zinc-200 hover:border-zinc-300 dark:hover:border-white/20 hover:bg-zinc-50 dark:hover:bg-[#1f1f24] shadow-sm'
-          }`}
-        >
-          <div className="flex items-center gap-3 min-w-0 pr-2">
-            <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 flex items-center justify-center shrink-0 text-zinc-700 dark:text-zinc-200 shadow-sm">
-              <VisualizerGlyph styleId={currentPreset.id} className="w-4 h-4 text-zinc-700 dark:text-zinc-200" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">{currentPreset.name}</p>
-              <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5">{currentPreset.description}</p>
-            </div>
-          </div>
-          <CaretDown
-            weight="bold"
-            className={`w-4 h-4 text-zinc-500 dark:text-zinc-400 shrink-0 transition-transform duration-200 ${
-              isDropdownOpen ? 'rotate-180' : ''
+        <div className="relative" ref={dropdownRef}>
+          <button
+            type="button"
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className={`w-full p-2.5 rounded-lg border text-left transition-all flex items-center justify-between ${
+              isDropdownOpen
+                ? 'border-amber-400/80 bg-zinc-100 dark:bg-zinc-800/80 text-zinc-950 dark:text-white ring-1 ring-amber-400/30 shadow-xs'
+                : 'border-zinc-200 dark:border-white/[0.08] bg-zinc-50/50 dark:bg-zinc-900/40 text-zinc-800 dark:text-zinc-200 hover:border-zinc-300 dark:hover:border-white/20'
             }`}
-          />
-        </button>
-
-        {/* Popover Menu */}
-        {isDropdownOpen && (
-          <div className="absolute top-full left-0 right-0 mt-2 z-40 bg-white dark:bg-[#18181c] border border-zinc-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden py-1.5 max-h-80 overflow-y-auto custom-scrollbar animate-fade-in">
-            <div className="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider text-zinc-400 dark:text-zinc-500 border-b border-zinc-100 dark:border-white/[0.06]">
-              Select Studio Visualizer
+          >
+            <div className="flex items-center gap-2.5 min-w-0 pr-2">
+              <div className="w-7 h-7 rounded-md bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 flex items-center justify-center shrink-0 text-amber-500 shadow-2xs">
+                <VisualizerGlyph styleId={currentPreset.id} className="w-4 h-4 text-amber-500" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate">{currentPreset.name}</p>
+                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate">{currentPreset.description}</p>
+              </div>
             </div>
-            {VISUALIZER_PRESETS.map((preset) => {
-              const isSelected = config.visualizerStyle === preset.id;
-              return (
-                <button
-                  key={preset.id}
-                  type="button"
-                  onClick={() => setStyle(preset.id)}
-                  className={`w-full px-3.5 py-2.5 text-left transition-all flex items-center justify-between border-l-2 ${
-                    isSelected
-                      ? 'border-[#dfc596] bg-zinc-100 dark:bg-white/[0.05] text-zinc-950 dark:text-white font-medium'
-                      : 'border-transparent text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-white/[0.03] hover:text-zinc-950 dark:hover:text-white'
-                  }`}
-                >
-                  <div className="flex items-center gap-3 min-w-0 pr-3">
-                    <div className="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 flex items-center justify-center shrink-0">
-                      <VisualizerGlyph styleId={preset.id} className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
+            <CaretDown
+              weight="bold"
+              className={`w-3.5 h-3.5 text-zinc-400 shrink-0 transition-transform duration-200 ${
+                isDropdownOpen ? 'rotate-180' : ''
+              }`}
+            />
+          </button>
+
+          {/* Popover Menu */}
+          {isDropdownOpen && (
+            <div className="absolute top-full left-0 right-0 mt-1.5 z-40 bg-white dark:bg-[#18181c] border border-zinc-200 dark:border-white/10 rounded-xl shadow-xl overflow-hidden py-1 max-h-72 overflow-y-auto custom-scrollbar animate-fade-in">
+              <div className="px-3 py-1 text-[9px] uppercase font-bold tracking-wider text-zinc-400 dark:text-zinc-500 border-b border-zinc-100 dark:border-white/[0.06]">
+                Select Visualizer Style
+              </div>
+              {VISUALIZER_PRESETS.map((preset) => {
+                const isSelected = config.visualizerStyle === preset.id;
+                return (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => setStyle(preset.id)}
+                    className={`w-full px-3 py-2 text-left transition-all flex items-center justify-between border-l-2 ${
+                      isSelected
+                        ? 'border-amber-500 bg-amber-500/10 text-zinc-950 dark:text-white font-medium'
+                        : 'border-transparent text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-white/[0.03] hover:text-zinc-950 dark:hover:text-white'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                      <div className="w-6 h-6 rounded bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 flex items-center justify-center shrink-0">
+                        <VisualizerGlyph styleId={preset.id} className="w-3 h-3 text-zinc-700 dark:text-zinc-300" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className={`text-xs ${isSelected ? 'text-zinc-950 dark:text-white font-semibold' : 'text-zinc-700 dark:text-zinc-200'}`}>
+                          {preset.name}
+                        </p>
+                        <p className="text-[10px] text-zinc-400 dark:text-zinc-500 truncate">{preset.description}</p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className={`text-xs ${isSelected ? 'text-zinc-950 dark:text-white font-semibold' : 'text-zinc-700 dark:text-zinc-200'}`}>
-                        {preset.name}
-                      </p>
-                      <p className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5">{preset.description}</p>
-                    </div>
-                  </div>
-                  {isSelected && (
-                    <div className="w-5 h-5 rounded-full bg-[#dfc596]/20 flex items-center justify-center shrink-0">
-                      <Check weight="bold" className="w-3 h-3 text-[#dfc596]" />
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        )}
+                    {isSelected && (
+                      <div className="w-4 h-4 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
+                        <Check weight="bold" className="w-2.5 h-2.5 text-amber-500" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Waveform Color & Gradients Palette */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
-            <Palette weight="light" className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
-            Color & Cinematic Gradients
+      {/* Group 2: Palette & Gradients */}
+      <div className="p-3 rounded-xl bg-white dark:bg-[#18181c] border border-zinc-200 dark:border-white/[0.08] shadow-xs space-y-2">
+        <div className="flex items-center justify-between">
+          <label className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+            <Palette weight="regular" className="w-3.5 h-3.5 text-amber-500" />
+            4. Palette & Gradients
           </label>
         </div>
 
-        {/* Gradient Presets */}
-        <div className="mb-2.5">
-          <p className="text-[10px] font-semibold tracking-wider uppercase text-zinc-400 dark:text-zinc-500 mb-1.5">
-            Cinematic Gradients
-          </p>
-          <div className="grid grid-cols-2 gap-1.5">
-            {GRADIENT_PRESETS.map((grad) => {
-              const isSelected = config.gradientPreset === grad.id;
-              return (
-                <button
-                  key={grad.id}
-                  onClick={() => setGradient(grad.id)}
-                  className={`flex items-center gap-2 p-2 rounded-xl border text-xs font-medium transition-all text-left ${
-                    isSelected
-                      ? 'border-amber-400/80 dark:border-amber-400/60 bg-amber-500/10 text-zinc-950 dark:text-white shadow-sm ring-1 ring-amber-400/30'
-                      : 'border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#18181c] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-[#1f1f24]'
-                  }`}
-                >
-                  <span
-                    className="w-4 h-4 rounded-full border border-black/20 dark:border-white/20 shrink-0 shadow-sm"
-                    style={{ background: grad.previewCss }}
-                  />
-                  <span className="truncate">{grad.name}</span>
-                </button>
-              );
-            })}
-          </div>
+        {/* Gradient Presets (2-column compact grid) */}
+        <div className="grid grid-cols-2 gap-1.5">
+          {GRADIENT_PRESETS.map((grad) => {
+            const isSelected = config.gradientPreset === grad.id;
+            return (
+              <button
+                key={grad.id}
+                type="button"
+                onClick={() => setGradient(grad.id)}
+                className={`flex items-center gap-1.5 p-1.5 rounded-lg border text-xs font-medium transition-all text-left ${
+                  isSelected
+                    ? 'border-amber-400/80 dark:border-amber-400/60 bg-amber-500/10 text-zinc-950 dark:text-white shadow-2xs ring-1 ring-amber-400/30'
+                    : 'border-zinc-200 dark:border-white/[0.08] bg-zinc-50/50 dark:bg-zinc-900/40 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-[#1f1f24]'
+                }`}
+              >
+                <span
+                  className="w-3.5 h-3.5 rounded-full border border-black/20 dark:border-white/20 shrink-0 shadow-2xs"
+                  style={{ background: grad.previewCss }}
+                />
+                <span className="truncate text-[11px]">{grad.name}</span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* Solid Color Chips */}
-        <div>
-          <p className="text-[10px] font-semibold tracking-wider uppercase text-zinc-400 dark:text-zinc-500 mb-1.5">
-            Classic Haute Tones
-          </p>
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {COLOR_OPTIONS.map((col) => {
-              const isSelected = !config.gradientPreset && config.visualizerColor.toLowerCase() === col.hex.toLowerCase();
-              return (
-                <button
-                  key={col.hex}
-                  onClick={() => setColor(col.hex)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all ${
-                    isSelected
-                      ? 'border-zinc-400 dark:border-white/30 bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10 font-semibold'
-                      : 'border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#18181c] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-[#1f1f24]'
-                  }`}
-                >
-                  <span
-                    className="w-3 h-3 rounded-full border border-black/20 dark:border-black/40 shadow-inner"
-                    style={{ backgroundColor: col.hex }}
-                  />
-                  {col.name}
-                </button>
-              );
-            })}
+        {/* Classic Solid Chips & Hex Picker */}
+        <div className="flex items-center gap-1 pt-1 flex-wrap">
+          {COLOR_OPTIONS.map((col) => {
+            const isSelected = !config.gradientPreset && config.visualizerColor.toLowerCase() === col.hex.toLowerCase();
+            return (
+              <button
+                key={col.hex}
+                type="button"
+                onClick={() => setColor(col.hex)}
+                className={`flex items-center gap-1 px-2 py-1 rounded-md border text-[11px] font-medium transition-all ${
+                  isSelected
+                    ? 'border-zinc-400 dark:border-white/30 bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-2xs font-semibold'
+                    : 'border-zinc-200 dark:border-white/[0.08] bg-zinc-50/50 dark:bg-zinc-900/40 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
+                }`}
+              >
+                <span
+                  className="w-2.5 h-2.5 rounded-full border border-black/20 dark:border-black/40 shadow-inner"
+                  style={{ backgroundColor: col.hex }}
+                />
+                {col.name}
+              </button>
+            );
+          })}
 
-            {/* Custom Hex Color Picker */}
-            <div className="flex items-center gap-1 pl-0.5" title="Pick Custom Hex Color">
-              <input
-                type="color"
-                value={config.visualizerColor}
-                onChange={(e) => setColor(e.target.value)}
-                className="w-7 h-7 rounded-lg cursor-pointer bg-transparent border-0"
-                title="Custom Color"
-              />
-            </div>
+          {/* Custom Hex Color Picker */}
+          <div className="flex items-center pl-1" title="Custom Hex Color">
+            <input
+              type="color"
+              value={config.visualizerColor}
+              onChange={(e) => setColor(e.target.value)}
+              className="w-6 h-6 rounded cursor-pointer bg-transparent border-0"
+              title="Custom Color"
+            />
           </div>
         </div>
+      </div>
 
-        {/* Ambient Glow Toggle */}
-        <div className="mt-2.5 flex items-center justify-between p-3 rounded-xl bg-white dark:bg-[#18181c] border border-zinc-200 dark:border-white/[0.08] shadow-sm">
+      {/* Group 3: Waveform Geometry & Dynamics */}
+      <div className="p-3 rounded-xl bg-white dark:bg-[#18181c] border border-zinc-200 dark:border-white/[0.08] shadow-xs space-y-2.5">
+        <div className="flex items-center justify-between">
+          <label className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+            <SlidersHorizontal weight="regular" className="w-3.5 h-3.5 text-amber-500" />
+            5. Waveform Dynamics & Glow
+          </label>
+        </div>
+
+        {/* Ambient Glow Switch Row */}
+        <div className="flex items-center justify-between p-2 rounded-lg bg-zinc-50/60 dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-white/[0.06]">
           <span className="text-xs text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5 font-medium">
-            <Sparkle weight="light" className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
+            <Sparkle weight="regular" className="w-3.5 h-3.5 text-amber-500" />
             Soft Ambient Glow
           </span>
           <button
+            type="button"
             onClick={() =>
               updateConfig((prev) => ({ ...prev, visualizerGlow: !prev.visualizerGlow }))
             }
-            className={`w-9 h-5 rounded-full transition-colors relative ${
-              config.visualizerGlow ? 'bg-[#dfc596]' : 'bg-zinc-300 dark:bg-zinc-800 border border-zinc-300 dark:border-white/10'
+            className={`w-8 h-4.5 rounded-full transition-colors relative ${
+              config.visualizerGlow ? 'bg-amber-500' : 'bg-zinc-300 dark:bg-zinc-700'
             }`}
           >
             <span
-              className={`absolute top-0.5 w-4 h-4 rounded-full transition-transform ${
+              className={`absolute top-0.5 w-3.5 h-3.5 rounded-full transition-transform ${
                 config.visualizerGlow ? 'right-0.5 bg-zinc-950' : 'left-0.5 bg-white dark:bg-zinc-400'
               }`}
             />
           </button>
         </div>
-      </div>
 
-      {/* Expandable Waveform Craft Drawer */}
-      <div className="rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#18181c] shadow-sm overflow-hidden transition-all">
-        <button
-          type="button"
-          onClick={() => setIsCraftOpen(!isCraftOpen)}
-          className="w-full p-3 flex items-center justify-between text-xs font-semibold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-white/[0.02] transition-colors"
-        >
-          <span className="flex items-center gap-1.5">
-            <Faders className="w-3.5 h-3.5 text-amber-500" />
-            Waveform Craft & Stroke Weight
-          </span>
-          {isCraftOpen ? (
-            <CaretUp className="w-3.5 h-3.5 text-zinc-400" />
-          ) : (
-            <CaretDown className="w-3.5 h-3.5 text-zinc-400" />
-          )}
-        </button>
-
-        {isCraftOpen && (
-          <div className="p-3.5 pt-1 space-y-3.5 border-t border-zinc-100 dark:border-white/[0.06] animate-fade-in text-xs">
-            {/* Stroke Thickness Slider */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5 text-zinc-700 dark:text-zinc-300">
-                <span>Stroke Weight</span>
-                <span className="font-mono text-zinc-500 dark:text-zinc-400">
-                  {((config.strokeWidth ?? 1.0)).toFixed(1)}x
-                </span>
-              </div>
-              <input
-                type="range"
-                min="0.5"
-                max="3.0"
-                step="0.1"
-                value={config.strokeWidth ?? 1.0}
-                onChange={(e) =>
-                  updateConfig((prev) => ({
-                    ...prev,
-                    strokeWidth: parseFloat(e.target.value),
-                  }))
-                }
-                className="w-full accent-[#dfc596] cursor-pointer"
-              />
-            </div>
-
-            {/* Line Cap Selector */}
-            <div>
-              <span className="block mb-1.5 text-zinc-700 dark:text-zinc-300">Line Cap Styling</span>
-              <div className="grid grid-cols-3 gap-1">
-                {(['round', 'butt', 'square'] as const).map((cap) => {
-                  const isSelected = (config.lineCap ?? 'round') === cap;
-                  return (
-                    <button
-                      key={cap}
-                      onClick={() =>
-                        updateConfig((prev) => ({
-                          ...prev,
-                          lineCap: cap,
-                        }))
-                      }
-                      className={`py-1.5 px-2 rounded-lg border text-center capitalize transition-all ${
-                        isSelected
-                          ? 'border-amber-400/80 bg-amber-500/10 text-zinc-950 dark:text-white font-semibold'
-                          : 'border-zinc-200 dark:border-white/[0.08] text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-[#202026]'
-                      }`}
-                    >
-                      {cap}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Particle Density Slider (for stardust / particle physics) */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5 text-zinc-700 dark:text-zinc-300">
-                <span>Particle Density</span>
-                <span className="font-mono text-zinc-500 dark:text-zinc-400">
-                  {((config.particleDensity ?? 1.0)).toFixed(1)}x
-                </span>
-              </div>
-              <input
-                type="range"
-                min="0.5"
-                max="2.5"
-                step="0.1"
-                value={config.particleDensity ?? 1.0}
-                onChange={(e) =>
-                  updateConfig((prev) => ({
-                    ...prev,
-                    particleDensity: parseFloat(e.target.value),
-                  }))
-                }
-                className="w-full accent-[#dfc596] cursor-pointer"
-              />
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Scale & Opacity Sliders */}
-      <div>
-        <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-          <SlidersHorizontal weight="light" className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
-          Size & Transparency
-        </label>
-        <div className="space-y-3 bg-white dark:bg-[#18181c] p-3.5 rounded-xl border border-zinc-200 dark:border-white/[0.08] shadow-sm">
+        {/* Scale & Opacity Sliders */}
+        <div className="space-y-2 pt-0.5">
           <div>
-            <div className="flex items-center justify-between text-xs mb-1.5 text-zinc-700 dark:text-zinc-300">
-              <span>Visualizer Scale</span>
-              <span className="font-mono text-zinc-500 dark:text-zinc-400">{Math.round(config.visualizerScale * 100)}%</span>
+            <div className="flex items-center justify-between text-[11px] mb-1 text-zinc-700 dark:text-zinc-300">
+              <span>Scale</span>
+              <span className="font-mono text-zinc-500 dark:text-zinc-400 text-[10px]">{Math.round(config.visualizerScale * 100)}%</span>
             </div>
             <input
               type="range"
@@ -452,14 +352,14 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({ config, update
                   visualizerScale: parseFloat(e.target.value),
                 }))
               }
-              className="w-full accent-[#dfc596] cursor-pointer"
+              className="w-full accent-amber-500 cursor-pointer h-1.5"
             />
           </div>
 
           <div>
-            <div className="flex items-center justify-between text-xs mb-1.5 text-zinc-700 dark:text-zinc-300">
+            <div className="flex items-center justify-between text-[11px] mb-1 text-zinc-700 dark:text-zinc-300">
               <span>Opacity</span>
-              <span className="font-mono text-zinc-500 dark:text-zinc-400">{Math.round(config.visualizerOpacity * 100)}%</span>
+              <span className="font-mono text-zinc-500 dark:text-zinc-400 text-[10px]">{Math.round(config.visualizerOpacity * 100)}%</span>
             </div>
             <input
               type="range"
@@ -473,9 +373,106 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({ config, update
                   visualizerOpacity: parseFloat(e.target.value),
                 }))
               }
-              className="w-full accent-[#dfc596] cursor-pointer"
+              className="w-full accent-amber-500 cursor-pointer h-1.5"
             />
           </div>
+        </div>
+
+        {/* Expandable Advanced Stroke Weight Drawer */}
+        <div className="pt-1 border-t border-zinc-100 dark:border-white/[0.06]">
+          <button
+            type="button"
+            onClick={() => setIsCraftOpen(!isCraftOpen)}
+            className="w-full flex items-center justify-between text-[11px] font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors py-0.5"
+          >
+            <span className="flex items-center gap-1.5">
+              <Faders className="w-3 h-3 text-amber-500" />
+              Advanced Stroke & Cap Styling
+            </span>
+            {isCraftOpen ? (
+              <CaretUp className="w-3 h-3 text-zinc-400" />
+            ) : (
+              <CaretDown className="w-3 h-3 text-zinc-400" />
+            )}
+          </button>
+
+          {isCraftOpen && (
+            <div className="pt-2 space-y-2 animate-fade-in text-xs">
+              <div>
+                <div className="flex items-center justify-between mb-1 text-zinc-700 dark:text-zinc-300 text-[11px]">
+                  <span>Stroke Weight</span>
+                  <span className="font-mono text-zinc-500 text-[10px]">
+                    {((config.strokeWidth ?? 1.0)).toFixed(1)}x
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="3.0"
+                  step="0.1"
+                  value={config.strokeWidth ?? 1.0}
+                  onChange={(e) =>
+                    updateConfig((prev) => ({
+                      ...prev,
+                      strokeWidth: parseFloat(e.target.value),
+                    }))
+                  }
+                  className="w-full accent-amber-500 cursor-pointer h-1.5"
+                />
+              </div>
+
+              <div>
+                <span className="block mb-1 text-zinc-700 dark:text-zinc-300 text-[11px]">Line Cap</span>
+                <div className="grid grid-cols-3 gap-1">
+                  {(['round', 'butt', 'square'] as const).map((cap) => {
+                    const isSelected = (config.lineCap ?? 'round') === cap;
+                    return (
+                      <button
+                        key={cap}
+                        type="button"
+                        onClick={() =>
+                          updateConfig((prev) => ({
+                            ...prev,
+                            lineCap: cap,
+                          }))
+                        }
+                        className={`py-1 px-1.5 rounded text-[11px] border text-center capitalize transition-all ${
+                          isSelected
+                            ? 'border-amber-400/80 bg-amber-500/10 text-zinc-950 dark:text-white font-semibold'
+                            : 'border-zinc-200 dark:border-white/[0.08] text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-[#202026]'
+                        }`}
+                      >
+                        {cap}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1 text-zinc-700 dark:text-zinc-300 text-[11px]">
+                  <span>Particle Density</span>
+                  <span className="font-mono text-zinc-500 text-[10px]">
+                    {((config.particleDensity ?? 1.0)).toFixed(1)}x
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="2.5"
+                  step="0.1"
+                  value={config.particleDensity ?? 1.0}
+                  onChange={(e) =>
+                    updateConfig((prev) => ({
+                      ...prev,
+                      particleDensity: parseFloat(e.target.value),
+                    }))
+                  }
+                  className="w-full accent-amber-500 cursor-pointer h-1.5"
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

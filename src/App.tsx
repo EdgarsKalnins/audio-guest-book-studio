@@ -999,53 +999,53 @@ export const App: React.FC = () => {
       >
         {/* Desktop Title Bar Header (hidden on mobile, visible on lg screens) */}
         <div
-          className="hidden lg:flex pt-4 px-5 pb-3 border-b border-zinc-200 dark:border-white/[0.08] items-center justify-between app-drag-region bg-white dark:bg-[#131316] transition-colors"
+          className="hidden lg:flex px-4 py-2.5 border-b border-zinc-200 dark:border-white/[0.08] items-center justify-between app-drag-region bg-white dark:bg-[#131316] transition-colors shrink-0"
         >
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 flex items-center justify-center shadow-sm text-zinc-700 dark:text-zinc-200 shrink-0">
-              <Sparkle className="w-3.5 h-3.5" weight="fill" />
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-6 h-6 rounded-md bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 flex items-center justify-center shadow-2xs text-zinc-700 dark:text-zinc-200 shrink-0">
+              <Sparkle className="w-3 h-3 text-amber-500" weight="fill" />
             </div>
-            <div className="min-w-0">
-              <h1 className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 truncate">
+            <div className="min-w-0 flex items-baseline gap-1.5">
+              <h1 className="text-xs font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 truncate">
                 Audio Guest Book Studio
               </h1>
-              <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
-                Guest Record Video Generator
-              </p>
+              <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-mono hidden xl:inline">
+                v1.0
+              </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 app-no-drag shrink-0 ml-2">
+          <div className="flex items-center gap-1.5 app-no-drag shrink-0 ml-2">
             {config.timelineTracks && config.timelineTracks.length > 1 && (
-              <span className="px-2 py-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/[0.08] text-zinc-700 dark:text-zinc-300 text-xs font-medium flex items-center gap-1.5 shadow-sm">
-                <Playlist className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
-                {config.timelineTracks.length} in Sequence
+              <span className="px-1.5 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/[0.08] text-zinc-700 dark:text-zinc-300 text-[10px] font-medium flex items-center gap-1 shadow-2xs">
+                <Playlist className="w-3 h-3 text-amber-500" />
+                {config.timelineTracks.length} Clips
               </span>
             )}
             {/* Day / Night Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className="p-1.5 px-2.5 rounded-lg text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200/80 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-white/[0.06] transition-all flex items-center gap-1.5 text-xs font-medium shadow-sm"
+              className="h-7 px-2 rounded-md text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200/80 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-white/[0.06] transition-all flex items-center gap-1 text-[11px] font-medium shadow-2xs"
               title={theme === 'dark' ? 'Switch to Day Mode' : 'Switch to Night Mode'}
               aria-label="Toggle theme"
             >
               {theme === 'dark' ? (
                 <>
-                  <Sun className="w-3.5 h-3.5 text-amber-400" weight="regular" />
-                  <span className="text-[11px]">Day</span>
+                  <Sun className="w-3 h-3 text-amber-400" weight="regular" />
+                  <span>Day</span>
                 </>
               ) : (
                 <>
-                  <Moon className="w-3.5 h-3.5 text-indigo-500" weight="regular" />
-                  <span className="text-[11px]">Night</span>
+                  <Moon className="w-3 h-3 text-indigo-500" weight="regular" />
+                  <span>Night</span>
                 </>
               )}
             </button>
           </div>
         </div>
 
-        {/* Tab Navigation: Redesigned 2-Row Segmented Deck (100% visible, zero truncation) */}
-        <div className="mx-3 sm:mx-4 my-2.5 p-1.5 rounded-xl bg-zinc-100/90 dark:bg-[#141418] border border-zinc-200/80 dark:border-white/[0.08] transition-colors shrink-0 shadow-xs space-y-1">
+        {/* Tab Navigation: Compact 2-Row Segmented Deck (100% visible, zero truncation) */}
+        <div className="mx-3 my-2 p-1 rounded-xl bg-zinc-100/90 dark:bg-[#141418] border border-zinc-200/80 dark:border-white/[0.08] transition-colors shrink-0 shadow-2xs space-y-1">
           {/* Row 1: Visual & Scene Effects (3 columns: Visualizer, Frames, Motion) */}
           <div className="grid grid-cols-3 gap-1">
             <button
@@ -1154,8 +1154,8 @@ export const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Scrollable Tab Content */}
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-2 space-y-4 sm:space-y-5 custom-scrollbar">
+        {/* Scrollable Tab Content (Compact & polished by groups) */}
+        <div className="flex-1 overflow-y-auto px-3.5 sm:px-4 py-2 space-y-3 custom-scrollbar">
           {activeTab === 'visualizer' && (
             <>
               <MediaDropzone
@@ -1215,15 +1215,15 @@ export const App: React.FC = () => {
         </div>
 
         {/* Sticky Bottom Export Action Bar */}
-        <div className="p-3.5 sm:p-5 border-t border-zinc-200 dark:border-white/[0.08] bg-zinc-50 dark:bg-[#101013] space-y-2 sm:space-y-2.5 transition-colors">
+        <div className="p-3 border-t border-zinc-200 dark:border-white/[0.08] bg-zinc-50/90 dark:bg-[#101013] space-y-1.5 transition-colors shrink-0">
           <button
             onClick={handleStartSingleExport}
             disabled={!config.audioPath || config.audioDuration <= 0}
-            className="w-full py-3.5 px-4 rounded-xl bg-zinc-900 hover:bg-black text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 active:scale-[0.99] font-medium text-sm transition-all shadow-md border border-zinc-800 dark:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-2.5 px-3 rounded-xl bg-zinc-900 hover:bg-black text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 active:scale-[0.99] font-semibold text-xs sm:text-sm transition-all shadow-xs border border-zinc-800 dark:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             <DownloadSimple className="w-4 h-4" weight="bold" />
             {config.timelineTracks && config.timelineTracks.length > 1
-              ? `Export Continuous 1080p Video (${config.timelineTracks.length} Tracks)`
+              ? `Export Master Video (${config.timelineTracks.length} Clips)`
               : 'Export 1080p MP4 Video'}
           </button>
 
@@ -1231,15 +1231,15 @@ export const App: React.FC = () => {
             <button
               type="button"
               onClick={handleOpenBatchModal}
-              className="w-full py-2.5 px-4 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-100 font-medium text-xs transition-all shadow-sm border border-zinc-200 dark:border-white/10 flex items-center justify-center gap-1.5 active:scale-[0.99]"
+              className="w-full py-1.5 px-3 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-100 font-medium text-xs transition-all shadow-2xs border border-zinc-200 dark:border-white/10 flex items-center justify-center gap-1.5 active:scale-[0.99]"
             >
               <Stack className="w-3.5 h-3.5 text-amber-500" weight="bold" />
               Batch Export Individual Clips ({config.timelineTracks.length} Files)
             </button>
           )}
 
-          <p className="text-[11px] text-center text-zinc-500 font-mono">
-            Hardware-accelerated H.264 @ 30 FPS • Studio Master
+          <p className="text-[10px] text-center text-zinc-400 dark:text-zinc-500 font-mono">
+            Hardware H.264 @ 30 FPS • Studio Master 1080p
           </p>
         </div>
       </div>
