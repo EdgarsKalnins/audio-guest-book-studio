@@ -921,7 +921,7 @@ export const App: React.FC = () => {
       <div className="lg:hidden flex items-center justify-between px-2.5 sm:px-4 py-1.5 sm:py-2 bg-white dark:bg-[#131316] border-b border-zinc-200 dark:border-white/[0.08] shrink-0 z-30 transition-colors">
         <div className="flex items-center gap-1.5 min-w-0 pr-1">
           <div className="w-5 h-5 rounded-md bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 flex items-center justify-center text-zinc-700 dark:text-zinc-200 shrink-0">
-            <Sparkle className="w-3 h-3" weight="fill" />
+            <Sparkle className="w-3 h-3 text-amber-500" weight="fill" />
           </div>
           <span className="text-xs font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 truncate">
             <span className="hidden sm:inline">Audio </span>Guest Book Studio
@@ -1295,7 +1295,7 @@ export const App: React.FC = () => {
             disabled={!config.audioPath || config.audioDuration <= 0}
             className="w-full py-2.5 px-3 rounded-xl bg-zinc-900 hover:bg-black text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 active:scale-[0.99] font-semibold text-xs sm:text-sm transition-all shadow-xs border border-zinc-800 dark:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            <DownloadSimple className="w-4 h-4" weight="bold" />
+            <DownloadSimple className="w-4 h-4 text-amber-500" weight="bold" />
             {config.timelineTracks && config.timelineTracks.length > 1
               ? `Export Master Video (${config.timelineTracks.length} Clips)`
               : 'Export 1080p MP4 Video'}

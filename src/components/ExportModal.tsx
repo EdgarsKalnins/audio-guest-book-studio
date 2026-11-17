@@ -53,7 +53,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
         <div className="flex items-center justify-between pb-4 mb-4 border-b border-zinc-200 dark:border-white/[0.08]">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 flex items-center justify-center text-zinc-700 dark:text-zinc-300">
-              <Sparkle className="w-4 h-4" weight="fill" />
+              <Sparkle className="w-4 h-4 text-amber-500" weight="fill" />
             </div>
             <div>
               <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
@@ -91,7 +91,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                 onClick={onSelectBatchFolder}
                 className="px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-xs text-zinc-800 dark:text-zinc-200 border border-zinc-300 dark:border-white/10 shrink-0 flex items-center gap-1.5 transition-all shadow-sm"
               >
-                <FolderSimple className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
+                <FolderSimple className="w-3.5 h-3.5 text-amber-500" />
                 Change Folder
               </button>
             </div>
@@ -114,7 +114,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                     )}
                     {item.status === 'rendering' && (
                       <span className="text-zinc-700 dark:text-zinc-300 flex items-center gap-1 text-[11px] font-mono">
-                        <CircleNotch className="w-3 h-3 animate-spin" />
+                        <CircleNotch className="w-3 h-3 animate-spin text-amber-500" />
                         {item.progress || 0}%
                       </span>
                     )}
@@ -169,12 +169,12 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                 >
                   {progress.status === 'rendering' ? (
                     <>
-                      <CircleNotch className="w-3.5 h-3.5 animate-spin" />
+                      <CircleNotch className="w-3.5 h-3.5 animate-spin text-amber-500" />
                       Rendering Batch...
                     </>
                   ) : (
                     <>
-                      <Stack className="w-3.5 h-3.5" weight="bold" />
+                      <Stack className="w-3.5 h-3.5 text-amber-500" weight="bold" />
                       Export All ({batchQueue.length})
                     </>
                   )}
@@ -247,12 +247,12 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                   >
                     {window.electronAPI ? (
                       <>
-                        <FolderSimple className="w-4 h-4" weight="bold" />
+                        <FolderSimple className="w-4 h-4 text-amber-500" weight="bold" />
                         {showFolderText}
                       </>
                     ) : (
                       <>
-                        <DownloadSimple className="w-4 h-4" weight="bold" />
+                        <DownloadSimple className="w-4 h-4 text-amber-500" weight="bold" />
                         Download Video
                       </>
                     )}

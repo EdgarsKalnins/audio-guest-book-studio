@@ -31,7 +31,7 @@ export const TypographyPanel: React.FC<TypographyPanelProps> = ({ config, update
         <button
           onClick={() => updateTypo({ enabled: !typo.enabled })}
           className={`w-9 h-5 rounded-full transition-colors relative ${
-            typo.enabled ? 'bg-[#dfc596]' : 'bg-zinc-300 dark:bg-zinc-800 border border-zinc-300 dark:border-white/10'
+            typo.enabled ? 'bg-amber-500' : 'bg-zinc-300 dark:bg-zinc-800 border border-zinc-300 dark:border-white/10'
           }`}
         >
           <span
@@ -169,7 +169,7 @@ export const TypographyPanel: React.FC<TypographyPanelProps> = ({ config, update
               type="checkbox"
               checked={typo.showTimer}
               onChange={(e) => updateTypo({ showTimer: e.target.checked })}
-              className="w-4 h-4 rounded accent-[#dfc596] cursor-pointer"
+              className="w-4 h-4 rounded accent-amber-500 cursor-pointer"
             />
           </div>
         </div>

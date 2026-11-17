@@ -198,7 +198,7 @@ export const AudioToolsPanel: React.FC<AudioToolsPanelProps> = ({
                 onClick={resetTrim}
                 className="text-[10px] text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 flex items-center gap-1 transition-colors"
               >
-                <ArrowCounterClockwise weight="regular" className="w-2.5 h-2.5" />
+                <ArrowCounterClockwise weight="regular" className="w-2.5 h-2.5 text-amber-500" />
                 Reset
               </button>
             )}

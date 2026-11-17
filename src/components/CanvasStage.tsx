@@ -397,7 +397,7 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
               className="p-1.5 sm:p-2 rounded-lg text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shrink-0"
               title="Restart from beginning"
             >
-              <ArrowCounterClockwise weight="light" className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <ArrowCounterClockwise weight="light" className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
             </button>
 
             <div className="flex flex-col min-w-0">
@@ -456,7 +456,7 @@ export const CanvasStage: React.FC<CanvasStageProps> = ({
                       isTrimmedOut
                         ? 'bg-zinc-300/50 dark:bg-zinc-800/40 opacity-40'
                         : isPlayed
-                        ? 'bg-[#cba86e] dark:bg-[#dfc596]'
+                        ? 'bg-amber-500 dark:bg-amber-400'
                         : 'bg-zinc-300 dark:bg-zinc-700/60 group-hover:bg-zinc-400 dark:group-hover:bg-zinc-600'
                     }`}
                   />

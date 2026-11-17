@@ -192,7 +192,7 @@ export const FrameTemplatePanel: React.FC<FrameTemplatePanelProps> = ({ config, 
                 step="0.2"
                 value={tiltAngle}
                 onChange={(e) => handleTiltChange(parseFloat(e.target.value))}
-                className="w-full accent-[#dfc596] cursor-pointer"
+                className="w-full accent-amber-500 cursor-pointer h-1.5"
               />
               <div className="flex justify-between text-[10px] text-zinc-400 dark:text-zinc-500 font-mono">
                 <span>-4.0° (Left)</span>

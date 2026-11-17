@@ -55,9 +55,9 @@ export const QrWatermarkPanel: React.FC<QrWatermarkPanelProps> = ({
           <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${
             qr.enabled
               ? 'bg-amber-100 dark:bg-amber-950/70 text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-500/30'
-              : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 border border-zinc-200 dark:border-white/10'
+              : 'bg-zinc-100 dark:bg-zinc-800 text-amber-500 border border-zinc-200 dark:border-white/10'
           }`}>
-            <QrCode weight="bold" className="w-4 h-4" />
+            <QrCode weight="bold" className="w-4 h-4 text-amber-500" />
           </div>
           <div>
             <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
@@ -74,7 +74,7 @@ export const QrWatermarkPanel: React.FC<QrWatermarkPanelProps> = ({
           onClick={toggleEnabled}
           className={`w-10 h-6 rounded-full transition-colors relative ${
             qr.enabled
-              ? 'bg-[#dfc596]'
+              ? 'bg-amber-500'
               : 'bg-zinc-300 dark:bg-zinc-800 border border-zinc-300 dark:border-white/10'
           }`}
         >
@@ -170,7 +170,7 @@ export const QrWatermarkPanel: React.FC<QrWatermarkPanelProps> = ({
                   step="0.05"
                   value={qr.opacity}
                   onChange={(e) => updateQr({ opacity: parseFloat(e.target.value) })}
-                  className="w-full accent-[#dfc596] cursor-pointer"
+                  className="w-full accent-amber-500 cursor-pointer h-1.5"
                 />
               </div>
 
@@ -188,7 +188,7 @@ export const QrWatermarkPanel: React.FC<QrWatermarkPanelProps> = ({
                   step="5"
                   value={qr.size}
                   onChange={(e) => updateQr({ size: parseInt(e.target.value, 10) })}
-                  className="w-full accent-[#dfc596] cursor-pointer"
+                  className="w-full accent-amber-500 cursor-pointer h-1.5"
                 />
               </div>
             </div>

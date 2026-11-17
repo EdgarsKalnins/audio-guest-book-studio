@@ -224,7 +224,7 @@ export const SubtitlePanel: React.FC<SubtitlePanelProps> = ({ config, updateConf
           onClick={() => handleToggle(!isEnabled)}
           className={`w-10 h-6 rounded-full transition-colors relative ${
             isEnabled
-              ? 'bg-[#dfc596]'
+              ? 'bg-amber-500'
               : 'bg-zinc-300 dark:bg-zinc-800 border border-zinc-300 dark:border-white/10'
           }`}
           aria-label="Toggle subtitles"
@@ -311,7 +311,7 @@ export const SubtitlePanel: React.FC<SubtitlePanelProps> = ({ config, updateConf
                 step="0.05"
                 value={fontSize}
                 onChange={(e) => handleFontSizeChange(parseFloat(e.target.value))}
-                className="w-full accent-[#dfc596] cursor-pointer mt-2"
+                className="w-full accent-amber-500 cursor-pointer h-1.5 mt-2"
               />
             </div>
           </div>

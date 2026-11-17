@@ -63,7 +63,7 @@ export const MotionBackgroundPanel: React.FC<MotionBackgroundPanelProps> = ({ co
         return <ShootingStar className="w-4 h-4 text-amber-500 dark:text-amber-400" weight="fill" />;
       case 'none':
       default:
-        return <Sparkle className="w-4 h-4 text-zinc-500 dark:text-zinc-400" weight="regular" />;
+        return <Sparkle className="w-4 h-4 text-amber-500" weight="regular" />;
     }
   };
 
@@ -147,7 +147,7 @@ export const MotionBackgroundPanel: React.FC<MotionBackgroundPanelProps> = ({ co
               step="0.05"
               value={intensity}
               onChange={(e) => handleIntensityChange(parseFloat(e.target.value))}
-              className="w-full accent-[#dfc596] cursor-pointer"
+              className="w-full accent-amber-500 cursor-pointer h-1.5"
             />
             <div className="flex justify-between text-[10px] text-zinc-400 dark:text-zinc-500 font-mono">
               <span>Subtle (20%)</span>
@@ -183,7 +183,7 @@ export const MotionBackgroundPanel: React.FC<MotionBackgroundPanelProps> = ({ co
               step="0.1"
               value={speed}
               onChange={(e) => handleSpeedChange(parseFloat(e.target.value))}
-              className="w-full accent-[#dfc596] cursor-pointer"
+              className="w-full accent-amber-500 cursor-pointer h-1.5"
             />
             <div className="flex justify-between text-[10px] text-zinc-400 dark:text-zinc-500 font-mono">
               <span>0.4x (Dreamy Slow)</span>

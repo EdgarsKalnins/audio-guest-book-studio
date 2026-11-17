@@ -60,9 +60,9 @@ export const ExitModal: React.FC<ExitModalProps> = ({
               }`}
             >
               {isExporting ? (
-                <Warning className="w-4 h-4 animate-pulse" weight="fill" />
+                <Warning className="w-4 h-4 animate-pulse text-amber-500" weight="fill" />
               ) : (
-                <SignOut className="w-4 h-4" weight="regular" />
+                <SignOut className="w-4 h-4 text-amber-500" weight="regular" />
               )}
             </div>
             <div>
@@ -115,7 +115,7 @@ export const ExitModal: React.FC<ExitModalProps> = ({
           ) : tracksCount > 0 ? (
             <div className="p-3.5 rounded-xl bg-zinc-50 dark:bg-[#141417] border border-zinc-200 dark:border-white/[0.08] space-y-2">
               <div className="flex items-start gap-2.5">
-                <MusicNotesSimple className="w-4 h-4 text-zinc-500 dark:text-zinc-400 shrink-0 mt-0.5" />
+                <MusicNotesSimple className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                 <div className="text-xs text-zinc-700 dark:text-zinc-300 space-y-1 leading-relaxed">
                   <p>
                     You currently have{' '}

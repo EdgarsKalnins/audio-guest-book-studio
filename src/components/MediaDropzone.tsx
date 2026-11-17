@@ -224,7 +224,7 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
                   </>
                 )}
               </div>
-              <UploadSimple weight="regular" className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 shrink-0" />
+              <UploadSimple weight="regular" className="w-3.5 h-3.5 text-amber-500 shrink-0" />
             </div>
 
             {/* Timeline Sequence Track List */}
@@ -277,7 +277,7 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
                     onClick={triggerAudioPicker}
                     className="text-[10px] px-2 py-0.5 rounded-md bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-white/10 flex items-center gap-1 transition-all shadow-xs font-medium"
                   >
-                    <Plus weight="bold" className="w-2.5 h-2.5" />
+                    <Plus weight="bold" className="w-2.5 h-2.5 text-amber-500" />
                     Add more files
                   </button>
                 </div>
@@ -416,7 +416,7 @@ export const MediaDropzone: React.FC<MediaDropzoneProps> = ({
                     </>
                   )}
                 </div>
-                <UploadSimple weight="regular" className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 shrink-0" />
+                <UploadSimple weight="regular" className="w-3.5 h-3.5 text-amber-500 shrink-0" />
               </div>
             )}
           </div>
