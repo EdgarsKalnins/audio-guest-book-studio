@@ -1,4 +1,26 @@
-import { StudioConfig, VisualizerStyle } from '../../types/studio';
+import { StudioConfig, VisualizerStyle, GRADIENT_PRESETS } from '../../types/studio';
+
+export function getVisualizerPattern(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  width: number,
+  height: number,
+  config: StudioConfig
+): string | CanvasGradient {
+  if (config.gradientPreset) {
+    const preset = GRADIENT_PRESETS.find((p) => p.id === config.gradientPreset);
+    if (preset) {
+      const totalWidth = width * 0.75 * config.visualizerScale;
+      const grad = ctx.createLinearGradient(cx - totalWidth / 2, cy, cx + totalWidth / 2, cy);
+      preset.stops.forEach((stop) => {
+        grad.addColorStop(stop.offset, stop.color);
+      });
+      return grad;
+    }
+  }
+  return config.visualizerColor;
+}
 
 /**
  * Pre-renders the static background photo, dark vignette, and wedding typography once
@@ -158,6 +180,11 @@ export function drawStudioFrame(
   const centerY = config.typography.enabled ? height * 0.52 : height * 0.5;
   const centerX = width * 0.5;
 
+  const pattern = getVisualizerPattern(ctx, centerX, centerY, width, height, config);
+  const strokeMultiplier = config.strokeWidth ?? 1.0;
+  const lineCap: CanvasLineCap = config.lineCap ?? 'round';
+  const particleDensity = config.particleDensity ?? 1.0;
+
   ctx.save();
   ctx.globalAlpha = config.visualizerOpacity;
 
@@ -171,28 +198,28 @@ export function drawStudioFrame(
 
   switch (config.visualizerStyle) {
     case 'line_wave':
-      drawClassicHairlineWave(ctx, centerX, centerY, width, height, timeDomainData, config, currentTime, vocalPunch, voiceAvg);
+      drawClassicHairlineWave(ctx, centerX, centerY, width, height, timeDomainData, config, currentTime, vocalPunch, voiceAvg, pattern, strokeMultiplier, lineCap);
       break;
     case 'line_mirror':
-      drawMirroredCenterLine(ctx, centerX, centerY, width, height, frequencyData, config, vocalPunch, voiceAvg);
+      drawMirroredCenterLine(ctx, centerX, centerY, width, height, frequencyData, config, vocalPunch, voiceAvg, pattern, strokeMultiplier, lineCap);
       break;
     case 'line_horizon':
-      drawCleanPulseHorizon(ctx, centerX, centerY, width, height, timeDomainData, config, currentTime, vocalPunch, voiceAvg);
+      drawCleanPulseHorizon(ctx, centerX, centerY, width, height, timeDomainData, config, currentTime, vocalPunch, voiceAvg, pattern, strokeMultiplier, lineCap);
       break;
     case 'bars':
-      drawCenteredBars(ctx, centerX, centerY, width, height, frequencyData, config, vocalPunch, voiceAvg);
+      drawCenteredBars(ctx, centerX, centerY, width, height, frequencyData, config, vocalPunch, voiceAvg, pattern, strokeMultiplier);
       break;
     case 'wave':
-      drawSineRibbon(ctx, centerX, centerY, width, height, timeDomainData, config, currentTime, vocalPunch, voiceAvg);
+      drawSineRibbon(ctx, centerX, centerY, width, height, timeDomainData, config, currentTime, vocalPunch, voiceAvg, pattern, strokeMultiplier, lineCap);
       break;
     case 'ring':
-      drawCircularHalo(ctx, centerX, centerY, width, height, frequencyData, config, vocalPunch, voiceAvg);
+      drawCircularHalo(ctx, centerX, centerY, width, height, frequencyData, config, vocalPunch, voiceAvg, pattern, strokeMultiplier, lineCap);
       break;
     case 'mirror':
-      drawSymmetricalMirror(ctx, centerX, centerY, width, height, frequencyData, config, vocalPunch, voiceAvg);
+      drawSymmetricalMirror(ctx, centerX, centerY, width, height, frequencyData, config, vocalPunch, voiceAvg, pattern, strokeMultiplier);
       break;
     case 'particles':
-      drawStardust(ctx, centerX, centerY, width, height, frequencyData, config, currentTime, vocalPunch, voiceAvg);
+      drawStardust(ctx, centerX, centerY, width, height, frequencyData, config, currentTime, vocalPunch, voiceAvg, pattern, particleDensity);
       break;
   }
 
@@ -200,7 +227,7 @@ export function drawStudioFrame(
 
   // 4. Draw Audio Playback Timer & Progress below visualizer (if enabled)
   if (config.typography.enabled && config.typography.showTimer) {
-    drawTimer(ctx, centerX, centerY + (height * 0.18 * config.visualizerScale), currentTime, duration, config);
+    drawTimer(ctx, centerX, centerY + (height * 0.18 * config.visualizerScale), currentTime, duration, config, pattern);
   }
 }
 
@@ -271,16 +298,18 @@ function drawCenteredBars(
   data: Uint8Array,
   config: StudioConfig,
   vocalPunch: number = 1.0,
-  voiceAvg: number = 0
+  voiceAvg: number = 0,
+  pattern?: string | CanvasGradient,
+  strokeMultiplier: number = 1.0
 ) {
   const barCount = 42;
   const totalWidth = width * 0.65 * config.visualizerScale;
-  const barWidth = (totalWidth / barCount) * 0.55;
+  const barWidth = (totalWidth / barCount) * 0.55 * strokeMultiplier;
   const spacing = totalWidth / barCount;
   const startX = cx - totalWidth / 2;
   const maxBarHeight = height * 0.22 * config.visualizerScale;
 
-  ctx.fillStyle = config.visualizerColor;
+  ctx.fillStyle = pattern || config.visualizerColor;
 
   for (let i = 0; i < barCount; i++) {
     // Symmetrical index mapping (highest in center)
@@ -312,15 +341,18 @@ function drawSineRibbon(
   config: StudioConfig,
   currentTime: number,
   vocalPunch: number = 1.0,
-  voiceAvg: number = 0
+  voiceAvg: number = 0,
+  pattern?: string | CanvasGradient,
+  strokeMultiplier: number = 1.0,
+  lineCap: CanvasLineCap = 'round'
 ) {
   const totalWidth = width * 0.75 * config.visualizerScale;
   const startX = cx - totalWidth / 2;
   const maxAmp = height * 0.16 * config.visualizerScale;
 
-  ctx.strokeStyle = config.visualizerColor;
-  ctx.lineWidth = 3.5 * (width / 1080);
-  ctx.lineCap = 'round';
+  ctx.strokeStyle = pattern || config.visualizerColor;
+  ctx.lineWidth = 3.5 * (width / 1080) * strokeMultiplier;
+  ctx.lineCap = lineCap;
   ctx.lineJoin = 'round';
 
   // Layer 1 - Primary wave
@@ -377,16 +409,19 @@ function drawCircularHalo(
   data: Uint8Array,
   config: StudioConfig,
   vocalPunch: number = 1.0,
-  voiceAvg: number = 0
+  voiceAvg: number = 0,
+  pattern?: string | CanvasGradient,
+  strokeMultiplier: number = 1.0,
+  lineCap: CanvasLineCap = 'round'
 ) {
   const baseRadius = width * 0.16 * config.visualizerScale;
   const maxSpike = width * 0.12 * config.visualizerScale;
   const segments = 60;
   const voiceBoost = (voiceAvg / 255);
 
-  ctx.strokeStyle = config.visualizerColor;
-  ctx.lineWidth = 2.5 * (width / 1080);
-  ctx.lineCap = 'round';
+  ctx.strokeStyle = pattern || config.visualizerColor;
+  ctx.lineWidth = 2.5 * (width / 1080) * strokeMultiplier;
+  ctx.lineCap = lineCap;
 
   // Inner ring dynamically breathes when speaking
   const activeRadius = baseRadius * (1.0 + voiceBoost * 0.18);
@@ -424,16 +459,18 @@ function drawSymmetricalMirror(
   data: Uint8Array,
   config: StudioConfig,
   vocalPunch: number = 1.0,
-  voiceAvg: number = 0
+  voiceAvg: number = 0,
+  pattern?: string | CanvasGradient,
+  strokeMultiplier: number = 1.0
 ) {
   const barCount = 36;
   const totalWidth = width * 0.65 * config.visualizerScale;
-  const barWidth = (totalWidth / barCount) * 0.5;
+  const barWidth = (totalWidth / barCount) * 0.5 * strokeMultiplier;
   const spacing = totalWidth / barCount;
   const startX = cx - totalWidth / 2;
   const maxBarHeight = height * 0.14 * config.visualizerScale;
 
-  ctx.fillStyle = config.visualizerColor;
+  ctx.fillStyle = pattern || config.visualizerColor;
 
   for (let i = 0; i < barCount; i++) {
     const distCenter = 1 - Math.abs(i - barCount / 2) / (barCount / 2);
@@ -454,8 +491,8 @@ function drawSymmetricalMirror(
   }
 
   // Thin center divider line
-  ctx.strokeStyle = config.visualizerColor;
-  ctx.lineWidth = 1 * (width / 1080);
+  ctx.strokeStyle = pattern || config.visualizerColor;
+  ctx.lineWidth = 1 * (width / 1080) * strokeMultiplier;
   ctx.beginPath();
   ctx.moveTo(startX - 15, cy);
   ctx.lineTo(startX + totalWidth + 15, cy);
@@ -472,13 +509,15 @@ function drawStardust(
   config: StudioConfig,
   currentTime: number,
   vocalPunch: number = 1.0,
-  voiceAvg: number = 0
+  voiceAvg: number = 0,
+  pattern?: string | CanvasGradient,
+  particleDensity: number = 1.0
 ) {
-  const particleCount = 48;
+  const particleCount = Math.round(48 * particleDensity);
   const avgEnergy = (data[4] + data[10] + data[18] || 0) / (3 * 255);
   const maxRadius = width * 0.28 * config.visualizerScale;
 
-  ctx.fillStyle = config.visualizerColor;
+  ctx.fillStyle = pattern || config.visualizerColor;
 
   for (let i = 0; i < particleCount; i++) {
     const seed = i * 137.5; // Golden angle distribution
@@ -502,7 +541,8 @@ function drawTimer(
   y: number,
   currentTime: number,
   duration: number,
-  config: StudioConfig
+  config: StudioConfig,
+  pattern?: string | CanvasGradient
 ) {
   ctx.save();
   ctx.textAlign = 'center';
@@ -532,7 +572,7 @@ function drawTimer(
   ctx.lineTo(cx + barW / 2, y + 10 * baseScale);
   ctx.stroke();
 
-  ctx.strokeStyle = config.visualizerColor;
+  ctx.strokeStyle = pattern || config.visualizerColor;
   ctx.beginPath();
   ctx.moveTo(cx - barW / 2, y + 10 * baseScale);
   ctx.lineTo(cx - barW / 2 + barW * prog, y + 10 * baseScale);
@@ -567,7 +607,10 @@ function drawClassicHairlineWave(
   config: StudioConfig,
   currentTime: number,
   vocalPunch: number = 1.0,
-  voiceAvg: number = 0
+  voiceAvg: number = 0,
+  pattern?: string | CanvasGradient,
+  strokeMultiplier: number = 1.0,
+  lineCap: CanvasLineCap = 'round'
 ) {
   const baseScale = width / 1080;
   const totalWidth = width * 0.72 * config.visualizerScale;
@@ -577,9 +620,9 @@ function drawClassicHairlineWave(
   const step = totalWidth / points;
 
   ctx.save();
-  ctx.strokeStyle = config.visualizerColor;
-  ctx.lineWidth = 1.8 * baseScale;
-  ctx.lineCap = 'round';
+  ctx.strokeStyle = pattern || config.visualizerColor;
+  ctx.lineWidth = 1.8 * baseScale * strokeMultiplier;
+  ctx.lineCap = lineCap;
   ctx.lineJoin = 'round';
 
   // Hairline guide baseline
@@ -590,7 +633,7 @@ function drawClassicHairlineWave(
   ctx.stroke();
 
   // Active wave curve with intense center vocal punch
-  ctx.strokeStyle = config.visualizerColor;
+  ctx.strokeStyle = pattern || config.visualizerColor;
   ctx.beginPath();
   for (let i = 0; i <= points; i++) {
     const x = startX + i * step;
@@ -610,9 +653,9 @@ function drawClassicHairlineWave(
   ctx.stroke();
 
   // Dynamic center anchor pip - expands with speech
-  ctx.fillStyle = config.visualizerColor;
+  ctx.fillStyle = pattern || config.visualizerColor;
   ctx.beginPath();
-  const pipRadius = (2.5 + (voiceAvg / 255) * 4.5) * baseScale;
+  const pipRadius = (2.5 + (voiceAvg / 255) * 4.5) * baseScale * Math.min(2.0, strokeMultiplier);
   ctx.arc(cx, cy, pipRadius, 0, Math.PI * 2);
   ctx.fill();
 
@@ -628,7 +671,10 @@ function drawMirroredCenterLine(
   data: Uint8Array,
   config: StudioConfig,
   vocalPunch: number = 1.0,
-  voiceAvg: number = 0
+  voiceAvg: number = 0,
+  pattern?: string | CanvasGradient,
+  strokeMultiplier: number = 1.0,
+  lineCap: CanvasLineCap = 'round'
 ) {
   const baseScale = width / 1080;
   const lineCount = 64;
@@ -638,9 +684,9 @@ function drawMirroredCenterLine(
   const maxHalfHeight = height * 0.12 * config.visualizerScale;
 
   ctx.save();
-  ctx.strokeStyle = config.visualizerColor;
-  ctx.lineWidth = 1.4 * baseScale;
-  ctx.lineCap = 'round';
+  ctx.strokeStyle = pattern || config.visualizerColor;
+  ctx.lineWidth = 1.4 * baseScale * strokeMultiplier;
+  ctx.lineCap = lineCap;
 
   // Center horizon hairline
   ctx.beginPath();
@@ -649,7 +695,7 @@ function drawMirroredCenterLine(
   ctx.lineTo(startX + totalWidth + 15 * baseScale, cy);
   ctx.stroke();
 
-  ctx.strokeStyle = config.visualizerColor;
+  ctx.strokeStyle = pattern || config.visualizerColor;
 
   for (let i = 0; i < lineCount; i++) {
     const distFromCenter = Math.abs(i - lineCount / 2) / (lineCount / 2);
@@ -683,7 +729,10 @@ function drawCleanPulseHorizon(
   config: StudioConfig,
   currentTime: number,
   vocalPunch: number = 1.0,
-  voiceAvg: number = 0
+  voiceAvg: number = 0,
+  pattern?: string | CanvasGradient,
+  strokeMultiplier: number = 1.0,
+  lineCap: CanvasLineCap = 'round'
 ) {
   const baseScale = width / 1080;
   const totalWidth = width * 0.75 * config.visualizerScale;
@@ -693,9 +742,9 @@ function drawCleanPulseHorizon(
   const dx = totalWidth / steps;
 
   ctx.save();
-  ctx.strokeStyle = config.visualizerColor;
-  ctx.lineWidth = 1.6 * baseScale;
-  ctx.lineCap = 'round';
+  ctx.strokeStyle = pattern || config.visualizerColor;
+  ctx.lineWidth = 1.6 * baseScale * strokeMultiplier;
+  ctx.lineCap = lineCap;
   ctx.lineJoin = 'round';
 
   ctx.beginPath();
@@ -723,9 +772,9 @@ function drawCleanPulseHorizon(
   ctx.stroke();
 
   // Dynamic center marker - radiates when speaking
-  ctx.fillStyle = config.visualizerColor;
+  ctx.fillStyle = pattern || config.visualizerColor;
   ctx.beginPath();
-  const markerRadius = (3.0 + (voiceAvg / 255) * 5.0) * baseScale;
+  const markerRadius = (3.0 + (voiceAvg / 255) * 5.0) * baseScale * Math.min(2.0, strokeMultiplier);
   ctx.arc(cx, cy, markerRadius, 0, Math.PI * 2);
   ctx.fill();
 

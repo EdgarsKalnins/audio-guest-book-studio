@@ -57,6 +57,71 @@ export const COLOR_OPTIONS: ColorOption[] = [
   { name: 'Pure Platinum', hex: '#e2e8f0' },
 ];
 
+export interface GradientStop {
+  offset: number;
+  color: string;
+}
+
+export interface GradientPreset {
+  id: string;
+  name: string;
+  stops: GradientStop[];
+  previewCss: string;
+}
+
+export const GRADIENT_PRESETS: GradientPreset[] = [
+  {
+    id: 'rose-gold',
+    name: 'Rose Gold Shimmer',
+    stops: [
+      { offset: 0, color: '#fbcfe8' },
+      { offset: 0.5, color: '#e8a598' },
+      { offset: 1, color: '#f43f5e' },
+    ],
+    previewCss: 'linear-gradient(135deg, #fbcfe8, #e8a598, #f43f5e)',
+  },
+  {
+    id: 'champagne-silk',
+    name: 'Champagne Silk',
+    stops: [
+      { offset: 0, color: '#fef08a' },
+      { offset: 0.5, color: '#d7ba7e' },
+      { offset: 1, color: '#b45309' },
+    ],
+    previewCss: 'linear-gradient(135deg, #fef08a, #d7ba7e, #b45309)',
+  },
+  {
+    id: 'tuscan-sunset',
+    name: 'Tuscan Sunset',
+    stops: [
+      { offset: 0, color: '#fed7aa' },
+      { offset: 0.5, color: '#fb923c' },
+      { offset: 1, color: '#e11d48' },
+    ],
+    previewCss: 'linear-gradient(135deg, #fed7aa, #fb923c, #e11d48)',
+  },
+  {
+    id: 'velvet-emerald',
+    name: 'Velvet Emerald',
+    stops: [
+      { offset: 0, color: '#a7f3d0' },
+      { offset: 0.5, color: '#10b981' },
+      { offset: 1, color: '#064e3b' },
+    ],
+    previewCss: 'linear-gradient(135deg, #a7f3d0, #10b981, #064e3b)',
+  },
+  {
+    id: 'minimalist-platinum',
+    name: 'Minimalist Platinum',
+    stops: [
+      { offset: 0, color: '#ffffff' },
+      { offset: 0.5, color: '#cbd5e1' },
+      { offset: 1, color: '#64748b' },
+    ],
+    previewCss: 'linear-gradient(135deg, #ffffff, #cbd5e1, #64748b)',
+  },
+];
+
 export interface TypographyConfig {
   enabled: boolean;
   coupleNames: string;
@@ -99,6 +164,10 @@ export interface StudioConfig {
   visualizerScale: number;
   visualizerOpacity: number;
   visualizerGlow: boolean;
+  gradientPreset?: string | null;
+  strokeWidth?: number;
+  lineCap?: 'round' | 'butt' | 'square';
+  particleDensity?: number;
   typography: TypographyConfig;
   audioSettings: AudioSettings;
   audioPath: string | null;

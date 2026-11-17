@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { SlidersHorizontal, Palette, Sparkle, CaretDown, Check } from '@phosphor-icons/react';
-import { StudioConfig, VISUALIZER_PRESETS, COLOR_OPTIONS, VisualizerStyle } from '../types/studio';
+import { SlidersHorizontal, Palette, Sparkle, CaretDown, CaretUp, Check, Faders, PaintBrush } from '@phosphor-icons/react';
+import { StudioConfig, VISUALIZER_PRESETS, COLOR_OPTIONS, GRADIENT_PRESETS, VisualizerStyle } from '../types/studio';
 
 interface VisualizerPanelProps {
   config: StudioConfig;
@@ -103,13 +103,29 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({ config, update
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
+  const [isCraftOpen, setIsCraftOpen] = useState(false);
+
   const setStyle = (style: VisualizerStyle) => {
     updateConfig((prev) => ({ ...prev, visualizerStyle: style }));
     setIsDropdownOpen(false);
   };
 
   const setColor = (hex: string) => {
-    updateConfig((prev) => ({ ...prev, visualizerColor: hex }));
+    updateConfig((prev) => ({
+      ...prev,
+      visualizerColor: hex,
+      gradientPreset: null,
+    }));
+  };
+
+  const setGradient = (gradId: string) => {
+    const preset = GRADIENT_PRESETS.find((p) => p.id === gradId);
+    if (!preset) return;
+    updateConfig((prev) => ({
+      ...prev,
+      gradientPreset: gradId,
+      visualizerColor: preset.stops[1].color,
+    }));
   };
 
   // Close dropdown when clicking outside
@@ -212,43 +228,81 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({ config, update
         )}
       </div>
 
-      {/* Waveform Color Palette */}
+      {/* Waveform Color & Gradients Palette */}
       <div>
-        <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-          <Palette weight="light" className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
-          Waveform Color & Aura
-        </label>
-        <div className="flex items-center gap-2 flex-wrap">
-          {COLOR_OPTIONS.map((col) => {
-            const isSelected = config.visualizerColor.toLowerCase() === col.hex.toLowerCase();
-            return (
-              <button
-                key={col.hex}
-                onClick={() => setColor(col.hex)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
-                  isSelected
-                    ? 'border-zinc-400 dark:border-white/30 bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10'
-                    : 'border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#18181c] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-[#1f1f24]'
-                }`}
-              >
-                <span
-                  className="w-3 h-3 rounded-full border border-black/20 dark:border-black/40 shadow-inner"
-                  style={{ backgroundColor: col.hex }}
-                />
-                {col.name}
-              </button>
-            );
-          })}
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+            <Palette weight="light" className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
+            Color & Cinematic Gradients
+          </label>
+        </div>
 
-          {/* Custom Hex Color Input */}
-          <div className="flex items-center gap-1.5 pl-1">
-            <input
-              type="color"
-              value={config.visualizerColor}
-              onChange={(e) => setColor(e.target.value)}
-              className="w-7 h-7 rounded-lg cursor-pointer bg-transparent border-0"
-              title="Custom Color"
-            />
+        {/* Gradient Presets */}
+        <div className="mb-2.5">
+          <p className="text-[10px] font-semibold tracking-wider uppercase text-zinc-400 dark:text-zinc-500 mb-1.5">
+            Cinematic Gradients
+          </p>
+          <div className="grid grid-cols-2 gap-1.5">
+            {GRADIENT_PRESETS.map((grad) => {
+              const isSelected = config.gradientPreset === grad.id;
+              return (
+                <button
+                  key={grad.id}
+                  onClick={() => setGradient(grad.id)}
+                  className={`flex items-center gap-2 p-2 rounded-xl border text-xs font-medium transition-all text-left ${
+                    isSelected
+                      ? 'border-amber-400/80 dark:border-amber-400/60 bg-amber-500/10 text-zinc-950 dark:text-white shadow-sm ring-1 ring-amber-400/30'
+                      : 'border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#18181c] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-[#1f1f24]'
+                  }`}
+                >
+                  <span
+                    className="w-4 h-4 rounded-full border border-black/20 dark:border-white/20 shrink-0 shadow-sm"
+                    style={{ background: grad.previewCss }}
+                  />
+                  <span className="truncate">{grad.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Solid Color Chips */}
+        <div>
+          <p className="text-[10px] font-semibold tracking-wider uppercase text-zinc-400 dark:text-zinc-500 mb-1.5">
+            Classic Haute Tones
+          </p>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {COLOR_OPTIONS.map((col) => {
+              const isSelected = !config.gradientPreset && config.visualizerColor.toLowerCase() === col.hex.toLowerCase();
+              return (
+                <button
+                  key={col.hex}
+                  onClick={() => setColor(col.hex)}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+                    isSelected
+                      ? 'border-zinc-400 dark:border-white/30 bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10 font-semibold'
+                      : 'border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#18181c] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-[#1f1f24]'
+                  }`}
+                >
+                  <span
+                    className="w-3 h-3 rounded-full border border-black/20 dark:border-black/40 shadow-inner"
+                    style={{ backgroundColor: col.hex }}
+                  />
+                  {col.name}
+                </button>
+              );
+            })}
+
+            {/* Custom Hex Color Picker */}
+            <div className="flex items-center gap-1 pl-0.5" title="Pick Custom Hex Color">
+              <input
+                type="color"
+                value={config.visualizerColor}
+                onChange={(e) => setColor(e.target.value)}
+                className="w-7 h-7 rounded-lg cursor-pointer bg-transparent border-0"
+                title="Custom Color"
+              />
+            </div>
           </div>
         </div>
 
@@ -273,6 +327,105 @@ export const VisualizerPanel: React.FC<VisualizerPanelProps> = ({ config, update
             />
           </button>
         </div>
+      </div>
+
+      {/* Expandable Waveform Craft Drawer */}
+      <div className="rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#18181c] shadow-sm overflow-hidden transition-all">
+        <button
+          type="button"
+          onClick={() => setIsCraftOpen(!isCraftOpen)}
+          className="w-full p-3 flex items-center justify-between text-xs font-semibold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-white/[0.02] transition-colors"
+        >
+          <span className="flex items-center gap-1.5">
+            <Faders className="w-3.5 h-3.5 text-amber-500" />
+            Waveform Craft & Stroke Weight
+          </span>
+          {isCraftOpen ? (
+            <CaretUp className="w-3.5 h-3.5 text-zinc-400" />
+          ) : (
+            <CaretDown className="w-3.5 h-3.5 text-zinc-400" />
+          )}
+        </button>
+
+        {isCraftOpen && (
+          <div className="p-3.5 pt-1 space-y-3.5 border-t border-zinc-100 dark:border-white/[0.06] animate-fade-in text-xs">
+            {/* Stroke Thickness Slider */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5 text-zinc-700 dark:text-zinc-300">
+                <span>Stroke Weight</span>
+                <span className="font-mono text-zinc-500 dark:text-zinc-400">
+                  {((config.strokeWidth ?? 1.0)).toFixed(1)}x
+                </span>
+              </div>
+              <input
+                type="range"
+                min="0.5"
+                max="3.0"
+                step="0.1"
+                value={config.strokeWidth ?? 1.0}
+                onChange={(e) =>
+                  updateConfig((prev) => ({
+                    ...prev,
+                    strokeWidth: parseFloat(e.target.value),
+                  }))
+                }
+                className="w-full accent-[#dfc596] cursor-pointer"
+              />
+            </div>
+
+            {/* Line Cap Selector */}
+            <div>
+              <span className="block mb-1.5 text-zinc-700 dark:text-zinc-300">Line Cap Styling</span>
+              <div className="grid grid-cols-3 gap-1">
+                {(['round', 'butt', 'square'] as const).map((cap) => {
+                  const isSelected = (config.lineCap ?? 'round') === cap;
+                  return (
+                    <button
+                      key={cap}
+                      onClick={() =>
+                        updateConfig((prev) => ({
+                          ...prev,
+                          lineCap: cap,
+                        }))
+                      }
+                      className={`py-1.5 px-2 rounded-lg border text-center capitalize transition-all ${
+                        isSelected
+                          ? 'border-amber-400/80 bg-amber-500/10 text-zinc-950 dark:text-white font-semibold'
+                          : 'border-zinc-200 dark:border-white/[0.08] text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-[#202026]'
+                      }`}
+                    >
+                      {cap}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Particle Density Slider (for stardust / particle physics) */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5 text-zinc-700 dark:text-zinc-300">
+                <span>Particle Density</span>
+                <span className="font-mono text-zinc-500 dark:text-zinc-400">
+                  {((config.particleDensity ?? 1.0)).toFixed(1)}x
+                </span>
+              </div>
+              <input
+                type="range"
+                min="0.5"
+                max="2.5"
+                step="0.1"
+                value={config.particleDensity ?? 1.0}
+                onChange={(e) =>
+                  updateConfig((prev) => ({
+                    ...prev,
+                    particleDensity: parseFloat(e.target.value),
+                  }))
+                }
+                className="w-full accent-[#dfc596] cursor-pointer"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Scale & Opacity Sliders */}

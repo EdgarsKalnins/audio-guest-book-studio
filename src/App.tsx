@@ -39,6 +39,10 @@ export const App: React.FC = () => {
     visualizerScale: 1.0,
     visualizerOpacity: 0.95,
     visualizerGlow: true,
+    gradientPreset: null,
+    strokeWidth: 1.0,
+    lineCap: 'round',
+    particleDensity: 1.0,
     typography: {
       enabled: false, // Disabled by default per user request
       coupleNames: 'Sarah & Michael',

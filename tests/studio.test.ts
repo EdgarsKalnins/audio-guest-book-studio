@@ -3,6 +3,7 @@ import {
   ASPECT_RATIOS,
   VISUALIZER_PRESETS,
   COLOR_OPTIONS,
+  GRADIENT_PRESETS,
   AspectRatioPreset,
 } from '../src/types/studio';
 
@@ -59,6 +60,22 @@ describe('Studio Configurations & Presets', () => {
     COLOR_OPTIONS.forEach((col) => {
       expect(col.name).toBeTruthy();
       expect(col.hex).toMatch(hexPattern);
+    });
+  });
+
+  it('provides multi-stop cinematic gradient presets with valid color stops and CSS', () => {
+    expect(GRADIENT_PRESETS.length).toBeGreaterThanOrEqual(4);
+    const hexPattern = /^#[0-9A-Fa-f]{6}$/;
+    GRADIENT_PRESETS.forEach((preset) => {
+      expect(preset.id).toBeTruthy();
+      expect(preset.name).toBeTruthy();
+      expect(preset.previewCss).toContain('linear-gradient');
+      expect(preset.stops.length).toBeGreaterThanOrEqual(2);
+      preset.stops.forEach((stop) => {
+        expect(stop.offset).toBeGreaterThanOrEqual(0);
+        expect(stop.offset).toBeLessThanOrEqual(1);
+        expect(stop.color).toMatch(hexPattern);
+      });
     });
   });
 });
