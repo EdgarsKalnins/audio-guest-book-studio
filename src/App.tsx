@@ -80,22 +80,39 @@ export const App: React.FC = () => {
 
   const loadDemoAssets = async () => {
     try {
+      let resolvedPhotoUrl = demoPhotoUrl;
+      let resolvedAudioUrl = demoAudioUrl;
+      let resolvedAudioDiskPath = demoAudioUrl;
+
+      if (window.electronAPI) {
+        try {
+          const demoInfo = await window.electronAPI.getDemoAssets();
+          if (demoInfo) {
+            resolvedPhotoUrl = demoInfo.photoUrl;
+            resolvedAudioUrl = demoInfo.audioUrl;
+            resolvedAudioDiskPath = demoInfo.audioPath;
+          }
+        } catch (e) {
+          console.warn('[Demo] getDemoAssets fallback:', e);
+        }
+      }
+
       // Load demo background photo
       const img = new Image();
-      img.src = demoPhotoUrl;
+      img.src = resolvedPhotoUrl;
       img.onload = () => {
         setBgImage(img);
-        setConfig((prev) => ({ ...prev, imagePath: demoPhotoUrl }));
+        setConfig((prev) => ({ ...prev, imagePath: resolvedPhotoUrl }));
       };
 
       // Load demo audio voicemail
-      const response = await fetch(demoAudioUrl);
+      const response = await fetch(resolvedAudioUrl);
       const arrayBuffer = await response.arrayBuffer();
       const decoded = await audioEngineRef.current.loadAudioFromBuffer(arrayBuffer);
 
       setConfig((prev) => ({
         ...prev,
-        audioPath: demoAudioUrl,
+        audioPath: resolvedAudioDiskPath,
         audioName: 'Sarah & Michael - Wedding Message #1.mp3',
         audioDuration: decoded.duration,
         audioSettings: {
@@ -140,9 +157,13 @@ export const App: React.FC = () => {
   };
 
   // Helper to load background photo
-  const loadImageSource = (imageSrc: string) => {
+  const loadImageSource = (imageDiskOrUrl: string) => {
+    const streamUrl = window.electronAPI
+      ? window.electronAPI.getMediaUrl(imageDiskOrUrl)
+      : imageDiskOrUrl;
+
     const img = new Image();
-    img.src = imageSrc;
+    img.src = streamUrl;
     img.onload = () => {
       setBgImage(img);
       // Auto-detect aspect ratio based on image dimensions
@@ -158,7 +179,7 @@ export const App: React.FC = () => {
 
       setConfig((prev) => ({
         ...prev,
-        imagePath: imageSrc,
+        imagePath: imageDiskOrUrl,
         aspectRatio: detectedAspect,
       }));
     };
@@ -181,26 +202,44 @@ export const App: React.FC = () => {
 
     // If an image was dropped
     if (imageFile) {
-      // In Electron, File objects have .path
-      const anyFile = imageFile as unknown as { path?: string };
-      const imgPath = anyFile.path || URL.createObjectURL(imageFile);
+      let imgPath = '';
+      if (window.electronAPI) {
+        imgPath = window.electronAPI.getPathForFile(imageFile);
+      }
+      if (!imgPath) {
+        const anyFile = imageFile as unknown as { path?: string };
+        imgPath = anyFile.path || URL.createObjectURL(imageFile);
+      }
       loadImageSource(imgPath);
     }
 
     // If audio file(s) were dropped
     if (audioFiles.length === 1) {
       const single = audioFiles[0];
-      const anyFile = single as unknown as { path?: string };
-      const p = anyFile.path || URL.createObjectURL(single);
+      let p = '';
+      if (window.electronAPI) {
+        p = window.electronAPI.getPathForFile(single);
+      }
+      if (!p) {
+        const anyFile = single as unknown as { path?: string };
+        p = anyFile.path || URL.createObjectURL(single);
+      }
       loadAudioSource(p, single.name);
     } else if (audioFiles.length > 1) {
       // Multiple audio files -> Add to batch queue
       const newItems: BatchItem[] = audioFiles.map((f, idx) => {
-        const anyF = f as unknown as { path?: string };
+        let p = '';
+        if (window.electronAPI) {
+          p = window.electronAPI.getPathForFile(f);
+        }
+        if (!p) {
+          const anyF = f as unknown as { path?: string };
+          p = anyF.path || URL.createObjectURL(f);
+        }
         return {
           id: `${Date.now()}-${idx}`,
           name: f.name,
-          path: anyF.path || URL.createObjectURL(f),
+          path: p,
           status: 'idle',
         };
       });
@@ -211,9 +250,7 @@ export const App: React.FC = () => {
       }));
 
       // Also load the first one into the live preview
-      const first = audioFiles[0];
-      const anyFirst = first as unknown as { path?: string };
-      loadAudioSource(anyFirst.path || URL.createObjectURL(first), first.name);
+      loadAudioSource(newItems[0].path, newItems[0].name);
 
       setIsBatchMode(true);
       setIsExportModalOpen(true);
@@ -348,6 +385,9 @@ export const App: React.FC = () => {
     setExportProgress({ status: 'rendering', percentage: 0 });
 
     for (let i = 0; i < config.batchQueue.length; i++) {
+      if (isCancelledRef.current) {
+        break; // Clean batch abort
+      }
       const item = config.batchQueue[i];
 
       // Update status to rendering
@@ -371,7 +411,8 @@ export const App: React.FC = () => {
         await audioEngineRef.current.loadAudioFromBuffer(arrayBuf);
 
         const safeBase = item.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_');
-        const outFilePath = `${targetDir}/${safeBase}_visualizer.mp4`;
+        const cleanDir = targetDir.endsWith('/') ? targetDir.slice(0, -1) : targetDir;
+        const outFilePath = `${cleanDir}/${safeBase}_visualizer.mp4`;
 
         isCancelledRef.current = false;
 

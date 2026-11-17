@@ -17,8 +17,8 @@ export async function runExportPipeline(options: RenderPipelineOptions): Promise
   const { audioEngine, bgImage, config, audioFilePath, outputPath, onProgress, onStatus, isCancelledRef } = options;
 
   const aspect = ASPECT_RATIOS[config.aspectRatio];
-  const width = aspect.width;
-  const height = aspect.height;
+  const width = aspect.width - (aspect.width % 2);
+  const height = aspect.height - (aspect.height % 2);
   const fps = 30;
 
   const trimStart = Math.max(0, config.audioSettings.trimStart);
@@ -57,15 +57,33 @@ export async function runExportPipeline(options: RenderPipelineOptions): Promise
   const freqData = new Uint8Array(256);
   const timeData = new Float32Array(512);
 
+  // Wire backpressure drain listener
+  let drainPromise: Promise<void> | null = null;
+  let drainResolver: (() => void) | null = null;
+
+  const cleanupDrain = window.electronAPI?.onExportDrain(() => {
+    if (drainResolver) {
+      drainResolver();
+      drainResolver = null;
+      drainPromise = null;
+    }
+  });
+
   onStatus('Rendering frames...');
 
   // 3. Render frame by frame
   for (let frame = 0; frame < totalFrames; frame++) {
     if (isCancelledRef.current) {
+      if (cleanupDrain) cleanupDrain();
       if (window.electronAPI) {
         await window.electronAPI.cancelExport();
       }
       throw new Error('Export cancelled');
+    }
+
+    // Wait if backpressure occurred
+    if (drainPromise) {
+      await drainPromise;
     }
 
     const currentOffset = frame / fps;
@@ -98,17 +116,19 @@ export async function runExportPipeline(options: RenderPipelineOptions): Promise
     const uint8 = new Uint8Array(buf);
 
     if (window.electronAPI) {
-      await window.electronAPI.sendFrame(uint8);
+      window.electronAPI.sendFrame(uint8);
     }
 
     const pct = Math.round(((frame + 1) / totalFrames) * 95);
     onProgress(pct, frame + 1, totalFrames);
 
-    // Yield to keep UI responsive every 10 frames
-    if (frame % 10 === 0) {
+    // Yield every 8 frames to keep UI responsive
+    if (frame % 8 === 0) {
       await new Promise((r) => setTimeout(r, 0));
     }
   }
+
+  if (cleanupDrain) cleanupDrain();
 
   onStatus('Finalizing MP4 video...');
 

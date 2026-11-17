@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog, shell } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, shell, protocol, net } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -15,6 +15,21 @@ export const RENDERER_DIST = path.join(process.env.APP_ROOT, 'dist');
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   ? path.join(process.env.APP_ROOT, 'public')
   : RENDERER_DIST;
+
+// Register privileged custom media scheme before app is ready
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'wedding-media',
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+      stream: true,
+      bypassCSP: true,
+    },
+  },
+]);
 
 let win: BrowserWindow | null = null;
 let currentExporter: VideoExporter | null = null;
@@ -69,6 +84,22 @@ app.on('activate', () => {
 });
 
 app.whenReady().then(() => {
+  // Handle custom wedding-media:// protocol for fast, secure streaming
+  protocol.handle('wedding-media', (request) => {
+    try {
+      let rawPath = decodeURIComponent(request.url.replace(/^wedding-media:\/\/(?:local-file)?/, ''));
+      if (process.platform === 'win32' && !/^[a-zA-Z]:/.test(rawPath)) {
+        rawPath = rawPath.replace(/^\//, '');
+      } else if (!rawPath.startsWith('/')) {
+        rawPath = '/' + rawPath;
+      }
+      return net.fetch(`file://${rawPath}`);
+    } catch (err) {
+      console.error('[Protocol] Failed to fetch wedding-media:', err);
+      return new Response('Media Not Found', { status: 404 });
+    }
+  });
+
   setupIPCHandlers();
   createWindow();
 });
@@ -131,10 +162,35 @@ function setupIPCHandlers() {
     return res.filePaths[0];
   });
 
+  // Demo assets path provider
+  ipcMain.handle('app:getDemoAssets', () => {
+    let audioPath = path.join(process.env.APP_ROOT, 'src/assets/demo-audio.mp3');
+    let photoPath = path.join(process.env.APP_ROOT, 'src/assets/demo-photo.jpg');
+
+    if (!fs.existsSync(audioPath)) {
+      const assetsDir = path.join(RENDERER_DIST, 'assets');
+      if (fs.existsSync(assetsDir)) {
+        const files = fs.readdirSync(assetsDir);
+        const foundAudio = files.find((f) => f.startsWith('demo-audio') && f.endsWith('.mp3'));
+        const foundPhoto = files.find((f) => f.startsWith('demo-photo') && (f.endsWith('.jpg') || f.endsWith('.png')));
+        if (foundAudio) audioPath = path.join(assetsDir, foundAudio);
+        if (foundPhoto) photoPath = path.join(assetsDir, foundPhoto);
+      }
+    }
+
+    return {
+      audioPath,
+      photoPath,
+      audioUrl: `wedding-media://local-file${audioPath.startsWith('/') ? '' : '/'}${audioPath}`,
+      photoUrl: `wedding-media://local-file${photoPath.startsWith('/') ? '' : '/'}${photoPath}`,
+    };
+  });
+
   // Read file as buffer
   ipcMain.handle('fs:readFile', async (_, filePath: string) => {
     try {
-      const buf = await fs.promises.readFile(filePath);
+      const cleanPath = filePath.replace(/^file:\/\//, '');
+      const buf = await fs.promises.readFile(cleanPath);
       return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -159,6 +215,14 @@ function setupIPCHandlers() {
     }
 
     currentExporter = new VideoExporter();
+
+    // Hook drain callback to notify renderer
+    currentExporter.setDrainCallback(() => {
+      if (win) {
+        win.webContents.send('export:drain');
+      }
+    });
+
     currentExporter.start(
       options,
       (percent, frame) => {
@@ -182,11 +246,11 @@ function setupIPCHandlers() {
     return true;
   });
 
-  // Video Export: Write Frame
-  ipcMain.handle('export:frame', async (_, frameData: Uint8Array) => {
-    if (!currentExporter) return false;
+  // Video Export: Write Frame (High-performance one-way event listener)
+  ipcMain.on('export:frame', (_, frameData: Uint8Array) => {
+    if (!currentExporter) return;
     const buffer = Buffer.from(frameData.buffer, frameData.byteOffset, frameData.byteLength);
-    return currentExporter.writeFrame(buffer, (percent, frame) => {
+    currentExporter.writeFrame(buffer, (percent, frame) => {
       if (win) {
         win.webContents.send('export:progress', { percentage: percent, frame });
       }

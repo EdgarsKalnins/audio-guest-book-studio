@@ -21,8 +21,9 @@ export class VideoExporter {
   private currentOptions: ExportStartOptions | null = null;
   private frameCount = 0;
   private isCanceled = false;
+  private onDrainCallback: (() => void) | null = null;
 
-  private resolveFfmpegPath(): string {
+  public resolveFfmpegPath(): string {
     // 1. Try bundled installer path
     if (ffmpegInstaller && ffmpegInstaller.path && fs.existsSync(ffmpegInstaller.path)) {
       return ffmpegInstaller.path;
@@ -39,6 +40,10 @@ export class VideoExporter {
     return 'ffmpeg';
   }
 
+  public setDrainCallback(cb: () => void) {
+    this.onDrainCallback = cb;
+  }
+
   public start(
     options: ExportStartOptions,
     onProgress: (percent: number, frame: number) => void,
@@ -49,17 +54,32 @@ export class VideoExporter {
     this.frameCount = 0;
     this.isCanceled = false;
 
+    // Robustness 1: Ensure destination directory exists
+    try {
+      const outDir = path.dirname(options.outputPath);
+      if (!fs.existsSync(outDir)) {
+        fs.mkdirSync(outDir, { recursive: true });
+      }
+    } catch (dirErr: unknown) {
+      const msg = dirErr instanceof Error ? dirErr.message : String(dirErr);
+      onError(`Failed to create export directory: ${msg}`);
+      return;
+    }
+
+    // Robustness 2: Enforce even pixel dimensions for H.264
+    const exportWidth = options.width - (options.width % 2);
+    const exportHeight = options.height - (options.height % 2);
+
     const ffmpegPath = this.resolveFfmpegPath();
     console.log('[Exporter] Using FFmpeg path:', ffmpegPath);
 
-    // Audio arguments: trimming
+    // Robustness 3: Precise input audio timing (-ss <start> and -t <duration>)
     const audioArgs: string[] = [];
     if (options.trimStart > 0) {
       audioArgs.push('-ss', options.trimStart.toString());
     }
-    const effEnd = options.trimEnd > 0 ? options.trimEnd : options.duration;
-    if (effEnd > options.trimStart) {
-      audioArgs.push('-to', effEnd.toString());
+    if (options.duration > 0) {
+      audioArgs.push('-t', options.duration.toString());
     }
     audioArgs.push('-i', options.audioPath);
 
@@ -75,6 +95,7 @@ export class VideoExporter {
       '-f', 'image2pipe',
       '-vcodec', 'mjpeg',
       '-r', options.fps.toString(),
+      '-s', `${exportWidth}x${exportHeight}`,
       '-i', 'pipe:0',
       // Audio input
       ...audioArgs,
@@ -105,10 +126,16 @@ export class VideoExporter {
       console.warn('[Exporter] stdin error (expected if aborted):', err.message);
     });
 
+    // Handle backpressure drain
+    this.ffmpegProcess.stdin.on('drain', () => {
+      if (this.onDrainCallback) {
+        this.onDrainCallback();
+      }
+    });
+
     let stderrBuffer = '';
     this.ffmpegProcess.stderr.on('data', (chunk) => {
       stderrBuffer += chunk.toString();
-      // Keep last 1000 chars of stderr for diagnostics
       if (stderrBuffer.length > 2000) {
         stderrBuffer = stderrBuffer.substring(stderrBuffer.length - 2000);
       }

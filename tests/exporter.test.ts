@@ -1,14 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { VideoExporter } from '../electron/exporter';
 import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
 
 describe('VideoExporter', () => {
   it('instantiates cleanly and can resolve an existing ffmpeg binary', () => {
     const exporter = new VideoExporter();
     expect(exporter).toBeDefined();
 
-    // Access private resolveFfmpegPath via prototype or cast
-    const resolvedPath = (exporter as unknown as { resolveFfmpegPath: () => string }).resolveFfmpegPath();
+    const resolvedPath = exporter.resolveFfmpegPath();
     expect(resolvedPath).toBeTruthy();
     expect(fs.existsSync(resolvedPath) || resolvedPath === 'ffmpeg').toBe(true);
   });
@@ -17,4 +18,98 @@ describe('VideoExporter', () => {
     const exporter = new VideoExporter();
     expect(() => exporter.cancel()).not.toThrow();
   });
+
+  it('supports setting drain backpressure callback', () => {
+    const exporter = new VideoExporter();
+    let drainCalled = false;
+    exporter.setDrainCallback(() => {
+      drainCalled = true;
+    });
+    expect((exporter as unknown as { onDrainCallback: unknown }).onDrainCallback).toBeDefined();
+  });
+
+  it('auto-creates destination directories that do not exist yet', () => {
+    const exporter = new VideoExporter();
+    const tempDir = path.join(os.tmpdir(), `wedding-test-${Date.now()}`, 'nested');
+    const tempOut = path.join(tempDir, 'output.mp4');
+
+    expect(fs.existsSync(tempDir)).toBe(false);
+
+    // Call start with dummy options to trigger directory creation
+    exporter.start(
+      {
+        outputPath: tempOut,
+        audioPath: 'dummy.mp3',
+        width: 1081, // Odd dimension test
+        height: 1919, // Odd dimension test
+        fps: 30,
+        duration: 1,
+        totalFrames: 30,
+        trimStart: 0,
+        trimEnd: 1,
+        voiceBoost: false,
+      },
+      () => {},
+      () => {},
+      () => {}
+    );
+
+    // Directory must now exist
+    expect(fs.existsSync(tempDir)).toBe(true);
+    exporter.cancel();
+
+    // Clean up
+    fs.rmSync(path.dirname(tempDir), { recursive: true, force: true });
+  });
 });
+
+  it('performs real end-to-end video compilation with FFmpeg', async () => {
+    const exporter = new VideoExporter();
+    const tempDir = path.join(os.tmpdir(), `wedding-e2e-${Date.now()}`);
+    const outPath = path.join(tempDir, 'test_export.mp4');
+    const audioPath = path.resolve('src/assets/demo-audio.mp3');
+
+    // Create a 1080x1920 test JPEG frame buffer using ffmpeg
+    const framePath = path.join(tempDir, 'frame.jpg');
+    fs.mkdirSync(tempDir, { recursive: true });
+    
+    const ffmpegBin = exporter.resolveFfmpegPath();
+    const { execSync } = await import('node:child_process');
+    execSync(`"${ffmpegBin}" -y -f lavfi -i color=c=0x1E1510:s=1080x1920 -frames:v 1 "${framePath}"`);
+    const frameBuffer = fs.readFileSync(framePath);
+
+    const exportPromise = new Promise<string>((resolve, reject) => {
+      exporter.start(
+        {
+          outputPath: outPath,
+          audioPath,
+          width: 1080,
+          height: 1920,
+          fps: 30,
+          duration: 1,
+          totalFrames: 30,
+          trimStart: 0,
+          trimEnd: 1,
+          voiceBoost: false,
+        },
+        () => {},
+        (finalPath) => resolve(finalPath),
+        (err) => reject(new Error(err))
+      );
+    });
+
+    // Write 30 frames
+    for (let i = 0; i < 30; i++) {
+      exporter.writeFrame(frameBuffer, () => {});
+    }
+    exporter.finish();
+
+    const resultPath = await exportPromise;
+    expect(fs.existsSync(resultPath)).toBe(true);
+
+    const stats = fs.statSync(resultPath);
+    expect(stats.size).toBeGreaterThan(1000); // Valid MP4 file generated
+
+    // Clean up
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }, 15000);
