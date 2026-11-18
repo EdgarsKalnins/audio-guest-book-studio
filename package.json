@@ -43,11 +43,44 @@
   "build": {
     "appId": "com.audioguestbookstudio.app",
     "productName": "Audio Guest Book Studio",
+    "icon": "build/icon.icns",
     "mac": {
       "category": "public.app-category.video",
+      "icon": "build/icon.icns",
+      "identity": null,
       "target": [
-        "dmg",
-        "zip"
+        {
+          "target": "dir",
+          "arch": [
+            "arm64"
+          ]
+        },
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ]
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
       ]
     },
     "win": {
@@ -57,7 +90,12 @@
     },
     "files": [
       "dist/**/*",
-      "dist-electron/**/*"
+      "dist-electron/**/*",
+      "node_modules/@ffmpeg-installer/**/*"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "**/node_modules/@ffmpeg-installer/**"
     ]
   },
   "dependencies": {

@@ -27,9 +27,15 @@ export class VideoExporter {
   public onSpawnCallback: ((proc: ChildProcessWithoutNullStreams) => void) | null = null;
 
   public resolveFfmpegPath(): string {
-    // 1. Try bundled installer path
-    if (ffmpegInstaller && ffmpegInstaller.path && fs.existsSync(ffmpegInstaller.path)) {
-      return ffmpegInstaller.path;
+    // 1. Try bundled installer path (with asar unpacking support for packaged desktop app)
+    if (ffmpegInstaller && ffmpegInstaller.path) {
+      const unpackedPath = ffmpegInstaller.path.replace('app.asar', 'app.asar.unpacked');
+      if (fs.existsSync(unpackedPath)) {
+        return unpackedPath;
+      }
+      if (fs.existsSync(ffmpegInstaller.path)) {
+        return ffmpegInstaller.path;
+      }
     }
     // 2. Try common system paths on macOS / Linux
     const commonPaths = [
