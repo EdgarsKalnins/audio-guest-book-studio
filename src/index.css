@@ -141,3 +141,32 @@ input[type="range"] {
 .animate-scale-up {
   animation: scaleUp 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+@keyframes waveform {
+  0%, 100% {
+    transform: scaleY(0.25);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.animate-waveform {
+  transform-origin: bottom;
+  animation: waveform 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spinSlow 6s linear infinite;
+}

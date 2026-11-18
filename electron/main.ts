@@ -100,6 +100,7 @@ function createWindow() {
     minWidth: 480,
     minHeight: 520,
     backgroundColor: '#0d0d0f',
+    icon: path.join(process.env.VITE_PUBLIC || path.join(__dirname, '../public'), 'icon.png'),
     titleBarStyle: isMac ? 'hidden' : 'default', // Sleek traffic lights on macOS without ugly inset box
     trafficLightPosition: isMac ? { x: 20, y: 18 } : undefined,
     webPreferences: {

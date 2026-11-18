@@ -41,6 +41,8 @@ import { QrWatermarkPanel } from './components/QrWatermarkPanel';
 import { AudioToolsPanel } from './components/AudioToolsPanel';
 import { ExportModal } from './components/ExportModal';
 import { ExitModal } from './components/ExitModal';
+import { AppLogo } from './components/AppLogo';
+import { StudioLoader } from './components/StudioLoader';
 
 import demoAudioUrl from './assets/demo-audio.mp3';
 import demoPhotoUrl from './assets/demo-photo.jpg';
@@ -111,6 +113,8 @@ export const App: React.FC = () => {
     status: 'idle',
     percentage: 0,
   });
+  const [isImportingAudio, setIsImportingAudio] = useState(false);
+  const [importStatusText, setImportStatusText] = useState('Processing audio...');
 
   const [expandedBlocks, setExpandedBlocks] = useState<{ 1: boolean; 2: boolean; 3: boolean }>(() => {
     try {
@@ -379,6 +383,12 @@ export const App: React.FC = () => {
     filesToAdd: Array<{ path: string; name: string; fileBlob?: File }>,
     replaceExisting = false
   ) => {
+    setIsImportingAudio(true);
+    setImportStatusText(
+      filesToAdd.length > 1
+        ? `Importing ${filesToAdd.length} Voicemails...`
+        : `Loading ${filesToAdd[0]?.name || 'Audio Recording'}...`
+    );
     try {
       const newDecodedSources: Array<{ id: string; name: string; path: string; buffer: AudioBuffer }> = [];
 
@@ -435,6 +445,8 @@ export const App: React.FC = () => {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       alert(`Error adding audio to timeline sequence: ${msg}`);
+    } finally {
+      setIsImportingAudio(false);
     }
   };
 
@@ -920,9 +932,7 @@ export const App: React.FC = () => {
       {/* Mobile & Tablet Header Bar (< 1024px: lg:hidden) */}
       <div className="lg:hidden flex items-center justify-between px-2.5 sm:px-4 py-1.5 sm:py-2 bg-white dark:bg-[#131316] border-b border-zinc-200 dark:border-white/[0.08] shrink-0 z-30 transition-colors">
         <div className="flex items-center gap-1.5 min-w-0 pr-1">
-          <div className="w-5 h-5 rounded-md bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 flex items-center justify-center text-zinc-700 dark:text-zinc-200 shrink-0">
-            <Sparkle className="w-3 h-3 text-amber-500" weight="fill" />
-          </div>
+          <AppLogo size={20} variant="rendered" className="rounded-md shrink-0 shadow-2xs" />
           <span className="text-xs font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 truncate">
             <span className="hidden sm:inline">Audio </span>Guest Book Studio
           </span>
@@ -1008,9 +1018,7 @@ export const App: React.FC = () => {
           className="hidden lg:flex px-4 py-2.5 border-b border-zinc-200 dark:border-white/[0.08] items-center justify-between app-drag-region bg-white dark:bg-[#131316] transition-colors shrink-0"
         >
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-6 h-6 rounded-md bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 flex items-center justify-center shadow-2xs text-zinc-700 dark:text-zinc-200 shrink-0">
-              <Sparkle className="w-3 h-3 text-amber-500" weight="fill" />
-            </div>
+            <AppLogo size={24} variant="rendered" className="rounded-md shrink-0 shadow-2xs" />
             <div className="min-w-0 flex items-baseline gap-1.5">
               <h1 className="text-xs font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 truncate">
                 Audio Guest Book Studio
@@ -1354,6 +1362,15 @@ export const App: React.FC = () => {
         tracksCount={config.timelineTracks?.length || (config.audioPath ? 1 : 0)}
         audioName={config.audioName || undefined}
       />
+
+      {/* Fullscreen Luxury Audio Ingestion Loader */}
+      {isImportingAudio && (
+        <StudioLoader
+          variant="fullscreen"
+          label={importStatusText}
+          sublabel="Aligning continuous audio guestbook timeline"
+        />
+      )}
     </div>
   );
 };
