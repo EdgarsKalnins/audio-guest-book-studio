@@ -60,8 +60,8 @@ npm run dev
 - **Strict Privacy Requirement**: Zero telemetry, zero analytics, zero external network pings. All processing runs 100% locally.
 
 ### 📖 AI Agent & Roadmap References:
-- **[AGENTS.md](AGENTS.md)**: Engineering handbook with architecture rules and step-by-step implementation playbooks for upcoming features.
-- **[ROADMAP.md](ROADMAP.md)**: Complete specifications, user stories, and acceptance criteria for all 10 planned features.
+- **[AGENTS.md](AGENTS.md)**: AI agent engineering handbook with architecture rules, completed feature audit, and technical horizons.
+- **[ROADMAP.md](ROADMAP.md)**: Complete specifications, user stories, acceptance criteria, and post-v1.0 roadmap.
 
 ---
 

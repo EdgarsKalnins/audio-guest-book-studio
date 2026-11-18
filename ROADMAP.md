@@ -208,28 +208,53 @@ During deep end-to-end integration audits between frontend canvas clocks and bac
 
 ```mermaid
 flowchart LR
-    subgraph Phase1["Phase 1: Workflow & Social Polish (Short Term)"]
+    subgraph Phase1["Phase 1: Workflow & Social Polish (Completed)"]
         F02["#02: Safe-Zone Overlays & Aspect Ratios"]
         F09["#09: Waveform Gradients & Styling"]
         F10["#10: Dynamic QR Code Watermark"]
     end
 
-    subgraph Phase2["Phase 2: Power-User & Studio Pipelines (Mid Term)"]
+    subgraph Phase2["Phase 2: Power-User & Studio Pipelines (Completed)"]
         F01["#01: Batch SD Card Exporter"]
         F03["#03: Audio Noise Cleanup & DSP"]
         F04["#04: Transparent ProRes/WebM Export"]
         F05["#05: Silence Trimmer & Greeting Prepend"]
     end
 
-    subgraph Phase3["Phase 3: Creative & AI Evolution (Long Term)"]
-        F06["#06: Polaroid & Vintage Frame Templates (Done)"]
-        F07["#07: Looping Video & B-Roll Backgrounds (Done)"]
-        F08["#08: Offline Whisper AI Subtitles (Done)"]
+    subgraph Phase3["Phase 3: Creative & AI Evolution (Completed)"]
+        F06["#06: Polaroid & Vintage Frame Templates"]
+        F07["#07: Looping Video & B-Roll Backgrounds"]
+        F08["#08: Offline Whisper AI Subtitles"]
+    end
+
+    subgraph Phase4["Phase 4: Next-Gen Horizons (Future Milestones)"]
+        M01["WebGPU Local Whisper WASM"]
+        M02["Timeline Drag & Drop Reordering"]
+        M03["SD Card Volume Auto-Detect"]
+        M04["Custom Theme Preset Storage"]
     end
 
     Phase1 --> Phase2
     Phase2 --> Phase3
+    Phase3 --> Phase4
 ```
+
+---
+
+## 🔮 Phase 4: Future Horizons & Technical Milestones
+
+With all 10 core roadmap capabilities successfully delivered, the following post-v1.0 enhancements represent the next engineering horizon:
+
+1. **WebGPU Local Whisper In-Browser Transcription**:
+   - Bundle an offline Whisper-tiny ONNX runner via WebGPU to generate instant word-by-word karaoke captions with zero external file ingestion.
+2. **Interactive Multi-Track Drag-and-Drop Reordering**:
+   - Provide visual drag handles in `MediaDropzone.tsx` sequence tracklist allowing instant rearrangement of audio order before master rendering.
+3. **Mounted SD Card Volume Auto-Detection**:
+   - Monitor system mount events in `electron/main.ts` for attached camera/audio SD cards and prompt with a 1-click batch import workflow.
+4. **Preset Storage & User Configuration**:
+   - Allow operators to save custom styling presets (typography, palettes, templates, frame styles) to a local JSON profile.
+5. **Cross-Platform Automated Release Packaging**:
+   - GitHub Actions workflow matrix publishing signed universal macOS `.dmg`, Windows `.exe`, and Linux `.AppImage` release binaries.
 
 ---
 
