@@ -1,4 +1,5 @@
 import React from 'react';
+import appIconUrl from '../assets/app-icon.png';
 
 export interface AppLogoProps {
   size?: number | 'sm' | 'md' | 'lg' | 'xl';
@@ -36,7 +37,7 @@ export const AppLogo: React.FC<AppLogoProps> = ({
         style={{ width: pixelSize, height: pixelSize }}
       >
         <img
-          src="/icon.png"
+          src={appIconUrl}
           alt="Audio Guest Book Studio"
           className="w-full h-full object-cover rounded-2xl"
           loading="eager"

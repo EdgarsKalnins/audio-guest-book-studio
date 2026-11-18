@@ -55,6 +55,15 @@ export async function runWebCodecsHardwareExport(
 
   onStatus('Pre-rendering static layers & initializing hardware encoder...');
 
+  // Ensure typography fonts are fully loaded before capturing static canvas
+  if (typeof document !== 'undefined' && document.fonts && typeof document.fonts.ready?.then === 'function') {
+    try {
+      await document.fonts.ready;
+    } catch {
+      // Ignored
+    }
+  }
+
   // 1. Pre-render static background photo, vignette, and typography once
   const staticCache = createStaticBackgroundCache(width, height, bgImage, config);
 

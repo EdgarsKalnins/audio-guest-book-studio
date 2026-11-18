@@ -117,6 +117,8 @@ export class VideoExporter {
       '-s', `${exportWidth}x${exportHeight}`,
       '-i', 'pipe:0',
       ...audioArgs,
+      '-map', '0:v:0',
+      '-map', '1:a:0?',
       ...audioFilterArgs,
       ...videoCodecArgs,
       ...audioCodecArgs,

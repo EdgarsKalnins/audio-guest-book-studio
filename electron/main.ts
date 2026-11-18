@@ -212,7 +212,7 @@ app.on('activate', () => {
 
 app.whenReady().then(() => {
   // Handle custom wedding-media:// protocol for fast, secure streaming
-  protocol.handle('wedding-media', (request) => {
+  protocol.handle('wedding-media', async (request) => {
     try {
       let rawPath = decodeURIComponent(request.url.replace(/^wedding-media:\/\/(?:local-file)?/, ''));
       if (process.platform === 'win32' && !/^[a-zA-Z]:/.test(rawPath)) {
@@ -220,6 +220,31 @@ app.whenReady().then(() => {
       } else if (!rawPath.startsWith('/')) {
         rawPath = '/' + rawPath;
       }
+
+      // If file is inside an asar archive, serve via Electron fs buffer (net.fetch cannot open asar paths)
+      if (rawPath.includes('app.asar')) {
+        if (fs.existsSync(rawPath)) {
+          const buf = fs.readFileSync(rawPath);
+          const ext = path.extname(rawPath).toLowerCase();
+          const mimeTypes: Record<string, string> = {
+            '.mp3': 'audio/mpeg',
+            '.wav': 'audio/wav',
+            '.m4a': 'audio/mp4',
+            '.aac': 'audio/aac',
+            '.ogg': 'audio/ogg',
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.png': 'image/png',
+            '.webp': 'image/webp',
+            '.mp4': 'video/mp4',
+            '.webm': 'video/webm',
+          };
+          return new Response(buf, {
+            headers: { 'Content-Type': mimeTypes[ext] || 'application/octet-stream' },
+          });
+        }
+      }
+
       return net.fetch(`file://${rawPath}`);
     } catch (err) {
       console.error('[Protocol] Failed to fetch wedding-media:', err);
@@ -331,6 +356,35 @@ function setupIPCHandlers() {
         const foundPhoto = files.find((f) => f.startsWith('demo-photo') && (f.endsWith('.jpg') || f.endsWith('.png')));
         if (foundAudio) audioPath = path.join(assetsDir, foundAudio);
         if (foundPhoto) photoPath = path.join(assetsDir, foundPhoto);
+      }
+    }
+
+    // In packaged app, if assets are packed inside app.asar, extract them to a physical temp file
+    // so external binaries like FFmpeg can access them without ENOTDIR errors!
+    if (audioPath.includes('app.asar')) {
+      try {
+        const tempDemoDir = path.join(os.tmpdir(), 'wedding_studio_demo');
+        if (!fs.existsSync(tempDemoDir)) fs.mkdirSync(tempDemoDir, { recursive: true });
+        const extractedAudio = path.join(tempDemoDir, path.basename(audioPath));
+        if (!fs.existsSync(extractedAudio) && fs.existsSync(audioPath)) {
+          fs.writeFileSync(extractedAudio, fs.readFileSync(audioPath));
+        }
+        audioPath = extractedAudio;
+      } catch (e) {
+        console.warn('[Demo] Failed to extract demo audio from asar:', e);
+      }
+    }
+    if (photoPath.includes('app.asar')) {
+      try {
+        const tempDemoDir = path.join(os.tmpdir(), 'wedding_studio_demo');
+        if (!fs.existsSync(tempDemoDir)) fs.mkdirSync(tempDemoDir, { recursive: true });
+        const extractedPhoto = path.join(tempDemoDir, path.basename(photoPath));
+        if (!fs.existsSync(extractedPhoto) && fs.existsSync(photoPath)) {
+          fs.writeFileSync(extractedPhoto, fs.readFileSync(photoPath));
+        }
+        photoPath = extractedPhoto;
+      } catch (e) {
+        console.warn('[Demo] Failed to extract demo photo from asar:', e);
       }
     }
 

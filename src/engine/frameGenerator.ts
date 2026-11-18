@@ -61,6 +61,15 @@ async function runFfmpegPipeExport(options: RenderPipelineOptions): Promise<stri
 
   onStatus('Initializing encoder fallback...');
 
+  // Ensure typography fonts are fully loaded before capturing static canvas
+  if (typeof document !== 'undefined' && document.fonts && typeof document.fonts.ready?.then === 'function') {
+    try {
+      await document.fonts.ready;
+    } catch {
+      // Ignored
+    }
+  }
+
   // Pre-render static background & typography once
   const staticCache = createStaticBackgroundCache(width, height, bgImage, config);
 
